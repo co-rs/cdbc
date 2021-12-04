@@ -9,8 +9,12 @@ version = "0.1.0"
 edition = "2021"
 authors = ["zhuxiujia@qq.com"]
 
+
+[features]
+offline = ["serde"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 may = "0.3"
-hashlink = "0.7"
+hashlink = "0.7.0"
+serde={version = "1.0.130" ,optional = true}
