@@ -17,4 +17,5 @@ offline = ["serde"]
 [dependencies]
 may = "0.3"
 hashlink = "0.7.0"
+thiserror = "1.0.30"
 serde={version = "1.0.130" ,optional = true}
