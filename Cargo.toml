@@ -18,4 +18,6 @@ offline = ["serde"]
 may = "0.3"
 hashlink = "0.7.0"
 thiserror = "1.0.30"
+bytes = '1.0.0'
+memchr = "2.3.4"
 serde={version = "1.0.130" ,optional = true}
