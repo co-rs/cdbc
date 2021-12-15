@@ -10,7 +10,9 @@ use futures_util::{pin_mut, FutureExt, SinkExt};
 use crate::error::Error;
 
 pub struct TryAsyncStream<'a, T> {
+    //TODO replace to may receiver
     receiver: mpsc::Receiver<Result<T, Error>>,
+    //TODO replace to fn
     future: BoxFuture<'a, Result<(), Error>>,
 }
 
