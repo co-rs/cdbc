@@ -2,8 +2,8 @@ use std::io::{BufRead, Cursor, Write};
 use crate::error::Error;
 use may::net::TcpStream;
 
-// Atomic operation that writes the full buffer to the stream, flushes the stream, and then
-// clears the buffer (even if either of the two previous operations failed).
+/// Atomic operation that writes the full buffer to the stream, flushes the stream, and then
+/// clears the buffer (even if either of the two previous operations failed).
 pub struct WriteAndFlush<'a> {
     pub(super) stream: &'a mut TcpStream,
     pub(super) buf: Cursor<&'a mut Vec<u8>>,
