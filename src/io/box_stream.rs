@@ -1,3 +1,5 @@
+use std::pin::Pin;
+
 pub trait Stream {
     type Item;
     #[inline]
@@ -7,5 +9,5 @@ pub trait Stream {
     fn next(&mut self) -> Option<Self::Item>;
 }
 
-pub type BoxStream<'a, T> = Box<dyn Stream<Item = T> + Send + 'a>;
+pub type BoxStream<'a, T> = Pin<Box<dyn Stream<Item = T> + Send + 'a>>;
 
