@@ -6,6 +6,9 @@ use std::error::Error as StdError;
 use std::fmt::Display;
 use std::io;
 use std::result::Result as StdResult;
+use crate::database::Database;
+use crate::type_info::TypeInfo;
+use crate::types::Type;
 
 // use crate::database::Database;
 // use crate::type_info::TypeInfo;
@@ -131,6 +134,17 @@ impl Error {
     }
 }
 
+pub(crate) fn mismatched_types<DB: Database, T: Type<DB>>(ty: &DB::TypeInfo) -> BoxDynError {
+    // TODO: `#name` only produces `TINYINT` but perhaps we want to show `TINYINT(1)`
+    format!(
+        "mismatched types; Rust type `{}` (as SQL type `{}`) is not compatible with SQL type `{}`",
+        type_name::<T>(),
+        T::type_info().name(),
+        ty.name()
+    )
+        .into()
+}
+
 /// An error that was returned from the database.
 pub trait DatabaseError: 'static + Send + Sync + StdError {
     /// The primary, human-readable error message.
@@ -223,7 +237,9 @@ impl<E> From<E> for Error
 }
 
 
+
 // Format an error message as a `Protocol` error
+#[macro_export]
 macro_rules! err_protocol {
     ($expr:expr) => {
         $crate::error::Error::Protocol($expr.into())
