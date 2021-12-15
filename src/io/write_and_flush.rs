@@ -20,6 +20,7 @@ impl <'a>WriteAndFlush<'a> {
                 break;
             }
         }
+        self.stream.flush()?;
         return Ok(());
     }
 }
