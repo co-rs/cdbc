@@ -4,3 +4,4 @@ pub mod buf_stream;
 pub mod decode;
 pub mod encode;
 pub mod write_and_flush;
+pub mod box_stream;
