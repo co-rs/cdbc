@@ -3,6 +3,37 @@ use std::sync::mpsc::RecvError;
 use may::sync::mpsc::{Receiver, Sender};
 use crate::error::Result;
 
+pub trait Stream {
+    type Item;
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, None)
+    }
+
+    fn next(&mut self) -> Option<Self::Item>;
+
+    fn for_each(&mut self, f: fn(a: Self::Item)) where Self: Sized {
+        loop {
+            if let Some(v) = self.next() {
+                f(v);
+            } else {
+                break;
+            }
+        }
+    }
+}
+
+pub trait TryStream: Stream {
+    type Ok;
+    fn try_next(&mut self) -> crate::error::Result<Option<Self::Ok>>;
+
+    fn try_collect(&mut self) -> crate::error::Result<Self::Ok>;
+
+    fn try_filter_map<F>(&mut self, f: F) -> ChanStream<Self::Item> where F: FnMut(Self::Ok) -> Self::Item;
+}
+
+
+/// Channel Stream
 pub struct ChanStream<T> {
     pub recv: Receiver<T>,
     pub send: Sender<T>,
@@ -20,76 +51,56 @@ impl<T> ChanStream<T> {
 }
 
 impl<T> Stream for ChanStream<T> {
-    type Item = T;
+    type Item = Result<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        return match self.try_next() {
-            Ok(v) => { v }
+        match self.recv.recv() {
+            Ok(v) => { Some(Ok(v)) }
             Err(e) => { None }
-        };
+        }
     }
+}
 
-    fn try_next(&mut self) -> crate::error::Result<Option<Self::Item>> {
+
+impl<T> TryStream for ChanStream<T> {
+    type Ok = T;
+
+    fn try_next(&mut self) -> crate::error::Result<Option<Self::Ok>> {
         return match self.recv.recv() {
             Ok(v) => { Ok(Some(v)) }
             Err(e) => { Err(e.into()) }
         };
     }
 
-    fn try_collect(&mut self) -> crate::Result<Self::Item> {
+    fn try_collect(&mut self) -> crate::Result<Self::Ok> {
         match self.recv.recv() {
             Ok(v) => { Ok(v) }
             Err(e) => { Err(e.into()) }
         }
     }
 
-    fn try_filter_map<F>(&mut self, mut f: F) -> Result<ChanStream<Result<Self::Item>>> where F:FnMut(Self::Item)->Self::Item {
-        let stream = ChanStream::<Result<Self::Item>>::new(|v| {});
+    fn try_filter_map<F>(&mut self, mut f: F) -> ChanStream<Self::Item> where F: FnMut(Self::Ok) -> Self::Item {
+        let stream = ChanStream::<Self::Item>::new(|v| {});
         loop {
-            let item = self.try_next()?;
-            if let Some(item)=item{
-                stream.send.send(Ok((f)(item)));
-            }else{
-                break;
+            match self.try_next() {
+                Ok(v) => {
+                    if let Some(item) = v {
+                        stream.send.send((f)(item));
+                    } else {
+                        break;
+                    }
+                }
+                Err(e) => {
+                    stream.send.send(Err(e.into()));
+                    break;
+                }
             }
         }
-        return Ok(stream);
+        return stream;
     }
 }
 
 
-pub trait Stream {
-    type Item;
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (0, None)
-    }
-
-    /// Creates a future that attempts to resolve the next item in the stream.
-    /// If an error is encountered before the next item, the error is returned
-    /// instead.
-    ///
-    /// This is similar to the `Stream::next` combinator, but returns a
-    /// `Result<Option<T>, E>` rather than an `Option<Result<T, E>>`, making
-    /// for easy use with the `?` operator.
-    fn try_next(&mut self) -> crate::error::Result<Option<Self::Item>>;
-
-    fn next(&mut self) -> Option<Self::Item>;
-
-    fn for_each(&mut self, f: fn(a: Self::Item)) where Self: Sized {
-        loop {
-            if let Some(v) = self.next() {
-                f(v);
-            } else {
-                break;
-            }
-        }
-    }
-
-    fn try_collect(&mut self) -> crate::error::Result<Self::Item>;
-
-    fn try_filter_map<F>(&mut self,  f: F) -> Result<ChanStream<Result<Self::Item>>> where F:FnMut(Self::Item)->Self::Item;
-}
 
 
 macro_rules! try_stream {
@@ -112,7 +123,7 @@ mod test {
     use std::thread::sleep;
     use std::time::Duration;
     use may::go;
-    use crate::io::chan_stream::{ChanStream, Stream};
+    use crate::io::chan_stream::{ChanStream, Stream, TryStream};
 
     #[test]
     fn test_try_stream() {
@@ -122,7 +133,7 @@ mod test {
         });
         go!(move ||{
             s.for_each(|item|{
-            println!("{}",item);
+            println!("{:?}",item);
         });
        });
     }
@@ -146,7 +157,7 @@ mod test {
         });
         go!(move ||{
           s.for_each(|v| {
-            println!("{}", v);
+            println!("{:?}", v);
            });
          });
         sleep(Duration::from_secs(1));
