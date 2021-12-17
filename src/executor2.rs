@@ -3,6 +3,7 @@ use crate::describe::Describe;
 use crate::error::Error;
 use either::Either;
 use std::fmt::Debug;
+use futures_util::FutureExt;
 use crate::{chan_stream, collect};
 use crate::io::chan_stream::{ChanStream, Stream, TryStream};
 
@@ -48,24 +49,16 @@ pub trait Executor<'c>: Send + Debug + Sized {
             E: Execute<'q, Self::Database>,
     {
         let mut s = self.fetch_many(query);
-        let n = chan_stream!({
-            loop{
-                if let Some(either)=s.try_next()?{
-                    match either{
-                            Either::Left(rows) => {
-                                r#yield!(Ok(rows));
-                            }
-                            Either::Right(_) => {
-                                end!();
-                            }
-                        }
-                }else {
-                    break;
+        s.map(|either| {
+            match either {
+                Either::Left(rows) => {
+                    Some(rows)
+                }
+                Either::Right(_) => {
+                    None
                 }
             }
-            Ok(())
-        });
-        n
+        })
     }
 
     /// Execute the query and return the generated results as a stream.
@@ -78,23 +71,16 @@ pub trait Executor<'c>: Send + Debug + Sized {
             E: Execute<'q, Self::Database>,
     {
         let mut s = self.fetch_many(query);
-        let n = chan_stream!({
-         loop{
-            if let Some(either)=s.try_next()?{
-                match either{
-                        Either::Left(rows) => {
-                          end!();
-                        }
-                        Either::Right(row) => {
-                           r#yield!(Ok(row));
-                        }
-                    }
-            }else {
-               break Ok(());
+        s.map(|either| {
+            match either{
+                Either::Left(rows) => {
+                    None
+                }
+                Either::Right(row) => {
+                    Some(row)
+                }
             }
-         }
-        });
-        n
+        })
     }
 
     /// Execute multiple queries and return the generated results as a stream

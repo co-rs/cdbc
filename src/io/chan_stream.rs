@@ -37,21 +37,7 @@ pub struct ChanStream<T> {
     pub send: Sender<Option<Result<T>>>,
 }
 
-impl<T> ChanStream<T> {
-    pub fn new<F>(f: F) -> Self where F: FnOnce(Sender<Option<Result<T>>>)-> Result<()> {
-        let (s, r) = may::sync::mpsc::channel();
-        let result=f(s.clone());
-        //send none, make sure work is done
-        if let Err(e)=result{
-            s.send(Some(Err(e)));
-        }
-        s.send(None);
-        Self {
-            recv: r,
-            send: s,
-        }
-    }
-}
+
 
 impl<T> Stream for ChanStream<T> {
     type Item = Result<T>;
@@ -141,6 +127,42 @@ macro_rules! collect {
         })
         }
     };
+}
+
+impl<T> ChanStream<T> {
+    pub fn new<F>(f: F) -> Self where F: FnOnce(Sender<Option<Result<T>>>)-> Result<()> {
+        let (s, r) = may::sync::mpsc::channel();
+        let result=f(s.clone());
+        //send none, make sure work is done
+        if let Err(e)=result{
+            s.send(Some(Err(e)));
+        }
+        s.send(None);
+        Self {
+            recv: r,
+            send: s,
+        }
+    }
+
+    //try map
+    pub fn map<O>(&mut self,f:fn(<ChanStream<T> as TryStream>::Ok)->Option<O>) -> ChanStream<Result<O>> {
+        chan_stream!({
+            loop{
+                if let Some(either)=self.try_next()?{
+                    match f(either){
+                        Some(v)=>{
+                             r#yield!(Ok(v));
+                        }
+                        None =>{
+                             end!();
+                        }
+                    }
+                }else {
+                    break Ok(());
+                }
+            }
+        })
+    }
 }
 
 #[cfg(test)]
