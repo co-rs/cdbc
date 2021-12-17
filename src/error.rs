@@ -236,7 +236,16 @@ impl<E> From<E> for Error
     }
 }
 
-
+impl From<&str> for Error{
+    fn from(arg: &str) -> Self {
+        Self::Protocol(arg.to_string())
+    }
+}
+impl From<String> for Error{
+    fn from(arg: String) -> Self {
+        Self::Protocol(arg)
+    }
+}
 
 // Format an error message as a `Protocol` error
 #[macro_export]

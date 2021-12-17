@@ -19,7 +19,7 @@ pub trait Stream {
         }
     }
 
-    //TODO fn try_collect(&mut self) -> crate::error::Result<Self::Item>
+    fn try_collect(&mut self) -> crate::error::Result<Self::Item>;
 }
 
 pub type BoxStream<'a, T> = Pin<Box<dyn Stream<Item=T> + Send + 'a>>;
@@ -38,6 +38,13 @@ mod test {
 
         fn next(&mut self) -> Option<Self::Item> {
             self.inner.pop()
+        }
+
+        fn try_collect(&mut self) -> crate::Result<Self::Item> {
+            if let Some(v)=self.inner.pop(){
+                return Ok(v)
+            }
+            return Err("none".into());
         }
     }
     #[test]
