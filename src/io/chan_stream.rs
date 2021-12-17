@@ -28,8 +28,6 @@ pub trait TryStream: Stream {
     type Ok;
     fn try_next(&mut self) -> crate::error::Result<Option<Self::Ok>>;
 
-    fn try_collect<C>(&mut self) -> crate::error::Result<C> where C: Default + Extend<Self::Ok> + Debug;
-
     fn try_filter_map<F>(&mut self, f: F) -> ChanStream<Self::Item> where F: FnMut(Self::Ok) -> Option<Self::Item>;
 }
 
@@ -89,19 +87,7 @@ impl<T> TryStream for ChanStream<T> {
         };
     }
 
-    fn try_collect<C>(&mut self) -> crate::error::Result<C> where C: Default + Extend<Self::Ok> + Debug {
-        let mut items = C::default();
-        return Ok(loop {
-            match self.try_next()? {
-                Some(x) => {
-                    items.extend(Some(x))
-                }
-                None => {
-                    break items;
-                }
-            }
-        });
-    }
+
 
     fn try_filter_map<F>(&mut self, mut f: F) -> ChanStream<Self::Item> where F: FnMut(Self::Ok) -> Option<Self::Item> {
         let stream = ChanStream::<Self::Item>::new(|v| {});
@@ -127,13 +113,20 @@ impl<T> TryStream for ChanStream<T> {
 
 
 
-
-macro_rules! try_stream {
+#[macro_export]
+macro_rules! chan_stream {
     ($($block:tt)*) => {
         crate::io::chan_stream::ChanStream::new(move |sender| {
             macro_rules! r#yield {
                 ($v:expr) => {{
-                    let _ = may::sync::mpsc::Sender::send(&sender,Some($v));
+                    may::sync::mpsc::Sender::send(&sender,Some($v));
+                }}
+            }
+
+            ///end loop
+            macro_rules! end {
+                () => {{
+                    may::sync::mpsc::Sender::send(&sender,None);
                 }}
             }
 
@@ -143,6 +136,25 @@ macro_rules! try_stream {
 }
 
 
+/// stream , vec ident
+#[macro_export]
+macro_rules! collect {
+    ($f:ident,$extend:expr) => {
+        {
+        Ok(loop {
+            match $f.try_next()? {
+                Some(x) => {
+                    $extend.extend(Some(x?))
+                }
+                None => {
+                    break $extend;
+                }
+            }
+        })
+        }
+    };
+}
+
 #[cfg(test)]
 mod test {
     use std::thread::sleep;
@@ -151,8 +163,8 @@ mod test {
     use crate::io::chan_stream::{ChanStream, Stream, TryStream};
 
     #[test]
-    fn test_try_stream() {
-        let mut s = try_stream!({
+    fn test_chan_stream() {
+        let mut s = chan_stream!({
               println!("start");
               r#yield!(1);
         });
@@ -161,20 +173,6 @@ mod test {
        });
     }
 
-    #[test]
-    fn test_collect() {
-        let mut s = ChanStream::new(|sender| {
-            sender.send(Some(1));
-            sender.send(Some(2));
-            sender.send(Some(3));
-        });
-        sleep(Duration::from_secs(1));
-        let v: crate::error::Result<Vec<i32>> = s.try_collect();
-        let v = v.unwrap();
-        for x in v {
-            println!("{}", x);
-        }
-    }
 
     #[test]
     fn test_for_each() {
