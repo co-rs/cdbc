@@ -50,9 +50,8 @@ pub trait Executor<'c>: Send + Debug + Sized {
         let mut s = self.fetch_many(query);
         let n = chan_stream!({
             loop{
-                if let Some(v)=s.next(){
-                    if let Ok(either) = v{
-                        match either{
+                if let Some(either)=s.try_next()?{
+                    match either{
                             Either::Left(rows) => {
                                 r#yield!(Ok(rows));
                             }
@@ -60,7 +59,6 @@ pub trait Executor<'c>: Send + Debug + Sized {
                                 end!();
                             }
                         }
-                    }
                 }else {
                     break;
                 }
@@ -82,9 +80,8 @@ pub trait Executor<'c>: Send + Debug + Sized {
         let mut s = self.fetch_many(query);
         let n = chan_stream!({
          loop{
-            if let Some(v)=s.next(){
-                if let Ok(either) = v{
-                    match either{
+            if let Some(either)=s.try_next()?{
+                match either{
                         Either::Left(rows) => {
                           end!();
                         }
@@ -92,7 +89,6 @@ pub trait Executor<'c>: Send + Debug + Sized {
                            r#yield!(Ok(row));
                         }
                     }
-                }
             }else {
                break Ok(());
             }
