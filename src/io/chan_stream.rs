@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Display};
 use std::pin::Pin;
 use std::sync::mpsc::RecvError;
 use may::sync::mpsc::{Receiver, Sender};
@@ -27,7 +28,7 @@ pub trait TryStream: Stream {
     type Ok;
     fn try_next(&mut self) -> crate::error::Result<Option<Self::Ok>>;
 
-    fn try_collect(&mut self) -> crate::error::Result<Self::Ok>;
+    fn try_collect<C>(&mut self) -> crate::error::Result<C> where C: Default + Extend<Self::Ok> + Debug;
 
     fn try_filter_map<F>(&mut self, f: F) -> ChanStream<Self::Item> where F: FnMut(Self::Ok) -> Self::Item;
 }
@@ -35,14 +36,16 @@ pub trait TryStream: Stream {
 
 /// Channel Stream
 pub struct ChanStream<T> {
-    pub recv: Receiver<T>,
-    pub send: Sender<T>,
+    pub recv: Receiver<Option<T>>,
+    pub send: Sender<Option<T>>,
 }
 
 impl<T> ChanStream<T> {
-    pub fn new<F>(f: F) -> Self where F: FnOnce(Sender<T>) {
+    pub fn new<F>(f: F) -> Self where F: FnOnce(Sender<Option<T>>) {
         let (s, r) = may::sync::mpsc::channel();
         f(s.clone());
+        //send none, make sure work is done
+        s.send(None);
         Self {
             recv: r,
             send: s,
@@ -55,7 +58,14 @@ impl<T> Stream for ChanStream<T> {
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.recv.recv() {
-            Ok(v) => { Some(Ok(v)) }
+            Ok(v) => {
+                match v {
+                    None => { None }
+                    Some(v) => {
+                        Some(Ok(v))
+                    }
+                }
+            }
             Err(e) => { None }
         }
     }
@@ -67,16 +77,30 @@ impl<T> TryStream for ChanStream<T> {
 
     fn try_next(&mut self) -> crate::error::Result<Option<Self::Ok>> {
         return match self.recv.recv() {
-            Ok(v) => { Ok(Some(v)) }
+            Ok(v) => {
+                match v {
+                    None => { Ok(None) }
+                    Some(v) => {
+                        Ok(Some(v))
+                    }
+                }
+            }
             Err(e) => { Err(e.into()) }
         };
     }
 
-    fn try_collect(&mut self) -> crate::Result<Self::Ok> {
-        match self.recv.recv() {
-            Ok(v) => { Ok(v) }
-            Err(e) => { Err(e.into()) }
-        }
+    fn try_collect<C>(&mut self) -> crate::error::Result<C> where C: Default + Extend<Self::Ok> + Debug {
+        let mut items = C::default();
+        return Ok(loop {
+            match self.try_next()? {
+                Some(x) => {
+                    items.extend(Some(x))
+                }
+                None => {
+                    break items;
+                }
+            }
+        });
     }
 
     fn try_filter_map<F>(&mut self, mut f: F) -> ChanStream<Self::Item> where F: FnMut(Self::Ok) -> Self::Item {
@@ -84,14 +108,15 @@ impl<T> TryStream for ChanStream<T> {
         loop {
             match self.try_next() {
                 Ok(v) => {
-                    if let Some(item) = v {
-                        stream.send.send((f)(item));
-                    } else {
-                        break;
+                    match v {
+                        None => { break; }
+                        Some(v) => {
+                            stream.send.send(Some((f)(v)));
+                        }
                     }
                 }
                 Err(e) => {
-                    stream.send.send(Err(e.into()));
+                    stream.send.send(Some(Err(e.into())));
                     break;
                 }
             }
@@ -108,7 +133,7 @@ macro_rules! try_stream {
         crate::io::chan_stream::ChanStream::new(move |sender| {
             macro_rules! r#yield {
                 ($v:expr) => {{
-                    let _ = may::sync::mpsc::Sender::send(&sender,$v);
+                    let _ = may::sync::mpsc::Sender::send(&sender,Some($v));
                 }}
             }
 
@@ -141,19 +166,28 @@ mod test {
     #[test]
     fn test_collect() {
         let mut s = ChanStream::new(|sender| {
-            sender.send(1);
-        });
-        go!(move ||{
-           let v= s.try_collect();
-            println!("{:?}",v);
+            sender.send(Some(1));
+            sender.send(Some(2));
+            sender.send(Some(3));
         });
         sleep(Duration::from_secs(1));
+        let f = move || {
+            let v: crate::error::Result<Vec<i32>> = s.try_collect();
+            let v = v.unwrap();
+            for x in v {
+                println!("{}", x);
+            }
+        };
+        go!(f);
+        sleep(Duration::from_secs(3));
     }
 
     #[test]
     fn test_for_each() {
         let mut s = ChanStream::new(|sender| {
-            sender.send(1);
+            sender.send(Some(1));
+            sender.send(Some(2));
+            sender.send(Some(3));
         });
         go!(move ||{
           s.for_each(|v| {
