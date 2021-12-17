@@ -33,8 +33,8 @@ pub trait Executor<'c>: Send + Debug + Sized {
             'c: 'e,
             E: Execute<'q, Self::Database>,
     {
-        let mut s=self.execute_many(query);
-        let mut v:<Self::Database as Database>::QueryResult=Default::default();
+        let mut s = self.execute_many(query);
+        let mut v: <Self::Database as Database>::QueryResult = Default::default();
         collect!(s,  v)
     }
 
@@ -65,6 +65,7 @@ pub trait Executor<'c>: Send + Debug + Sized {
                     break;
                 }
             }
+            Ok(())
         });
         n
     }
@@ -93,7 +94,7 @@ pub trait Executor<'c>: Send + Debug + Sized {
                     }
                 }
             }else {
-               break;
+               break Ok(());
             }
          }
         });
@@ -119,7 +120,7 @@ pub trait Executor<'c>: Send + Debug + Sized {
             'c: 'e,
             E: Execute<'q, Self::Database>
     {
-        let mut f:ChanStream<Result<<Self::Database as Database>::Row,Error>>=self.fetch(query);
+        let mut f: ChanStream<Result<<Self::Database as Database>::Row, Error>> = self.fetch(query);
         let mut v = vec![];
         collect!(f, v)
     }
@@ -128,15 +129,15 @@ pub trait Executor<'c>: Send + Debug + Sized {
     fn fetch_one<'e, 'q: 'e, E: 'q>(
         self,
         query: E,
-    ) ->  Result<<Self::Database as Database>::Row, Error>
+    ) -> Result<<Self::Database as Database>::Row, Error>
         where
             'c: 'e,
             E: Execute<'q, Self::Database>,
     {
-        let row=self.fetch_optional(query)?;
-        match row{
-              Some(row) => Ok(row),
-              None => Err(Error::RowNotFound),
+        let row = self.fetch_optional(query)?;
+        match row {
+            Some(row) => Ok(row),
+            None => Err(Error::RowNotFound),
         }
     }
 
@@ -190,7 +191,7 @@ pub trait Executor<'c>: Send + Debug + Sized {
     fn describe<'e, 'q: 'e>(
         self,
         sql: &'q str,
-    ) ->  Result<Describe<Self::Database>, Error>
+    ) -> Result<Describe<Self::Database>, Error>
         where
             'c: 'e;
 }
