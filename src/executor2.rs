@@ -49,22 +49,22 @@ pub trait Executor<'c>: Send + Debug + Sized {
     {
         let mut s = self.fetch_many(query);
         let n = chan_stream!({
-         loop{
-            if let Some(v)=s.next(){
-                if let Ok(either) = v{
-                    match either{
-                        Either::Left(rows) => {
-                           r#yield!(Ok(rows));
-                        }
-                        Either::Right(_) => {
-                           end!();
+            loop{
+                if let Some(v)=s.next(){
+                    if let Ok(either) = v{
+                        match either{
+                            Either::Left(rows) => {
+                                r#yield!(Ok(rows));
+                            }
+                            Either::Right(_) => {
+                                end!();
+                            }
                         }
                     }
+                }else {
+                    break;
                 }
-            }else {
-               break;
             }
-         }
         });
         n
     }
@@ -78,14 +78,6 @@ pub trait Executor<'c>: Send + Debug + Sized {
             'c: 'e,
             E: Execute<'q, Self::Database>,
     {
-        // self.fetch_many(query)
-        //     .try_filter_map(|step| async move {
-        //         Ok(match step {
-        //             Either::Left(_) => None,
-        //             Either::Right(row) => Some(row),
-        //         })
-        //     })
-        //     .boxed()
         let mut s = self.fetch_many(query);
         let n = chan_stream!({
          loop{
@@ -141,11 +133,6 @@ pub trait Executor<'c>: Send + Debug + Sized {
             'c: 'e,
             E: Execute<'q, Self::Database>,
     {
-        // self.fetch_optional(query)
-        //     .and_then(|row| match row {
-        //         Some(row) => future::ok(row),
-        //         None => future::err(Error::RowNotFound),
-        //     })
         let row=self.fetch_optional(query)?;
         match row{
               Some(row) => Ok(row),
