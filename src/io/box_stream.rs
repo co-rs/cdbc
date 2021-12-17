@@ -102,9 +102,8 @@ mod test {
             sender.send(1);
         });
         go!(move ||{
-            s.for_each(|v| {
-            println!("{}", v);
-            });
+           let v= s.try_collect();
+            println!("{:?}",v);
         });
         sleep(Duration::from_secs(1));
     }
