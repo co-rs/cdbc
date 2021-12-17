@@ -156,10 +156,8 @@ mod test {
               println!("start");
               r#yield!(1);
         });
-        go!(move ||{
-            s.for_each(|item|{
+        s.for_each(|item|{
             println!("{:?}",item);
-        });
        });
     }
 
@@ -171,15 +169,11 @@ mod test {
             sender.send(Some(3));
         });
         sleep(Duration::from_secs(1));
-        let f = move || {
-            let v: crate::error::Result<Vec<i32>> = s.try_collect();
-            let v = v.unwrap();
-            for x in v {
-                println!("{}", x);
-            }
-        };
-        go!(f);
-        sleep(Duration::from_secs(3));
+        let v: crate::error::Result<Vec<i32>> = s.try_collect();
+        let v = v.unwrap();
+        for x in v {
+            println!("{}", x);
+        }
     }
 
     #[test]
@@ -189,11 +183,8 @@ mod test {
             sender.send(Some(2));
             sender.send(Some(3));
         });
-        go!(move ||{
-          s.for_each(|v| {
+        s.for_each(|v| {
             println!("{:?}", v);
-           });
-         });
-        sleep(Duration::from_secs(1));
+        });
     }
 }
