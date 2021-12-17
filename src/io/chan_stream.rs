@@ -110,25 +110,6 @@ macro_rules! chan_stream {
 }
 
 
-/// stream , vec ident
-#[macro_export]
-macro_rules! collect {
-    ($f:ident,$extend:expr) => {
-        {
-        Ok(loop {
-            match $f.try_next()? {
-                Some(x) => {
-                    $extend.extend(Some(x?))
-                }
-                None => {
-                    break $extend;
-                }
-            }
-        })
-        }
-    };
-}
-
 impl<T> ChanStream<T> {
     pub fn new<F>(f: F) -> Self where F: FnOnce(Sender<Option<Result<T>>>)-> Result<()> {
         let (s, r) = may::sync::mpsc::channel();
@@ -142,6 +123,22 @@ impl<T> ChanStream<T> {
             recv: r,
             send: s,
         }
+    }
+
+
+    pub fn collect<A,E>(&mut self, f:fn(T) -> Result<A>) -> Result<E>
+    where E: Extend<A> + std::default::Default {
+        let mut extend:E = Default::default();
+        Ok(loop {
+            match self.try_next()? {
+                Some(x) => {
+                    extend.extend(Some(f(x)?))
+                }
+                None => {
+                    break extend;
+                }
+            }
+        })
     }
 
     //try map

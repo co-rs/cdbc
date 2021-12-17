@@ -4,7 +4,7 @@ use crate::error::Error;
 use either::Either;
 use std::fmt::Debug;
 use futures_util::FutureExt;
-use crate::{chan_stream, collect};
+use crate::{chan_stream};
 use crate::io::chan_stream::{ChanStream, Stream, TryStream};
 
 /// A type that contains or can provide a database
@@ -35,8 +35,9 @@ pub trait Executor<'c>: Send + Debug + Sized {
             E: Execute<'q, Self::Database>,
     {
         let mut s = self.execute_many(query);
-        let mut v: <Self::Database as Database>::QueryResult = Default::default();
-        collect!(s,  v)
+        s.collect(|it|{
+           Ok(it?)
+        })
     }
 
     /// Execute multiple queries and return the rows affected from each query, in a stream.
@@ -103,8 +104,9 @@ pub trait Executor<'c>: Send + Debug + Sized {
             E: Execute<'q, Self::Database>
     {
         let mut f: ChanStream<Result<<Self::Database as Database>::Row, Error>> = self.fetch(query);
-        let mut v = vec![];
-        collect!(f, v)
+        f.collect(|it|{
+            Ok(it?)
+        })
     }
 
     /// Execute the query and returns exactly one row.
