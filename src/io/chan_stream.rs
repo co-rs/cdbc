@@ -30,7 +30,7 @@ pub trait TryStream: Stream {
 
     fn try_collect<C>(&mut self) -> crate::error::Result<C> where C: Default + Extend<Self::Ok> + Debug;
 
-    fn try_filter_map<F>(&mut self, f: F) -> ChanStream<Self::Item> where F: FnMut(Self::Ok) -> Self::Item;
+    fn try_filter_map<F>(&mut self, f: F) -> ChanStream<Self::Item> where F: FnMut(Self::Ok) -> Option<Self::Item>;
 }
 
 
@@ -103,7 +103,7 @@ impl<T> TryStream for ChanStream<T> {
         });
     }
 
-    fn try_filter_map<F>(&mut self, mut f: F) -> ChanStream<Self::Item> where F: FnMut(Self::Ok) -> Self::Item {
+    fn try_filter_map<F>(&mut self, mut f: F) -> ChanStream<Self::Item> where F: FnMut(Self::Ok) -> Option<Self::Item> {
         let stream = ChanStream::<Self::Item>::new(|v| {});
         loop {
             match self.try_next() {
@@ -111,7 +111,7 @@ impl<T> TryStream for ChanStream<T> {
                     match v {
                         None => { break; }
                         Some(v) => {
-                            stream.send.send(Some((f)(v)));
+                            stream.send.send((f)(v));
                         }
                     }
                 }
