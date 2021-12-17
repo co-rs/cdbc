@@ -1,4 +1,45 @@
 use std::pin::Pin;
+use std::sync::mpsc::RecvError;
+use may::sync::mpsc::{Receiver,Sender};
+
+
+
+pub struct BoxStream<T>{
+    pub recv: Receiver<T>,
+    pub send: Sender<T>,
+}
+
+impl <T>BoxStream<T> {
+    pub fn new<F>(f:F)->Self where  F: FnOnce(Sender<T>){
+        let (s,r)=may::sync::mpsc::channel();
+        f(s.clone());
+        Self{
+            recv: r,
+            send:s
+        }
+    }
+}
+
+impl <T>Stream for BoxStream<T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+         match self.recv.recv(){
+             Ok(v) => {Some(v)}
+             Err(_) => {None}
+         }
+    }
+
+    fn try_collect(&mut self) -> crate::Result<Self::Item> {
+        match self.recv.recv(){
+            Ok(v) => {Ok(v)}
+            Err(e) => {Err(e.into())}
+        }
+    }
+}
+
+
+
 
 pub trait Stream {
     type Item;
@@ -22,44 +63,32 @@ pub trait Stream {
     fn try_collect(&mut self) -> crate::error::Result<Self::Item>;
 }
 
-pub type BoxStream<'a, T> = Pin<Box<dyn Stream<Item=T> + Send + 'a>>;
-
-
 #[cfg(test)]
 mod test {
+    use may::go;
     use crate::io::box_stream::{BoxStream, Stream};
 
-    pub struct S {
-        inner: Vec<String>,
-    }
-
-    impl Stream for S {
-        type Item = String;
-
-        fn next(&mut self) -> Option<Self::Item> {
-            self.inner.pop()
-        }
-
-        fn try_collect(&mut self) -> crate::Result<Self::Item> {
-            if let Some(v)=self.inner.pop(){
-                return Ok(v)
-            }
-            return Err("none".into());
-        }
-    }
     #[test]
     fn test_collect() {
-        let mut s = Box::pin(S { inner: vec!["1".to_string()] });
-        s.for_each(|v| {
+        let mut s = BoxStream::new(|sender|{
+            sender.send(1);
+        });
+        go!(move ||{
+            s.for_each(|v| {
             println!("{}", v);
+            });
         });
     }
 
     #[test]
     fn test_for_each() {
-        let mut s = Box::pin(S { inner: vec!["1".to_string()] });
-        s.for_each(|v| {
-            println!("{}", v);
+        let mut s =  BoxStream::new(|sender|{
+            sender.send(1);
         });
+        go!(move ||{
+          s.for_each(|v| {
+            println!("{}", v);
+           });
+         });
     }
 }

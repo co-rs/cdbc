@@ -6,6 +6,7 @@ use std::error::Error as StdError;
 use std::fmt::Display;
 use std::io;
 use std::result::Result as StdResult;
+use std::sync::mpsc::RecvError;
 use crate::database::Database;
 use crate::type_info::TypeInfo;
 use crate::types::Type;
@@ -244,6 +245,12 @@ impl From<&str> for Error{
 impl From<String> for Error{
     fn from(arg: String) -> Self {
         Self::Protocol(arg)
+    }
+}
+
+impl From<RecvError> for Error {
+    fn from(arg: RecvError) -> Self {
+         Self::Protocol(arg.to_string())
     }
 }
 
