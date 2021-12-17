@@ -23,8 +23,8 @@ impl<T> Stream for ChanStream<T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        return match self.recv.recv() {
-            Ok(v) => { Some(v) }
+        return match self.try_next() {
+            Ok(v) => { v }
             Err(e) => { None }
         };
     }
