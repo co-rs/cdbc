@@ -30,7 +30,7 @@
 //! use sqlx::Pool;
 //! use sqlx::postgres::Postgres;
 //!
-//! let pool = Pool::<Postgres>::connect("postgres://").await?;
+//! let pool = Pool::<Postgres>::connect("postgres://")?;
 //! ```
 //!
 //! For convenience, database-specific type aliases are provided:
@@ -38,7 +38,7 @@
 //! ```rust,ignore
 //! use sqlx::mssql::MssqlPool;
 //!
-//! let pool = MssqlPool::connect("mssql://").await?;
+//! let pool = MssqlPool::connect("mssql://")?;
 //! ```
 //!
 //! # Using a connection pool
@@ -47,7 +47,7 @@
 //! when executing a query. Notice that only an immutable reference (`&Pool`) is needed.
 //!
 //! ```rust,ignore
-//! sqlx::query("DELETE FROM articles").execute(&pool).await?;
+//! sqlx::query("DELETE FROM articles").execute(&pool)?;
 //! ```
 //!
 //! A connection or transaction may also be manually acquired with
@@ -75,6 +75,7 @@ mod maybe;
 mod connection;
 mod inner;
 mod options;
+mod semaphore;
 
 pub use self::connection::PoolConnection;
 pub(crate) use self::maybe::MaybePoolConnection;
@@ -232,16 +233,16 @@ pub struct Pool<DB: Database>(pub(crate) Arc<SharedPool<DB>>);
 impl<DB: Database> Pool<DB> {
     /// Creates a new connection pool with a default pool configuration and
     /// the given connection URI; and, immediately establishes one connection.
-    pub async fn connect(uri: &str) -> Result<Self, Error> {
-        PoolOptions::<DB>::new().connect(uri).await
+    pub fn connect(uri: &str) -> Result<Self, Error> {
+        PoolOptions::<DB>::new().connect(uri)
     }
 
     /// Creates a new connection pool with a default pool configuration and
     /// the given connection options; and, immediately establishes one connection.
-    pub async fn connect_with(
+    pub fn connect_with(
         options: <DB::Connection as Connection>::Options,
     ) -> Result<Self, Error> {
-        PoolOptions::<DB>::new().connect_with(options).await
+        PoolOptions::<DB>::new().connect_with(options)
     }
 
     /// Creates a new connection pool with a default pool configuration and
@@ -261,9 +262,9 @@ impl<DB: Database> Pool<DB> {
     /// Retrieves a connection from the pool.
     ///
     /// Waits for at most the configured connection timeout before returning an error.
-    pub fn acquire(&self) -> impl Future<Output = Result<PoolConnection<DB>, Error>> + 'static {
+    pub fn acquire(&self) ->  Result<PoolConnection<DB>, Error> {
         let shared = self.0.clone();
-        async move { shared.acquire().await.map(|conn| conn.attach(&shared)) }
+        shared.acquire().map(|conn| conn.attach(&shared))
     }
 
     /// Attempts to retrieve a connection from the pool if there is one available.
@@ -276,25 +277,22 @@ impl<DB: Database> Pool<DB> {
     }
 
     /// Retrieves a new connection and immediately begins a new transaction.
-    pub async fn begin(&self) -> Result<Transaction<'static, DB>, Error> {
-        Ok(Transaction::begin(MaybePoolConnection::PoolConnection(self.acquire().await?)).await?)
+    pub fn begin(&self) -> Result<Transaction<'static, DB>, Error> {
+        Ok(Transaction::begin(MaybePoolConnection::PoolConnection(self.acquire()?))?)
     }
 
     /// Attempts to retrieve a new connection and immediately begins a new transaction if there
     /// is one available.
-    pub async fn try_begin(&self) -> Result<Option<Transaction<'static, DB>>, Error> {
+    pub fn try_begin(&self) -> Result<Option<Transaction<'static, DB>>, Error> {
         match self.try_acquire() {
-            Some(conn) => Transaction::begin(MaybePoolConnection::PoolConnection(conn))
-                .await
-                .map(Some),
-
+            Some(conn) => Transaction::begin(MaybePoolConnection::PoolConnection(conn)).map(Some),
             None => Ok(None),
         }
     }
 
     /// Shut down the connection pool, waiting for all connections to be gracefully closed.
     ///
-    /// Upon `.await`ing this call, any currently waiting or subsequent calls to [Pool::acquire] and
+    /// Upon ``ing this call, any currently waiting or subsequent calls to [Pool::acquire] and
     /// the like will immediately return [Error::PoolClosed] and no new connections will be opened.
     ///
     /// Any connections currently idle in the pool will be immediately closed, including sending
@@ -305,8 +303,8 @@ impl<DB: Database> Pool<DB> {
     ///
     /// Does not resolve until all connections are returned to the pool and gracefully closed.
     ///
-    /// ### Note: `async fn`
-    /// Because this is an `async fn`, the pool will *not* be marked as closed unless the
+    /// ### Note: `fn`
+    /// Because this is an `fn`, the pool will *not* be marked as closed unless the
     /// returned future is polled at least once.
     ///
     /// If you want to close the pool but don't want to wait for all connections to be gracefully
@@ -315,8 +313,8 @@ impl<DB: Database> Pool<DB> {
     // TODO: I don't want to change the signature right now in case it turns out to be a
     // breaking change, but this probably should eagerly mark the pool as closed and then the
     // returned future only needs to be awaited to gracefully close the connections.
-    pub async fn close(&self) {
-        self.0.close().await;
+    pub fn close(&self) {
+        self.0.close();
     }
 
     /// Returns `true` if [`.close()`][Pool::close] has been called on the pool, `false` otherwise.

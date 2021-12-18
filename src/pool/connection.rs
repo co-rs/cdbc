@@ -3,8 +3,6 @@ use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 use std::time::Instant;
 
-use futures_intrusive::sync::SemaphoreReleaser;
-
 use crate::connection::Connection;
 use crate::database::Database;
 use crate::error::Error;
@@ -107,12 +105,12 @@ impl<DB: Database> PoolConnection<DB> {
             };
 
             // test the connection on-release to ensure it is still viable
-            // if an Executor future/stream is dropped during an `.await` call, the connection
+            // if an Executor future/stream is dropped during an `` call, the connection
             // is likely to be left in an inconsistent state, in which case it should not be
             // returned to the pool; also of course, if it was dropped due to an error
             // this is simply a band-aid as SQLx-next (0.6) connections should be able
             // to recover from cancellations
-            if let Err(e) = floating.raw.ping().await {
+            if let Err(e) = floating.raw.ping() {
                 log::warn!(
                     "error occurred while testing the connection on-release: {}",
                     e
@@ -201,9 +199,9 @@ impl<'s, DB: Database> Floating<'s, Live<DB>> {
         }
     }
 
-    pub async fn close(self) -> Result<(), Error> {
+    pub fn close(self) -> Result<(), Error> {
         // `guard` is dropped as intended
-        self.inner.raw.close().await
+        self.inner.raw.close()
     }
 
     pub fn detach(self) -> DB::Connection {
@@ -222,7 +220,7 @@ impl<'s, DB: Database> Floating<'s, Idle<DB>> {
     pub fn from_idle(
         idle: Idle<DB>,
         pool: &'s SharedPool<DB>,
-        permit: SemaphoreReleaser<'s>,
+        permit: usize,
     ) -> Self {
         Self {
             inner: idle,
@@ -230,8 +228,8 @@ impl<'s, DB: Database> Floating<'s, Idle<DB>> {
         }
     }
 
-    pub async fn ping(&mut self) -> Result<(), Error> {
-        self.live.raw.ping().await
+    pub fn ping(&mut self) -> Result<(), Error> {
+        self.live.raw.ping()
     }
 
     pub fn into_live(self) -> Floating<'s, Live<DB>> {
@@ -241,9 +239,9 @@ impl<'s, DB: Database> Floating<'s, Idle<DB>> {
         }
     }
 
-    pub async fn close(self) -> DecrementSizeGuard<'s> {
+    pub fn close(self) -> DecrementSizeGuard<'s> {
         // `guard` is dropped as intended
-        if let Err(e) = self.inner.live.raw.close().await {
+        if let Err(e) = self.inner.live.raw.close() {
             log::debug!("error occurred while closing the pool connection: {}", e);
         }
         self.guard

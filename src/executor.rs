@@ -2,10 +2,9 @@ use crate::database::{Database, HasArguments, HasStatement};
 use crate::describe::Describe;
 use crate::error::Error;
 use either::Either;
-use futures_core::future::BoxFuture;
-use futures_core::stream::BoxStream;
-use futures_util::{future, FutureExt, StreamExt, TryFutureExt, TryStreamExt};
 use std::fmt::Debug;
+use crate::{chan_stream};
+use crate::io::chan_stream::{ChanStream, Stream, TryStream};
 
 /// A type that contains or can provide a database
 /// connection to use for executing queries against the database.
@@ -29,50 +28,59 @@ pub trait Executor<'c>: Send + Debug + Sized {
     fn execute<'e, 'q: 'e, E: 'q>(
         self,
         query: E,
-    ) -> BoxFuture<'e, Result<<Self::Database as Database>::QueryResult, Error>>
-    where
-        'c: 'e,
-        E: Execute<'q, Self::Database>,
+    ) -> Result<<Self::Database as Database>::QueryResult, Error>
+        where
+            'c: 'e,
+            E: Execute<'q, Self::Database>,
     {
-        self.execute_many(query).try_collect().boxed()
+        let mut s = self.execute_many(query);
+        s.collect(|it|{
+            Some(Ok(it))
+        })
     }
 
     /// Execute multiple queries and return the rows affected from each query, in a stream.
     fn execute_many<'e, 'q: 'e, E: 'q>(
         self,
         query: E,
-    ) -> BoxStream<'e, Result<<Self::Database as Database>::QueryResult, Error>>
-    where
-        'c: 'e,
-        E: Execute<'q, Self::Database>,
+    ) -> ChanStream<<Self::Database as Database>::QueryResult>
+        where
+            'c: 'e,
+            E: Execute<'q, Self::Database>,
     {
-        self.fetch_many(query)
-            .try_filter_map(|step| async move {
-                Ok(match step {
-                    Either::Left(rows) => Some(rows),
-                    Either::Right(_) => None,
-                })
-            })
-            .boxed()
+        let mut s = self.fetch_many(query);
+        s.map(|either| {
+            match either {
+                Either::Left(rows) => {
+                    Some(rows)
+                }
+                Either::Right(_) => {
+                    None
+                }
+            }
+        })
     }
 
     /// Execute the query and return the generated results as a stream.
     fn fetch<'e, 'q: 'e, E: 'q>(
         self,
         query: E,
-    ) -> BoxStream<'e, Result<<Self::Database as Database>::Row, Error>>
-    where
-        'c: 'e,
-        E: Execute<'q, Self::Database>,
+    ) -> ChanStream<<Self::Database as Database>::Row>
+        where
+            'c: 'e,
+            E: Execute<'q, Self::Database>,
     {
-        self.fetch_many(query)
-            .try_filter_map(|step| async move {
-                Ok(match step {
-                    Either::Left(_) => None,
-                    Either::Right(row) => Some(row),
-                })
-            })
-            .boxed()
+        let mut s = self.fetch_many(query);
+        s.map(|either| {
+            match either{
+                Either::Left(rows) => {
+                    None
+                }
+                Either::Right(row) => {
+                    Some(row)
+                }
+            }
+        })
     }
 
     /// Execute multiple queries and return the generated results as a stream
@@ -80,54 +88,49 @@ pub trait Executor<'c>: Send + Debug + Sized {
     fn fetch_many<'e, 'q: 'e, E: 'q>(
         self,
         query: E,
-    ) -> BoxStream<
-        'e,
-        Result<
-            Either<<Self::Database as Database>::QueryResult, <Self::Database as Database>::Row>,
-            Error,
-        >,
-    >
-    where
-        'c: 'e,
-        E: Execute<'q, Self::Database>;
+    ) -> ChanStream<Either<<Self::Database as Database>::QueryResult, <Self::Database as Database>::Row>>
+        where
+            'c: 'e,
+            E: Execute<'q, Self::Database>;
 
     /// Execute the query and return all the generated results, collected into a [`Vec`].
     fn fetch_all<'e, 'q: 'e, E: 'q>(
         self,
         query: E,
-    ) -> BoxFuture<'e, Result<Vec<<Self::Database as Database>::Row>, Error>>
-    where
-        'c: 'e,
-        E: Execute<'q, Self::Database>,
+    ) -> Result<Vec<<Self::Database as Database>::Row>, Error>
+        where
+            'c: 'e,
+            E: Execute<'q, Self::Database>
     {
-        self.fetch(query).try_collect().boxed()
+         self.fetch(query).collect(|it|{
+            Some(Ok(it))
+        })
     }
 
     /// Execute the query and returns exactly one row.
     fn fetch_one<'e, 'q: 'e, E: 'q>(
         self,
         query: E,
-    ) -> BoxFuture<'e, Result<<Self::Database as Database>::Row, Error>>
-    where
-        'c: 'e,
-        E: Execute<'q, Self::Database>,
+    ) -> Result<<Self::Database as Database>::Row, Error>
+        where
+            'c: 'e,
+            E: Execute<'q, Self::Database>,
     {
-        self.fetch_optional(query)
-            .and_then(|row| match row {
-                Some(row) => future::ok(row),
-                None => future::err(Error::RowNotFound),
-            })
-            .boxed()
+        let row = self.fetch_optional(query)?;
+        match row {
+            Some(row) => Ok(row),
+            None => Err(Error::RowNotFound),
+        }
     }
 
     /// Execute the query and returns at most one row.
     fn fetch_optional<'e, 'q: 'e, E: 'q>(
         self,
         query: E,
-    ) -> BoxFuture<'e, Result<Option<<Self::Database as Database>::Row>, Error>>
-    where
-        'c: 'e,
-        E: Execute<'q, Self::Database>;
+    ) -> Result<Option<<Self::Database as Database>::Row>, Error>
+        where
+            'c: 'e,
+            E: Execute<'q, Self::Database>;
 
     /// Prepare the SQL query to inspect the type information of its parameters
     /// and results.
@@ -141,9 +144,9 @@ pub trait Executor<'c>: Send + Debug + Sized {
     fn prepare<'e, 'q: 'e>(
         self,
         query: &'q str,
-    ) -> BoxFuture<'e, Result<<Self::Database as HasStatement<'q>>::Statement, Error>>
-    where
-        'c: 'e,
+    ) -> Result<<Self::Database as HasStatement<'q>>::Statement, Error>
+        where
+            'c: 'e,
     {
         self.prepare_with(query, &[])
     }
@@ -157,9 +160,9 @@ pub trait Executor<'c>: Send + Debug + Sized {
         self,
         sql: &'q str,
         parameters: &'e [<Self::Database as Database>::TypeInfo],
-    ) -> BoxFuture<'e, Result<<Self::Database as HasStatement<'q>>::Statement, Error>>
-    where
-        'c: 'e;
+    ) -> Result<<Self::Database as HasStatement<'q>>::Statement, Error>
+        where
+            'c: 'e;
 
     /// Describe the SQL query and return type information about its parameters
     /// and results.
@@ -170,9 +173,9 @@ pub trait Executor<'c>: Send + Debug + Sized {
     fn describe<'e, 'q: 'e>(
         self,
         sql: &'q str,
-    ) -> BoxFuture<'e, Result<Describe<Self::Database>, Error>>
-    where
-        'c: 'e;
+    ) -> Result<Describe<Self::Database>, Error>
+        where
+            'c: 'e;
 }
 
 /// A type that may be executed against a database connection.

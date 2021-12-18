@@ -2,7 +2,6 @@ use std::borrow::Cow;
 use std::fmt::{self, Debug, Formatter};
 use std::ops::{Deref, DerefMut};
 
-use futures_core::future::BoxFuture;
 
 use crate::database::Database;
 use crate::error::Error;
@@ -18,17 +17,17 @@ pub trait TransactionManager {
     /// Begin a new transaction or establish a savepoint within the active transaction.
     fn begin(
         conn: &mut <Self::Database as Database>::Connection,
-    ) -> BoxFuture<'_, Result<(), Error>>;
+    ) -> Result<(), Error>;
 
     /// Commit the active transaction or release the most recent savepoint.
     fn commit(
         conn: &mut <Self::Database as Database>::Connection,
-    ) -> BoxFuture<'_, Result<(), Error>>;
+    ) -> Result<(), Error>;
 
     /// Abort the active transaction or restore from the most recent savepoint.
     fn rollback(
         conn: &mut <Self::Database as Database>::Connection,
-    ) -> BoxFuture<'_, Result<(), Error>>;
+    ) ->  Result<(), Error>;
 
     /// Starts to abort the active transaction or restore from the most recent snapshot.
     fn start_rollback(conn: &mut <Self::Database as Database>::Connection);
@@ -64,30 +63,28 @@ where
 {
     pub(crate) fn begin(
         conn: impl Into<MaybePoolConnection<'c, DB>>,
-    ) -> BoxFuture<'c, Result<Self, Error>> {
+    ) ->  Result<Self, Error> {
         let mut conn = conn.into();
 
-        Box::pin(async move {
-            DB::TransactionManager::begin(&mut conn).await?;
+            DB::TransactionManager::begin(&mut conn)?;
 
             Ok(Self {
                 connection: conn,
                 open: true,
             })
-        })
     }
 
     /// Commits this transaction or savepoint.
-    pub async fn commit(mut self) -> Result<(), Error> {
-        DB::TransactionManager::commit(&mut self.connection).await?;
+    pub fn commit(mut self) -> Result<(), Error> {
+        DB::TransactionManager::commit(&mut self.connection)?;
         self.open = false;
 
         Ok(())
     }
 
     /// Aborts this transaction or savepoint.
-    pub async fn rollback(mut self) -> Result<(), Error> {
-        DB::TransactionManager::rollback(&mut self.connection).await?;
+    pub fn rollback(mut self) -> Result<(), Error> {
+        DB::TransactionManager::rollback(&mut self.connection)?;
         self.open = false;
 
         Ok(())
@@ -123,7 +120,7 @@ macro_rules! impl_executor_for_transaction {
             fn fetch_optional<'e, 'q: 'e, E: 'q>(
                 self,
                 query: E,
-            ) -> futures_core::future::BoxFuture<'e, Result<Option<$Row>, crate::error::Error>>
+            ) ->  Result<Option<$Row>, crate::error::Error>
             where
                 't: 'e,
                 E: crate::executor::Execute<'q, Self::Database>,
@@ -135,13 +132,8 @@ macro_rules! impl_executor_for_transaction {
                 self,
                 sql: &'q str,
                 parameters: &'e [<Self::Database as crate::database::Database>::TypeInfo],
-            ) -> futures_core::future::BoxFuture<
-                'e,
-                Result<
-                    <Self::Database as crate::database::HasStatement<'q>>::Statement,
-                    crate::error::Error,
-                >,
-            >
+            ) ->
+                Result<<Self::Database as crate::database::HasStatement<'q>>::Statement,crate::error::Error>
             where
                 't: 'e,
             {
@@ -152,10 +144,7 @@ macro_rules! impl_executor_for_transaction {
             fn describe<'e, 'q: 'e>(
                 self,
                 query: &'q str,
-            ) -> futures_core::future::BoxFuture<
-                'e,
-                Result<crate::describe::Describe<Self::Database>, crate::error::Error>,
-            >
+            ) ->Result<crate::describe::Describe<Self::Database>, crate::error::Error>,
             where
                 't: 'e,
             {

@@ -6,7 +6,7 @@ use crate::error::Error;
 use crate::pool::{deadline_as_timeout, PoolOptions};
 use crossbeam_queue::ArrayQueue;
 
-use futures_intrusive::sync::{Semaphore, SemaphoreReleaser};
+
 
 use std::cmp;
 use std::mem;
@@ -15,6 +15,7 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
 
 use std::time::{Duration, Instant};
+use crate::pool::semaphore::Semaphore;
 
 /// Ihe number of permits to release to wake all waiters, such as on `SharedPool::close()`.
 ///
@@ -47,7 +48,7 @@ impl<DB: Database> SharedPool<DB> {
         let pool = Self {
             connect_options,
             idle_conns: ArrayQueue::new(capacity),
-            semaphore: Semaphore::new(options.fair, capacity),
+            semaphore: Semaphore::new( capacity),
             size: AtomicU32::new(0),
             is_closed: AtomicBool::new(false),
             options,
@@ -73,24 +74,23 @@ impl<DB: Database> SharedPool<DB> {
         self.is_closed.load(Ordering::Acquire)
     }
 
-    pub(super) async fn close(&self) {
+    pub(super) fn close(&self) {
         let already_closed = self.is_closed.swap(true, Ordering::AcqRel);
 
         if !already_closed {
             // if we were the one to mark this closed, release enough permits to wake all waiters
             // we can't just do `usize::MAX` because that would overflow
             // and we can't do this more than once cause that would _also_ overflow
-            self.semaphore.release(WAKE_ALL_PERMITS);
+            self.semaphore.release_left(WAKE_ALL_PERMITS);
         }
 
         // wait for all permits to be released
         let _permits = self
             .semaphore
-            .acquire(WAKE_ALL_PERMITS + (self.options.max_connections as usize))
-            .await;
+            .acquire_num(WAKE_ALL_PERMITS + (self.options.max_connections as usize));
 
         while let Some(idle) = self.idle_conns.pop() {
-            let _ = idle.live.float(self).close().await;
+            let _ = idle.live.float(self).close();
         }
     }
 
@@ -100,14 +100,14 @@ impl<DB: Database> SharedPool<DB> {
             return None;
         }
 
-        let permit = self.semaphore.try_acquire(1)?;
+        let permit = self.semaphore.try_acquire()?;
         self.pop_idle(permit).ok()
     }
 
     fn pop_idle<'a>(
         &'a self,
-        permit: SemaphoreReleaser<'a>,
-    ) -> Result<Floating<'a, Idle<DB>>, SemaphoreReleaser<'a>> {
+        permit: usize,
+    ) -> Result<Floating<'a, Idle<DB>>, usize> {
         if let Some(idle) = self.idle_conns.pop() {
             Ok(Floating::from_idle(idle, self, permit))
         } else {
@@ -139,8 +139,8 @@ impl<DB: Database> SharedPool<DB> {
     /// Returns `None` if we are at max_connections or if the pool is closed.
     pub(super) fn try_increment_size<'a>(
         &'a self,
-        permit: SemaphoreReleaser<'a>,
-    ) -> Result<DecrementSizeGuard<'a>, SemaphoreReleaser<'a>> {
+        permit: usize,
+    ) -> Result<DecrementSizeGuard<'a>, usize> {
         match self
             .size
             .fetch_update(Ordering::AcqRel, Ordering::Acquire, |size| {
@@ -155,55 +155,56 @@ impl<DB: Database> SharedPool<DB> {
     }
 
     #[allow(clippy::needless_lifetimes)]
-    pub(super) async fn acquire<'s>(&'s self) -> Result<Floating<'s, Live<DB>>, Error> {
+    pub(super) fn acquire<'s>(&'s self) -> Result<Floating<'s, Live<DB>>, Error> {
         if self.is_closed() {
             return Err(Error::PoolClosed);
         }
 
         let deadline = Instant::now() + self.options.connect_timeout;
 
-        sqlx_rt::timeout(
-            self.options.connect_timeout,
-            async {
-                loop {
-                    let permit = self.semaphore.acquire(1).await;
+        // sqlx_rt::timeout(
+        //     self.options.connect_timeout,
+        //     async {
+        //
+        //     }
+        // )
+        //     .map_err(|_| Error::PoolTimedOut)?
 
-                    if self.is_closed() {
-                        return Err(Error::PoolClosed);
-                    }
+        loop {
+            let permit = self.semaphore.acquire();
 
-                    // First attempt to pop a connection from the idle queue.
-                    let guard = match self.pop_idle(permit) {
-
-                        // Then, check that we can use it...
-                        Ok(conn) => match check_conn(conn, &self.options).await {
-
-                            // All good!
-                            Ok(live) => return Ok(live),
-
-                            // if the connection isn't usable for one reason or another,
-                            // we get the `DecrementSizeGuard` back to open a new one
-                            Err(guard) => guard,
-                        },
-                        Err(permit) => if let Ok(guard) = self.try_increment_size(permit) {
-                            // we can open a new connection
-                            guard
-                        } else {
-                            log::debug!("woke but was unable to acquire idle connection or open new one; retrying");
-                            continue;
-                        }
-                    };
-
-                    // Attempt to connect...
-                    return self.connection(deadline, guard).await;
-                }
+            if self.is_closed() {
+                return Err(Error::PoolClosed);
             }
-        )
-            .await
-            .map_err(|_| Error::PoolTimedOut)?
+
+            // First attempt to pop a connection from the idle queue.
+            let guard = match self.pop_idle(permit) {
+
+                // Then, check that we can use it...
+                Ok(conn) => match check_conn(conn, &self.options) {
+
+                    // All good!
+                    Ok(live) => return Ok(live),
+
+                    // if the connection isn't usable for one reason or another,
+                    // we get the `DecrementSizeGuard` back to open a new one
+                    Err(guard) => guard,
+                },
+                Err(permit) => if let Ok(guard) = self.try_increment_size(permit) {
+                    // we can open a new connection
+                    guard
+                } else {
+                    log::debug!("woke but was unable to acquire idle connection or open new one; retrying");
+                    continue;
+                }
+            };
+
+            // Attempt to connect...
+            return self.connection(deadline, guard);
+        }
     }
 
-    pub(super) async fn connection<'s>(
+    pub(super) fn connection<'s>(
         &'s self,
         deadline: Instant,
         guard: DecrementSizeGuard<'s>,
@@ -220,37 +221,39 @@ impl<DB: Database> SharedPool<DB> {
 
             // result here is `Result<Result<C, Error>, TimeoutError>`
             // if this block does not return, sleep for the backoff timeout and try again
-            match sqlx_rt::timeout(timeout, self.connect_options.connect()).await {
+            match self.connect_options.connect() {
                 // successfully established connection
-                Ok(Ok(mut raw)) => {
+                Ok(mut raw) => {
                     if let Some(callback) = &self.options.after_connect {
-                        callback(&mut raw).await?;
+                        callback(&mut raw)?;
                     }
 
                     return Ok(Floating::new_live(raw, guard));
                 }
 
                 // an IO error while connecting is assumed to be the system starting up
-                Ok(Err(Error::Io(e))) if e.kind() == std::io::ErrorKind::ConnectionRefused => (),
+                Err(Error::Io(e)) if e.kind() == std::io::ErrorKind::ConnectionRefused => (),
 
                 // TODO: Handle other database "boot period"s
 
                 // [postgres] the database system is starting up
                 // TODO: Make this check actually check if this is postgres
-                Ok(Err(Error::Database(error))) if error.code().as_deref() == Some("57P03") => (),
+                Err(Error::Database(error)) if error.code().as_deref() == Some("57P03") => (),
 
                 // Any other error while connection should immediately
                 // terminate and bubble the error up
-                Ok(Err(e)) => return Err(e),
+                Err(e) => return Err(e),
 
                 // timed out
-                Err(_) => return Err(Error::PoolTimedOut),
+                _ => {
+                    return Err(Error::PoolTimedOut)
+                }
             }
 
             // If the connection is refused wait in exponentially
             // increasing steps for the server to come up,
             // capped by a factor of the remaining time until the deadline
-            sqlx_rt::sleep(backoff).await;
+            sqlx_rt::sleep(backoff);
             backoff = cmp::min(backoff * 2, max_backoff);
         }
     }
@@ -272,7 +275,7 @@ fn is_beyond_idle<DB: Database>(idle: &Idle<DB>, options: &PoolOptions<DB>) -> b
         .map_or(false, |timeout| idle.since.elapsed() > timeout)
 }
 
-async fn check_conn<'s: 'p, 'p, DB: Database>(
+fn check_conn<'s: 'p, 'p, DB: Database>(
     mut conn: Floating<'s, Idle<DB>>,
     options: &'p PoolOptions<DB>,
 ) -> Result<Floating<'s, Live<DB>>, DecrementSizeGuard<'s>> {
@@ -281,27 +284,27 @@ async fn check_conn<'s: 'p, 'p, DB: Database>(
     if is_beyond_lifetime(&conn, options) {
         // we're closing the connection either way
         // close the connection but don't really care about the result
-        return Err(conn.close().await);
+        return Err(conn.close());
     } else if options.test_before_acquire {
         // Check that the connection is still live
-        if let Err(e) = conn.ping().await {
+        if let Err(e) = conn.ping() {
             // an error here means the other end has hung up or we lost connectivity
             // either way we're fine to just discard the connection
             // the error itself here isn't necessarily unexpected so WARN is too strong
             log::info!("ping on idle connection returned error: {}", e);
             // connection is broken so don't try to close nicely
-            return Err(conn.close().await);
+            return Err(conn.close());
         }
     } else if let Some(test) = &options.before_acquire {
-        match test(&mut conn.live.raw).await {
+        match test(&mut conn.live.raw) {
             Ok(false) => {
                 // connection was rejected by user-defined hook
-                return Err(conn.close().await);
+                return Err(conn.close());
             }
 
             Err(error) => {
                 log::info!("in `before_acquire`: {}", error);
-                return Err(conn.close().await);
+                return Err(conn.close());
             }
 
             Ok(true) => {}
@@ -327,14 +330,14 @@ fn spawn_reaper<DB: Database>(pool: &Arc<SharedPool<DB>>) {
     sqlx_rt::spawn(async move {
         while !pool.is_closed() {
             if !pool.idle_conns.is_empty() {
-                do_reap(&pool).await;
+                do_reap(&pool);
             }
-            sqlx_rt::sleep(period).await;
+            sqlx_rt::sleep(period);
         }
     });
 }
 
-async fn do_reap<DB: Database>(pool: &SharedPool<DB>) {
+fn do_reap<DB: Database>(pool: &SharedPool<DB>) {
     // reap at most the current size minus the minimum idle
     let max_reaped = pool.size().saturating_sub(pool.options.min_connections);
 
@@ -352,7 +355,7 @@ async fn do_reap<DB: Database>(pool: &SharedPool<DB>) {
     }
 
     for conn in reap {
-        let _ = conn.close().await;
+        let _ = conn.close();
     }
 }
 
@@ -378,10 +381,10 @@ impl<'a> DecrementSizeGuard<'a> {
 
     pub fn from_permit<DB: Database>(
         pool: &'a SharedPool<DB>,
-        mut permit: SemaphoreReleaser<'a>,
+        mut permit: usize,
     ) -> Self {
         // here we effectively take ownership of the permit
-        permit.disarm();
+        //permit.disarm();
         Self::new_permit(pool)
     }
 
@@ -392,7 +395,7 @@ impl<'a> DecrementSizeGuard<'a> {
 
     /// Release the semaphore permit without decreasing the pool size.
     fn release_permit(self) {
-        self.semaphore.release(1);
+        self.semaphore.release();
         self.cancel();
     }
 
@@ -408,6 +411,6 @@ impl Drop for DecrementSizeGuard<'_> {
         self.size.fetch_sub(1, Ordering::SeqCst);
 
         // and here we release the permit we got on construction
-        self.semaphore.release(1);
+        self.semaphore.release();
     }
 }

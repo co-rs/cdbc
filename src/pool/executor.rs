@@ -1,14 +1,13 @@
 use either::Either;
-use futures_core::future::BoxFuture;
-use futures_core::stream::BoxStream;
-use futures_util::TryStreamExt;
 
 use crate::database::{Database, HasStatement};
 use crate::describe::Describe;
 use crate::error::Error;
 use crate::executor::{Execute, Executor};
+use crate::io::chan_stream::ChanStream;
 use crate::pool::Pool;
-use crate::try_stream;
+use crate::{chan_stream};
+use crate::io::chan_stream::TryStream;
 
 impl<'p, DB: Database> Executor<'p> for &'_ Pool<DB>
 where
@@ -19,54 +18,54 @@ where
     fn fetch_many<'e, 'q: 'e, E: 'q>(
         self,
         query: E,
-    ) -> BoxStream<'e, Result<Either<DB::QueryResult, DB::Row>, Error>>
+    ) -> ChanStream<Either<DB::QueryResult, DB::Row>>
     where
         E: Execute<'q, Self::Database>,
     {
         let pool = self.clone();
 
-        Box::pin(try_stream! {
-            let mut conn = pool.acquire().await?;
+        chan_stream! {
+            let mut conn = pool.acquire()?;
             let mut s = conn.fetch_many(query);
 
-            while let Some(v) = s.try_next().await? {
+            while let Some(v) = s.try_next()? {
                 r#yield!(v);
             }
 
             Ok(())
-        })
+        }
     }
 
     fn fetch_optional<'e, 'q: 'e, E: 'q>(
         self,
         query: E,
-    ) -> BoxFuture<'e, Result<Option<DB::Row>, Error>>
+    ) ->  Result<Option<DB::Row>, Error>
     where
         E: Execute<'q, Self::Database>,
     {
         let pool = self.clone();
 
-        Box::pin(async move { pool.acquire().await?.fetch_optional(query).await })
+       pool.acquire()?.fetch_optional(query)
     }
 
     fn prepare_with<'e, 'q: 'e>(
         self,
         sql: &'q str,
         parameters: &'e [<Self::Database as Database>::TypeInfo],
-    ) -> BoxFuture<'e, Result<<Self::Database as HasStatement<'q>>::Statement, Error>> {
+    ) ->  Result<<Self::Database as HasStatement<'q>>::Statement, Error> {
         let pool = self.clone();
 
-        Box::pin(async move { pool.acquire().await?.prepare_with(sql, parameters).await })
+         pool.acquire()?.prepare_with(sql, parameters)
     }
 
     #[doc(hidden)]
     fn describe<'e, 'q: 'e>(
         self,
         sql: &'q str,
-    ) -> BoxFuture<'e, Result<Describe<Self::Database>, Error>> {
+    ) ->  Result<Describe<Self::Database>, Error> {
         let pool = self.clone();
 
-        Box::pin(async move { pool.acquire().await?.describe(sql).await })
+        pool.acquire()?.describe(sql)
     }
 }
 
@@ -99,7 +98,7 @@ macro_rules! impl_executor_for_pool_connection {
             fn fetch_optional<'e, 'q: 'e, E: 'q>(
                 self,
                 query: E,
-            ) -> futures_core::future::BoxFuture<'e, Result<Option<$R>, crate::error::Error>>
+            ) ->  Result<Option<$R>, crate::error::Error>
             where
                 'c: 'e,
                 E: crate::executor::Execute<'q, $DB>,
@@ -112,10 +111,8 @@ macro_rules! impl_executor_for_pool_connection {
                 self,
                 sql: &'q str,
                 parameters: &'e [<$DB as crate::database::Database>::TypeInfo],
-            ) -> futures_core::future::BoxFuture<
-                'e,
-                Result<<$DB as crate::database::HasStatement<'q>>::Statement, crate::error::Error>,
-            >
+            ) ->
+                Result<<$DB as crate::database::HasStatement<'q>>::Statement, crate::error::Error>
             where
                 'c: 'e,
             {

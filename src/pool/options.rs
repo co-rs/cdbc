@@ -3,7 +3,6 @@ use crate::database::Database;
 use crate::error::Error;
 use crate::pool::inner::SharedPool;
 use crate::pool::Pool;
-use futures_core::future::BoxFuture;
 use sqlx_rt::spawn;
 use std::cmp;
 use std::fmt::{self, Debug, Formatter};
@@ -14,12 +13,12 @@ pub struct PoolOptions<DB: Database> {
     pub(crate) test_before_acquire: bool,
     pub(crate) after_connect: Option<
         Box<
-            dyn Fn(&mut DB::Connection) -> BoxFuture<'_, Result<(), Error>> + 'static + Send + Sync,
+            dyn Fn(&mut DB::Connection) -> Result<(), Error> + 'static + Send + Sync,
         >,
     >,
     pub(crate) before_acquire: Option<
         Box<
-            dyn Fn(&mut DB::Connection) -> BoxFuture<'_, Result<bool, Error>>
+            dyn Fn(&mut DB::Connection) ->  Result<bool, Error>
                 + 'static
                 + Send
                 + Sync,
@@ -146,25 +145,25 @@ impl<DB: Database> PoolOptions<DB> {
     /// # Example
     ///
     /// ```no_run
-    /// # async fn f() -> Result<(), Box<dyn std::error::Error>> {
+    /// # fn f() -> Result<(), Box<dyn std::error::Error>> {
     /// use sqlx_core::executor::Executor;
     /// use sqlx_core::postgres::PgPoolOptions;
     /// // PostgreSQL
     /// let pool = PgPoolOptions::new()
     ///     .after_connect(|conn| Box::pin(async move {
-    ///        conn.execute("SET application_name = 'your_app';").await?;
-    ///        conn.execute("SET search_path = 'my_schema';").await?;
+    ///        conn.execute("SET application_name = 'your_app';")?;
+    ///        conn.execute("SET search_path = 'my_schema';")?;
     ///
     ///        Ok(())
     ///     }))
-    ///     .connect("postgres:// …").await?;
+    ///     .connect("postgres:// …")?;
     /// # Ok(())
     /// # }
     /// ```
     pub fn after_connect<F>(mut self, callback: F) -> Self
     where
         for<'c> F:
-            Fn(&'c mut DB::Connection) -> BoxFuture<'c, Result<(), Error>> + 'static + Send + Sync,
+            Fn(&'c mut DB::Connection) ->  Result<(), Error> + 'static + Send + Sync,
     {
         self.after_connect = Some(Box::new(callback));
         self
@@ -172,7 +171,7 @@ impl<DB: Database> PoolOptions<DB> {
 
     pub fn before_acquire<F>(mut self, callback: F) -> Self
     where
-        for<'c> F: Fn(&'c mut DB::Connection) -> BoxFuture<'c, Result<bool, Error>>
+        for<'c> F: Fn(&'c mut DB::Connection) ->  Result<bool, Error>
             + 'static
             + Send
             + Sync,
@@ -190,18 +189,18 @@ impl<DB: Database> PoolOptions<DB> {
     }
 
     /// Creates a new pool from this configuration and immediately establishes one connection.
-    pub async fn connect(self, uri: &str) -> Result<Pool<DB>, Error> {
-        self.connect_with(uri.parse()?).await
+    pub fn connect(self, uri: &str) -> Result<Pool<DB>, Error> {
+        self.connect_with(uri.parse()?)
     }
 
     /// Creates a new pool from this configuration and immediately establishes one connection.
-    pub async fn connect_with(
+    pub fn connect_with(
         self,
         options: <DB::Connection as Connection>::Options,
     ) -> Result<Pool<DB>, Error> {
         let shared = SharedPool::new_arc(self, options);
 
-        init_min_connections(&shared).await?;
+        init_min_connections(&shared)?;
 
         Ok(Pool(shared))
     }
@@ -220,7 +219,7 @@ impl<DB: Database> PoolOptions<DB> {
         let _ = spawn({
             let shared = Arc::clone(&shared);
             async move {
-                let _ = init_min_connections(&shared).await;
+                let _ = init_min_connections(&shared);
             }
         });
 
@@ -228,15 +227,15 @@ impl<DB: Database> PoolOptions<DB> {
     }
 }
 
-async fn init_min_connections<DB: Database>(pool: &SharedPool<DB>) -> Result<(), Error> {
+fn init_min_connections<DB: Database>(pool: &SharedPool<DB>) -> Result<(), Error> {
     for _ in 0..cmp::max(pool.options.min_connections, 1) {
         let deadline = Instant::now() + pool.options.connect_timeout;
-        let permit = pool.semaphore.acquire(1).await;
+        let permit = pool.semaphore.acquire();
 
         // this guard will prevent us from exceeding `max_size`
         if let Ok(guard) = pool.try_increment_size(permit) {
             // [connect] will raise an error when past deadline
-            let conn = pool.connection(deadline, guard).await?;
+            let conn = pool.connection(deadline, guard)?;
             pool.release(conn);
         }
     }

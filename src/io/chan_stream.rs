@@ -126,13 +126,18 @@ impl<T> ChanStream<T> {
     }
 
 
-    pub fn collect<A,E>(&mut self, f:fn(T) -> Result<A>) -> Result<E>
+    pub fn collect<A,E>(&mut self, f:fn(T) -> Option<Result<A>>) -> Result<E>
     where E: Extend<A> + std::default::Default {
         let mut extend:E = Default::default();
         Ok(loop {
             match self.try_next()? {
                 Some(x) => {
-                    extend.extend(Some(f(x)?))
+                    match f(x){
+                        None => { break extend;}
+                        Some(v) => {
+                            extend.extend(Some(v?));
+                        }
+                    }
                 }
                 None => {
                     break extend;
@@ -142,13 +147,13 @@ impl<T> ChanStream<T> {
     }
 
     //try map
-    pub fn map<O>(&mut self,f:fn(<ChanStream<T> as TryStream>::Ok)->Option<O>) -> ChanStream<Result<O>> {
+    pub fn map<O>(&mut self,f:fn(<ChanStream<T> as TryStream>::Ok)->Option<O>) -> ChanStream<O> {
         chan_stream!({
             loop{
                 if let Some(either)=self.try_next()?{
                     match f(either){
                         Some(v)=>{
-                             r#yield!(Ok(v));
+                             r#yield!(v);
                         }
                         None =>{
                              end!();

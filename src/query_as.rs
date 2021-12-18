@@ -1,15 +1,14 @@
 use std::marker::PhantomData;
-
 use either::Either;
-use futures_core::stream::BoxStream;
-use futures_util::{StreamExt, TryStreamExt};
-
 use crate::arguments::IntoArguments;
+use crate::chan_stream;
+use crate::io::chan_stream::TryStream;
 use crate::database::{Database, HasArguments, HasStatement, HasStatementCache};
 use crate::encode::Encode;
 use crate::error::Error;
 use crate::executor::{Execute, Executor};
 use crate::from_row::FromRow;
+use crate::io::chan_stream::ChanStream;
 use crate::query::{query, query_statement, query_statement_with, query_with, Query};
 use crate::types::Type;
 
@@ -84,7 +83,7 @@ where
     O: Send + Unpin + for<'r> FromRow<'r, DB::Row>,
 {
     /// Execute the query and return the generated results as a stream.
-    pub fn fetch<'e, 'c: 'e, E>(self, executor: E) -> BoxStream<'e, Result<O, Error>>
+    pub fn fetch<'e, 'c: 'e, E>(self, executor: E) -> ChanStream<O>
     where
         'q: 'e,
         E: 'e + Executor<'c, Database = DB>,
@@ -93,8 +92,9 @@ where
         A: 'e,
     {
         self.fetch_many(executor)
-            .try_filter_map(|step| async move { Ok(step.right()) })
-            .boxed()
+            .map(|v| {
+                v.right()
+            })
     }
 
     /// Execute multiple queries and return the generated results as a stream
@@ -102,7 +102,7 @@ where
     pub fn fetch_many<'e, 'c: 'e, E>(
         self,
         executor: E,
-    ) -> BoxStream<'e, Result<Either<DB::QueryResult, O>, Error>>
+    ) -> ChanStream<Either<DB::QueryResult, O>>
     where
         'q: 'e,
         E: 'e + Executor<'c, Database = DB>,
@@ -110,10 +110,10 @@ where
         O: 'e,
         A: 'e,
     {
-        Box::pin(try_stream! {
+        chan_stream! {
             let mut s = executor.fetch_many(self.inner);
 
-            while let Some(v) = s.try_next().await? {
+            while let Some(v) = s.try_next()? {
                 r#yield!(match v {
                     Either::Left(v) => Either::Left(v),
                     Either::Right(row) => Either::Right(O::from_row(&row)?),
@@ -121,12 +121,12 @@ where
             }
 
             Ok(())
-        })
+        }
     }
 
     /// Execute the query and return all the generated results, collected into a [`Vec`].
     #[inline]
-    pub async fn fetch_all<'e, 'c: 'e, E>(self, executor: E) -> Result<Vec<O>, Error>
+    pub fn fetch_all<'e, 'c: 'e, E>(self, executor: E) -> Result<Vec<O>, Error>
     where
         'q: 'e,
         E: 'e + Executor<'c, Database = DB>,
@@ -134,11 +134,13 @@ where
         O: 'e,
         A: 'e,
     {
-        self.fetch(executor).try_collect().await
+        self.fetch(executor).collect(|it|{
+            Some(Ok(it))
+        })
     }
 
     /// Execute the query and returns exactly one row.
-    pub async fn fetch_one<'e, 'c: 'e, E>(self, executor: E) -> Result<O, Error>
+    pub fn fetch_one<'e, 'c: 'e, E>(self, executor: E) -> Result<O, Error>
     where
         'q: 'e,
         E: 'e + Executor<'c, Database = DB>,
@@ -147,12 +149,12 @@ where
         A: 'e,
     {
         self.fetch_optional(executor)
-            .await
+            
             .and_then(|row| row.ok_or(Error::RowNotFound))
     }
 
     /// Execute the query and returns at most one row.
-    pub async fn fetch_optional<'e, 'c: 'e, E>(self, executor: E) -> Result<Option<O>, Error>
+    pub fn fetch_optional<'e, 'c: 'e, E>(self, executor: E) -> Result<Option<O>, Error>
     where
         'q: 'e,
         E: 'e + Executor<'c, Database = DB>,
@@ -160,7 +162,7 @@ where
         O: 'e,
         A: 'e,
     {
-        let row = executor.fetch_optional(self.inner).await?;
+        let row = executor.fetch_optional(self.inner)?;
         if let Some(row) = row {
             O::from_row(&row).map(Some)
         } else {
