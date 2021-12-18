@@ -62,7 +62,7 @@ use crate::database::Database;
 use crate::error::Error;
 use crate::transaction::Transaction;
 use std::fmt;
-use std::future::Future;
+
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 

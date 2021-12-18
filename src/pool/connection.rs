@@ -8,7 +8,7 @@ use crate::database::Database;
 use crate::error::Error;
 
 use super::inner::{DecrementSizeGuard, SharedPool};
-use std::future::Future;
+
 
 /// A connection managed by a [`Pool`][crate::pool::Pool].
 ///
