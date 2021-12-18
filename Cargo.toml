@@ -13,6 +13,7 @@ authors = ["zhuxiujia@qq.com"]
 [features]
 default = []
 offline = ["serde"]
+_tls-native-tls = []
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -31,3 +32,5 @@ crossbeam-utils = { version = "0.8.1", default-features = false }
 
 either = "1.5.3"
 bstr = { version = "0.2.14", default-features = false, features = ["std"], optional = true }
+
+native-tls = "0.2"

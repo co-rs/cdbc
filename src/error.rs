@@ -7,6 +7,7 @@ use std::fmt::Display;
 use std::io;
 use std::result::Result as StdResult;
 use std::sync::mpsc::RecvError;
+use native_tls::HandshakeError;
 use crate::database::Database;
 use crate::type_info::TypeInfo;
 use crate::types::Type;
@@ -253,6 +254,7 @@ impl From<RecvError> for Error {
          Self::Protocol(arg.to_string())
     }
 }
+
 
 // Format an error message as a `Protocol` error
 #[macro_export]
