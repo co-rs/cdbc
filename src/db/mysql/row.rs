@@ -1,10 +1,11 @@
 use crate::column::ColumnIndex;
 use crate::error::Error;
-use crate::ext::ustr::UStr;
+
 use crate::mysql::{protocol, MySql, MySqlColumn, MySqlValueFormat, MySqlValueRef};
 use crate::row::Row;
 use crate::HashMap;
 use std::sync::Arc;
+use crate::utils::ustr::UStr;
 
 /// Implementation of [`Row`] for MySQL.
 #[derive(Debug)]

@@ -11,13 +11,13 @@ use crate::mysql::protocol::Capabilities;
 use crate::mysql::{MySqlConnectOptions, MySqlConnection, MySqlSslMode};
 
 impl MySqlConnection {
-    pub(crate) async fn establish(options: &MySqlConnectOptions) -> Result<Self, Error> {
-        let mut stream: MySqlStream = MySqlStream::connect(options).await?;
+    pub(crate) fn establish(options: &MySqlConnectOptions) -> Result<Self, Error> {
+        let mut stream: MySqlStream = MySqlStream::connect(options)?;
 
         // https://dev.mysql.com/doc/dev/mysql-server/8.0.12/page_protocol_connection_phase.html
         // https://mariadb.com/kb/en/connection/
 
-        let handshake: Handshake = stream.recv_packet().await?.decode()?;
+        let handshake: Handshake = stream.recv_packet()?.decode()?;
 
         let mut plugin = handshake.auth_plugin;
         let mut nonce = handshake.auth_plugin_data;
@@ -60,10 +60,10 @@ impl MySqlConnection {
         }
 
         // Upgrade to TLS if we were asked to and the server supports it
-        tls::maybe_upgrade(&mut stream, options).await?;
+        tls::maybe_upgrade(&mut stream, options)?;
 
         let auth_response = if let (Some(plugin), Some(password)) = (plugin, &options.password) {
-            Some(plugin.scramble(&mut stream, password, &nonce).await?)
+            Some(plugin.scramble(&mut stream, password, &nonce)?)
         } else {
             None
         };
@@ -77,10 +77,10 @@ impl MySqlConnection {
             auth_response: auth_response.as_deref(),
         });
 
-        stream.flush().await?;
+        stream.flush()?;
 
         loop {
-            let packet = stream.recv_packet().await?;
+            let packet = stream.recv_packet()?;
             match packet[0] {
                 0x00 => {
                     let _ok = packet.ok()?;
@@ -101,15 +101,15 @@ impl MySqlConnection {
                             options.password.as_deref().unwrap_or_default(),
                             &nonce,
                         )
-                        .await?;
+                        ?;
 
                     stream.write_packet(AuthSwitchResponse(response));
-                    stream.flush().await?;
+                    stream.flush()?;
                 }
 
                 id => {
                     if let (Some(plugin), Some(password)) = (plugin, &options.password) {
-                        if plugin.handle(&mut stream, packet, password, &nonce).await? {
+                        if plugin.handle(&mut stream, packet, password, &nonce)? {
                             // plugin signaled authentication is ok
                             break;
                         }

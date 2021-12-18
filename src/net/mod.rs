@@ -6,3 +6,5 @@ pub use tls::{CertificateInput, MaybeTlsStream};
 
 // #[cfg(feature = "_rt-async-std")]
 type PollReadBuf<'a> = Vec<u8>;
+
+pub use socket::IsTLS;

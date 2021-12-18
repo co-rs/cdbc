@@ -1,7 +1,7 @@
 use crate::column::Column;
-use crate::ext::ustr::UStr;
-use crate::mysql::protocol::text::ColumnFlags;
-use crate::mysql::{MySql, MySqlTypeInfo};
+use crate::db::mysql::protocol::text::ColumnFlags;
+use crate::db::mysql::{MySql, MySqlTypeInfo};
+use crate::utils::ustr::UStr;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]

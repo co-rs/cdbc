@@ -48,24 +48,24 @@ impl Connection for MySqlConnection {
 
     fn close(mut self) -> Result<(), Error> {
         {
-            self.stream.send_packet(Quit).await?;
-            self.stream.shutdown().await?;
+            self.stream.send_packet(Quit)?;
+            self.stream.shutdown()?;
 
             Ok(())
         }
     }
 
     fn ping(&mut self) -> Result<(), Error> {
-        self.stream.wait_until_ready().await?;
-        self.stream.send_packet(Ping).await?;
-        self.stream.recv_ok().await?;
+        self.stream.wait_until_ready()?;
+        self.stream.send_packet(Ping)?;
+        self.stream.recv_ok()?;
 
         Ok(())
     }
 
     #[doc(hidden)]
     fn flush(&mut self) -> Result<(), Error> {
-        self.stream.wait_until_ready().boxed()
+        self.stream.wait_until_ready()
     }
 
     fn cached_statements_size(&self) -> usize {
@@ -78,7 +78,7 @@ impl Connection for MySqlConnection {
                 .send_packet(StmtClose {
                     statement: statement_id,
                 })
-                .await?;
+                ?;
         }
         Ok(())
     }

@@ -1,18 +1,18 @@
-
+use bstr::ByteSlice;
 use bytes::buf::Chain;
 use bytes::Bytes;
 use digest::{Digest, FixedOutput};
 use generic_array::GenericArray;
 use rand::thread_rng;
-use rsa::{PaddingScheme, PublicKey};
+use rsa::{PaddingScheme, PublicKey, RSAPublicKey};
 use sha1::Sha1;
-use sha2::digest::FixedOutput;
-use sha2::{Digest, Sha256};
+use sha2::Sha256;
 
 use crate::error::Error;
 use crate::mysql::connection::stream::MySqlStream;
 use crate::mysql::protocol::auth::AuthPlugin;
 use crate::mysql::protocol::Packet;
+use crate::net::IsTLS;
 
 impl AuthPlugin {
     pub(super) fn scramble(

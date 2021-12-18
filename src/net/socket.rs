@@ -44,3 +44,9 @@ impl std::io::Write for Socket {
         self.inner.flush()
     }
 }
+
+
+pub trait IsTLS{
+    #[inline]
+    fn is_tls(&self) -> bool;
+}

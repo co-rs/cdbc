@@ -139,7 +139,7 @@ macro_rules! impl_executor_for_transaction {
             fn describe<'e, 'q: 'e>(
                 self,
                 query: &'q str,
-            ) ->Result<crate::describe::Describe<Self::Database>, crate::error::Error>,
+            ) ->Result<crate::describe::Describe<Self::Database>, crate::error::Error>
             where
                 't: 'e,
             {

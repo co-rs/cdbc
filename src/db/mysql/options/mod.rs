@@ -38,7 +38,7 @@ pub use ssl_mode::MySqlSslMode;
 /// # #[cfg(feature = "_rt-async-std")]
 /// # sqlx_rt::async_std::task::block_on::<_, Result<(), Error>>(async move {
 /// // URI connection string
-/// let conn = MySqlConnection::connect("mysql://root:password@localhost/db").await?;
+/// let conn = MySqlConnection::connect("mysql://root:password@localhost/db")?;
 ///
 /// // Manually-constructed options
 /// let conn = MySqlConnectOptions::new()
@@ -46,7 +46,7 @@ pub use ssl_mode::MySqlSslMode;
 ///     .username("root")
 ///     .password("password")
 ///     .database("db")
-///     .connect().await?;
+///     .connect()?;
 /// # Ok(())
 /// # }).unwrap();
 /// # }

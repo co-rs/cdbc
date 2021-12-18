@@ -1,13 +1,14 @@
 use super::MySqlColumn;
 use crate::column::ColumnIndex;
 use crate::error::Error;
-use crate::ext::ustr::UStr;
+
 use crate::mysql::{MySql, MySqlArguments, MySqlTypeInfo};
 use crate::statement::Statement;
 use crate::HashMap;
 use either::Either;
 use std::borrow::Cow;
 use std::sync::Arc;
+use crate::utils::ustr::UStr;
 
 #[derive(Debug, Clone)]
 pub struct MySqlStatement<'q> {

@@ -41,3 +41,6 @@ pub mod db;
 pub use db::*;
 
 pub mod net;
+
+
+use ahash::AHashMap as HashMap;

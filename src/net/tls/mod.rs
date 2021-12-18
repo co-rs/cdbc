@@ -10,6 +10,9 @@ use std::task::{Context, Poll};
 use crate::error::Error;
 use std::mem::replace;
 use native_tls::HandshakeError;
+use crate::decode::Decode;
+use crate::encode::Encode;
+use crate::net::socket::IsTLS;
 
 
 /// X.509 Certificate input, either a file path or a PEM encoded inline certificate(s).
@@ -81,15 +84,11 @@ where
     Upgrading,
 }
 
+
 impl<S> MaybeTlsStream<S>
 where
     S: std::io::Read + std::io::Write  + std::fmt::Debug + Send +Sync + 'static,
 {
-    #[inline]
-    pub fn is_tls(&self) -> bool {
-        matches!(self, Self::Tls(_))
-    }
-
     pub fn upgrade(
         &mut self,
         host: &str,
@@ -130,6 +129,13 @@ where
             }
         }
         Ok(())
+    }
+}
+
+impl <S>IsTLS for MaybeTlsStream<S> where S:Write+Read{
+    #[inline]
+    fn is_tls(&self) -> bool {
+        matches!(self, Self::Tls(_))
     }
 }
 
@@ -244,3 +250,20 @@ where
         }
     }
 }
+
+// impl<S>  MaybeTlsStream<S>
+//     where
+//         S: Unpin + Write + Read,
+// {
+//     pub fn write_with<'en, C>(&mut self, value: T, context: C)
+//         where
+//             T: Encode<'en, C>{
+//
+//     }
+//     pub fn read_with<'de, C>(&mut self, cnt: usize, context: C) -> Result<T, Error>
+//         where
+//             T: Decode<'de, C>{
+//
+//     }
+//
+// }

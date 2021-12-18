@@ -1,4 +1,3 @@
-use futures_core::future::BoxFuture;
 
 use crate::error::Error;
 use crate::executor::Executor;
@@ -16,41 +15,30 @@ pub struct MySqlTransactionManager;
 impl TransactionManager for MySqlTransactionManager {
     type Database = MySql;
 
-    fn begin(conn: &mut MySqlConnection) -> BoxFuture<'_, Result<(), Error>> {
-        Box::pin(async move {
+    fn begin(conn: &mut MySqlConnection) ->  Result<(), Error> {
             let depth = conn.transaction_depth;
-
-            conn.execute(&*begin_ansi_transaction_sql(depth)).await?;
+            conn.execute(&*begin_ansi_transaction_sql(depth))?;
             conn.transaction_depth = depth + 1;
 
             Ok(())
-        })
     }
 
-    fn commit(conn: &mut MySqlConnection) -> BoxFuture<'_, Result<(), Error>> {
-        Box::pin(async move {
+    fn commit(conn: &mut MySqlConnection) ->  Result<(), Error> {
             let depth = conn.transaction_depth;
-
             if depth > 0 {
-                conn.execute(&*commit_ansi_transaction_sql(depth)).await?;
+                conn.execute(&*commit_ansi_transaction_sql(depth))?;
                 conn.transaction_depth = depth - 1;
             }
-
             Ok(())
-        })
     }
 
-    fn rollback(conn: &mut MySqlConnection) -> BoxFuture<'_, Result<(), Error>> {
-        Box::pin(async move {
+    fn rollback(conn: &mut MySqlConnection) ->  Result<(), Error> {
             let depth = conn.transaction_depth;
-
             if depth > 0 {
-                conn.execute(&*rollback_ansi_transaction_sql(depth)).await?;
+                conn.execute(&*rollback_ansi_transaction_sql(depth))?;
                 conn.transaction_depth = depth - 1;
             }
-
             Ok(())
-        })
     }
 
     fn start_rollback(conn: &mut MySqlConnection) {

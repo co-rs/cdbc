@@ -2,19 +2,18 @@ use crate::connection::ConnectOptions;
 use crate::error::Error;
 use crate::executor::Executor;
 use crate::mysql::{MySqlConnectOptions, MySqlConnection};
-use futures_core::future::BoxFuture;
 use log::LevelFilter;
 use std::time::Duration;
 
 impl ConnectOptions for MySqlConnectOptions {
     type Connection = MySqlConnection;
 
-    fn connect(&self) -> BoxFuture<'_, Result<Self::Connection, Error>>
+    fn connect(&self) -> Result<Self::Connection, Error>
     where
         Self::Connection: Sized,
     {
-        Box::pin(async move {
-            let mut conn = MySqlConnection::establish(self).await?;
+
+            let mut conn = MySqlConnection::establish(self)?;
 
             // After the connection is established, we initialize by configuring a few
             // connection parameters
@@ -50,10 +49,10 @@ impl ConnectOptions for MySqlConnectOptions {
                 conn.stream.collation.as_str()
             ));
 
-            conn.execute(&*options).await?;
+            conn.execute(&*options)?;
 
             Ok(conn)
-        })
+
     }
 
     fn log_statements(&mut self, level: LevelFilter) -> &mut Self {

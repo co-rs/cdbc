@@ -4,7 +4,7 @@ use crate::mysql::protocol::connect::SslRequest;
 use crate::mysql::protocol::Capabilities;
 use crate::mysql::{MySqlConnectOptions, MySqlSslMode};
 
-pub(super) async fn maybe_upgrade(
+pub(super) fn maybe_upgrade(
     stream: &mut MySqlStream,
     options: &MySqlConnectOptions,
 ) -> Result<(), Error> {
@@ -14,11 +14,11 @@ pub(super) async fn maybe_upgrade(
 
         MySqlSslMode::Preferred => {
             // try upgrade, but its okay if we fail
-            upgrade(stream, options).await?;
+            upgrade(stream, options)?;
         }
 
         MySqlSslMode::Required | MySqlSslMode::VerifyIdentity | MySqlSslMode::VerifyCa => {
-            if !upgrade(stream, options).await? {
+            if !upgrade(stream, options)? {
                 // upgrade failed, die
                 return Err(Error::Tls("server does not support TLS".into()));
             }
@@ -28,7 +28,7 @@ pub(super) async fn maybe_upgrade(
     Ok(())
 }
 
-async fn upgrade(stream: &mut MySqlStream, options: &MySqlConnectOptions) -> Result<bool, Error> {
+fn upgrade(stream: &mut MySqlStream, options: &MySqlConnectOptions) -> Result<bool, Error> {
     if !stream.capabilities.contains(Capabilities::SSL) {
         // server does not support TLS
         return Ok(false);
@@ -39,7 +39,7 @@ async fn upgrade(stream: &mut MySqlStream, options: &MySqlConnectOptions) -> Res
         collation: stream.collation as u8,
     });
 
-    stream.flush().await?;
+    stream.flush()?;
 
     let accept_invalid_certs = !matches!(
         options.ssl_mode,
@@ -54,7 +54,7 @@ async fn upgrade(stream: &mut MySqlStream, options: &MySqlConnectOptions) -> Res
             accept_invalid_host_names,
             options.ssl_ca.as_ref(),
         )
-        .await?;
+        ?;
 
     Ok(true)
 }
