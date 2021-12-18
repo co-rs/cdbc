@@ -31,10 +31,3 @@ crossbeam-utils = { version = "0.8.1", default-features = false }
 
 either = "1.5.3"
 bstr = { version = "0.2.14", default-features = false, features = ["std"], optional = true }
-
-# todo need remove
-futures-core = { version = "0.3.5"}
-futures-util = {version = "0.3",features = ["sink"]}
-futures-intrusive = "0.4.0"
-futures-channel="0.3"
-sqlx-rt = {version = "0.5.9",features = ["runtime-tokio-native-tls"] }

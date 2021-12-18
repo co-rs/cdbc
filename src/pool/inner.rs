@@ -254,7 +254,7 @@ impl<DB: Database> SharedPool<DB> {
             // If the connection is refused wait in exponentially
             // increasing steps for the server to come up,
             // capped by a factor of the remaining time until the deadline
-            sqlx_rt::sleep(backoff);
+            may::coroutine::sleep(backoff);
             backoff = cmp::min(backoff * 2, max_backoff);
         }
     }

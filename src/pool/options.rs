@@ -3,7 +3,6 @@ use crate::database::Database;
 use crate::error::Error;
 use crate::pool::inner::SharedPool;
 use crate::pool::Pool;
-use sqlx_rt::spawn;
 use std::cmp;
 use std::fmt::{self, Debug, Formatter};
 use std::sync::Arc;
