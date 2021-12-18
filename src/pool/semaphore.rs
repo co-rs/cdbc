@@ -2,12 +2,12 @@ use may::sync::Semphore;
 use crate::Error;
 use crate::error::Result;
 
-pub struct Semaphore {
+pub struct BoxSemaphore {
     inner: may::sync::Semphore,
 }
 
-impl Semaphore {
-    pub fn new(capacity:usize) -> Semaphore {
+impl BoxSemaphore {
+    pub fn new(capacity:usize) -> BoxSemaphore {
         Self{
             inner:Semphore::new(capacity)
         }

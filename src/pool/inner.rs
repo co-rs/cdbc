@@ -15,7 +15,7 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
 
 use std::time::{Duration, Instant};
-use crate::pool::semaphore::Semaphore;
+use crate::pool::semaphore::BoxSemaphore;
 
 /// Ihe number of permits to release to wake all waiters, such as on `SharedPool::close()`.
 ///
@@ -26,7 +26,7 @@ const WAKE_ALL_PERMITS: usize = usize::MAX / 2;
 pub(crate) struct SharedPool<DB: Database> {
     pub(super) connect_options: <DB::Connection as Connection>::Options,
     pub(super) idle_conns: ArrayQueue<Idle<DB>>,
-    pub(super) semaphore: Semaphore,
+    pub(super) semaphore: BoxSemaphore,
     pub(super) size: AtomicU32,
     is_closed: AtomicBool,
     pub(super) options: PoolOptions<DB>,
@@ -48,7 +48,7 @@ impl<DB: Database> SharedPool<DB> {
         let pool = Self {
             connect_options,
             idle_conns: ArrayQueue::new(capacity),
-            semaphore: Semaphore::new( capacity),
+            semaphore: BoxSemaphore::new( capacity),
             size: AtomicU32::new(0),
             is_closed: AtomicBool::new(false),
             options,
@@ -365,7 +365,7 @@ fn do_reap<DB: Database>(pool: &SharedPool<DB>) {
 /// (where the pool thinks it has more connections than it does).
 pub(in crate::pool) struct DecrementSizeGuard<'a> {
     size: &'a AtomicU32,
-    semaphore: &'a Semaphore,
+    semaphore: &'a BoxSemaphore,
     dropped: bool,
 }
 
