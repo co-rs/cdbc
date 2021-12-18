@@ -8,6 +8,7 @@ use std::cmp;
 use std::fmt::{self, Debug, Formatter};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use may::go;
 
 pub struct PoolOptions<DB: Database> {
     pub(crate) test_before_acquire: bool,
@@ -150,12 +151,12 @@ impl<DB: Database> PoolOptions<DB> {
     /// use sqlx_core::postgres::PgPoolOptions;
     /// // PostgreSQL
     /// let pool = PgPoolOptions::new()
-    ///     .after_connect(|conn| Box::pin(async move {
+    ///     .after_connect(|conn| {
     ///        conn.execute("SET application_name = 'your_app';")?;
     ///        conn.execute("SET search_path = 'my_schema';")?;
     ///
     ///        Ok(())
-    ///     }))
+    ///     })
     ///     .connect("postgres:// …")?;
     /// # Ok(())
     /// # }
@@ -216,11 +217,9 @@ impl<DB: Database> PoolOptions<DB> {
     pub fn connect_lazy_with(self, options: <DB::Connection as Connection>::Options) -> Pool<DB> {
         let shared = SharedPool::new_arc(self, options);
 
-        let _ = spawn({
-            let shared = Arc::clone(&shared);
-            async move {
-                let _ = init_min_connections(&shared);
-            }
+        let shared_clone = Arc::clone(&shared);
+        let _ = go!(move ||{
+            let _ = init_min_connections(&shared_clone);
         });
 
         Pool(shared)

@@ -91,13 +91,13 @@ impl<DB: Database> PoolConnection<DB> {
     /// Test the connection to make sure it is still live before returning it to the pool.
     ///
     /// This effectively runs the drop handler eagerly instead of spawning a task to do it.
-    pub(crate) fn return_to_pool(&mut self) -> impl Future<Output = ()> + Send + 'static {
+    pub(crate) fn return_to_pool(&mut self) -> () {
         // we want these to happen synchronously so the drop handler doesn't try to spawn a task anyway
         // this also makes the returned future `'static`
         let live = self.live.take();
         let pool = self.pool.clone();
 
-        async move {
+         {
             let mut floating = if let Some(live) = live {
                 live.float(&pool)
             } else {
@@ -131,13 +131,14 @@ impl<DB: Database> PoolConnection<DB> {
 impl<DB: Database> Drop for PoolConnection<DB> {
     fn drop(&mut self) {
         if self.live.is_some() {
-            #[cfg(not(feature = "_rt-async-std"))]
-            if let Ok(handle) = sqlx_rt::Handle::try_current() {
-                handle.spawn(self.return_to_pool());
-            }
-
-            #[cfg(feature = "_rt-async-std")]
-            sqlx_rt::spawn(self.return_to_pool());
+            // #[cfg(not(feature = "_rt-async-std"))]
+            // if let Ok(handle) = sqlx_rt::Handle::try_current() {
+            //     handle.spawn(self.return_to_pool());
+            // }
+            //
+            // #[cfg(feature = "_rt-async-std")]
+            // sqlx_rt::spawn(self.return_to_pool());
+            self.return_to_pool();
         }
     }
 }

@@ -15,6 +15,7 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
 
 use std::time::{Duration, Instant};
+use may::go;
 use crate::pool::semaphore::BoxSemaphore;
 
 /// Ihe number of permits to release to wake all waiters, such as on `SharedPool::close()`.
@@ -327,12 +328,12 @@ fn spawn_reaper<DB: Database>(pool: &Arc<SharedPool<DB>>) {
 
     let pool = Arc::clone(&pool);
 
-    sqlx_rt::spawn(async move {
+    go!(move || {
         while !pool.is_closed() {
             if !pool.idle_conns.is_empty() {
                 do_reap(&pool);
             }
-            sqlx_rt::sleep(period);
+           may::coroutine::sleep(period);
         }
     });
 }
