@@ -103,13 +103,8 @@ macro_rules! impl_executor_for_transaction {
             fn fetch_many<'e, 'q: 'e, E: 'q>(
                 self,
                 query: E,
-            ) -> futures_core::stream::BoxStream<
-                'e,
-                Result<
-                    either::Either<<$DB as crate::database::Database>::QueryResult, $Row>,
-                    crate::error::Error,
-                >,
-            >
+            ) -> crate::io::chan_stream::ChanStream<
+                    either::Either<<$DB as crate::database::Database>::QueryResult, $Row>>
             where
                 't: 'e,
                 E: crate::executor::Execute<'q, Self::Database>,

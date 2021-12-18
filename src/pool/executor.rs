@@ -80,13 +80,7 @@ macro_rules! impl_executor_for_pool_connection {
             fn fetch_many<'e, 'q: 'e, E: 'q>(
                 self,
                 query: E,
-            ) -> futures_core::stream::BoxStream<
-                'e,
-                Result<
-                    either::Either<<$DB as crate::database::Database>::QueryResult, $R>,
-                    crate::error::Error,
-                >,
-            >
+            ) -> crate::io::chan_stream::ChanStream<either::Either<<$DB as crate::database::Database>::QueryResult, $R>>
             where
                 'c: 'e,
                 E: crate::executor::Execute<'q, $DB>,
@@ -124,10 +118,7 @@ macro_rules! impl_executor_for_pool_connection {
             fn describe<'e, 'q: 'e>(
                 self,
                 sql: &'q str,
-            ) -> futures_core::future::BoxFuture<
-                'e,
-                Result<crate::describe::Describe<$DB>, crate::error::Error>,
-            >
+            ) ->Result<crate::describe::Describe<$DB>, crate::error::Error>
             where
                 'c: 'e,
             {
