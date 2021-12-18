@@ -64,4 +64,25 @@ mod test {
             Ok(())
         }).unwrap();
     }
+
+    #[test]
+    fn test_mysql_fetch_all() {
+        println!("conn");
+        let pool = MySqlPool::connect("mysql://root:123456@localhost:3306/test").unwrap();
+        println!("acq");
+        let mut conn = pool.acquire().unwrap();
+        let mut data:Vec<MySqlRow> = conn.fetch_all("select * from biz_activity;").unwrap();
+        for x in data {
+            let mut  m=BTreeMap::new();
+            let it:MySqlRow=x;
+            for column in it.columns() {
+                // println!("{:?}",column.name());
+                let v=it.try_get_raw(column.name()).unwrap();
+                let r: Option<String> = Decode::<'_, MySql>::decode(v).unwrap();
+                m.insert(column.name().to_string(),r);
+                // println!("{:?}",r);
+            }
+            println!("{:?}",m);
+        }
+    }
 }
