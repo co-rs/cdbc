@@ -5,76 +5,16 @@ use crate::Error;
 use crate::error::Result;
 
 pub struct BoxSemaphore {
-    inner: may::sync::Semphore,
-}
-
-impl BoxSemaphore {
-    pub fn new(capacity: usize) -> BoxSemaphore {
-        let s = Self {
-            inner: Semphore::new(capacity)
-        };
-        for _ in 0..capacity {
-            s.inner.post();
-        }
-        s
-    }
-
-    pub fn try_acquire(&self) -> Option<usize> {
-        if self.inner.try_wait() {
-            return Some(1);
-        }
-        return None;
-    }
-    pub fn acquire(&self) -> usize {
-        self.inner.wait();
-        return 1;
-    }
-    pub fn acquire_num(&self, num: usize) -> usize {
-        for _ in 0..num {
-            self.inner.post();
-        }
-        self.inner.wait();
-        return num;
-    }
-    pub fn release(&self) -> usize {
-        self.inner.post();
-        return 1;
-    }
-
-    pub fn try_release(&self) -> usize {
-        self.inner.post();
-        return 1;
-    }
-
-    pub fn release_left(&self, num: usize) -> usize {
-        let left = self.inner.get_value();
-        if left >= num {
-            for _ in 0..num {
-                self.inner.post();
-            }
-            return num;
-        } else {
-            for _ in 0..left {
-                self.inner.post();
-            }
-            return left;
-        }
-    }
-}
-
-
-pub struct BoxSemaphore2 {
-    size: i64,
+    limit: i64,
     cur: AtomicI64,
     waiters: crossbeam_queue::SegQueue<Arc<may::sync::Blocker>>,
 }
 
-
-impl BoxSemaphore2 {
+impl BoxSemaphore {
     pub fn new(size: usize) -> Self {
         Self {
-            size: size as i64,
-            cur: AtomicI64::new(0),
+            limit: size as i64,
+            cur: AtomicI64::new(0 as i64),
             waiters: crossbeam_queue::SegQueue::new(),
         }
     }
@@ -83,30 +23,66 @@ impl BoxSemaphore2 {
         self.cur.fetch_or(0, Ordering::Relaxed)
     }
 
-    pub fn acq(&self) -> Option<Arc<Blocker>> {
-        if self.cur() < self.size {
+    pub fn acquire(&self) -> Arc<Blocker> {
+        if self.cur() < self.limit {
             self.cur.fetch_add(1, Ordering::Relaxed);
-            None
+            Blocker::current()
         } else {
             let b = Blocker::current();
             b.park(None);
             self.waiters.push(b.clone());
-            Some(b)
+            b
+        }
+    }
+
+    pub fn try_acquire(&self) -> Arc<Blocker> {
+        if self.cur() < self.limit {
+            self.cur.fetch_add(1, Ordering::Relaxed);
+            Blocker::current()
+        } else {
+            let b = Blocker::current();
+            self.waiters.push(b.clone());
+            b
         }
     }
 
     pub fn release(&self) {
-        if self.cur() < 1 {
+        if self.cur() == 0 {
             return;
         }
-        if self.waiters.is_empty(){
+        if self.waiters.is_empty() {
             // If there are no waiters, just decrement and we're done
-            self.cur.fetch_sub(1,Ordering::Relaxed);
+            self.cur.fetch_sub(1, Ordering::Relaxed);
+        } else {
+            let w = self.waiters.pop();
+            if let Some(w) = w {
+                w.unpark();
+                self.cur.fetch_sub(1, Ordering::Relaxed);
+            }
         }
+    }
 
-        let w=self.waiters.pop();
-        if let Some(w) = w{
-            w.unpark();
+    pub fn release_left(&self, mut num: usize) -> usize {
+        if self.cur() == 0 {
+            return 0;
+        }
+        if num > self.cur() as usize {
+            num = self.cur() as usize;
+        }
+        if self.waiters.is_empty() {
+            self.cur.fetch_sub(num as i64, Ordering::Relaxed);
+            return num;
+        } else {
+            let mut releases = 0;
+            for _ in 0..num {
+                let w = self.waiters.pop();
+                if let Some(w) = w {
+                    w.unpark();
+                    releases += 1;
+                }
+            }
+            releases = self.cur.fetch_sub(releases, Ordering::Relaxed);
+            return releases as usize;
         }
     }
 }
@@ -118,27 +94,27 @@ mod test {
     use std::thread::sleep;
     use std::time::Duration;
     use may::go;
-    use crate::pool::semaphore::{BoxSemaphore, BoxSemaphore2};
+    use crate::pool::semaphore::{BoxSemaphore};
 
     #[test]
     fn test_acq() {
-        let b = Arc::new(BoxSemaphore2::new(2));
+        let b = Arc::new(BoxSemaphore::new(2));
         let b1 = b.clone();
         go!(move ||{
-            b1.acq();
+            b1.acquire();
             println!("{}",1);
         });
         sleep(Duration::from_secs(1));
         let b2 = b.clone();
         go!(move ||{
-            b2.acq();
+            b2.acquire();
             println!("{}",2);
         });
         sleep(Duration::from_secs(1));
         let b3 = b.clone();
         go!(move ||{
             b3.release();
-            b3.acq();
+            b3.acquire();
             println!("{}",3);
         });
 

@@ -2,6 +2,7 @@ use std::fmt::{self, Debug, Formatter};
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 use std::time::Instant;
+use may::sync::Blocker;
 
 use crate::connection::Connection;
 use crate::database::Database;
@@ -221,7 +222,7 @@ impl<'s, DB: Database> Floating<'s, Idle<DB>> {
     pub fn from_idle(
         idle: Idle<DB>,
         pool: &'s SharedPool<DB>,
-        permit: usize,
+        permit: Arc<Blocker>,
     ) -> Self {
         Self {
             inner: idle,

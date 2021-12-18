@@ -16,6 +16,7 @@ use std::sync::Arc;
 
 use std::time::{Duration, Instant};
 use may::go;
+use may::sync::Blocker;
 use crate::pool::semaphore::BoxSemaphore;
 
 /// Ihe number of permits to release to wake all waiters, such as on `SharedPool::close()`.
@@ -85,10 +86,10 @@ impl<DB: Database> SharedPool<DB> {
             self.semaphore.release_left(WAKE_ALL_PERMITS);
         }
 
-        // wait for all permits to be released
-        let _permits = self
-            .semaphore
-            .acquire_num(WAKE_ALL_PERMITS + (self.options.max_connections as usize));
+        // // wait for all permits to be released
+        // let _permits = self
+        //     .semaphore
+        //     .acquire_num(WAKE_ALL_PERMITS + (self.options.max_connections as usize));
 
         while let Some(idle) = self.idle_conns.pop() {
             let _ = idle.live.float(self).close();
@@ -101,14 +102,14 @@ impl<DB: Database> SharedPool<DB> {
             return None;
         }
 
-        let permit = self.semaphore.try_acquire()?;
+        let permit = self.semaphore.try_acquire();
         self.pop_idle(permit).ok()
     }
 
     fn pop_idle<'a>(
         &'a self,
-        permit: usize,
-    ) -> Result<Floating<'a, Idle<DB>>, usize> {
+        permit: Arc<Blocker>,
+    ) -> Result<Floating<'a, Idle<DB>>, Arc<Blocker>> {
         if let Some(idle) = self.idle_conns.pop() {
             Ok(Floating::from_idle(idle, self, permit))
         } else {
@@ -140,8 +141,8 @@ impl<DB: Database> SharedPool<DB> {
     /// Returns `None` if we are at max_connections or if the pool is closed.
     pub(super) fn try_increment_size<'a>(
         &'a self,
-        permit: usize,
-    ) -> Result<DecrementSizeGuard<'a>, usize> {
+        permit: Arc<Blocker>,
+    ) -> Result<DecrementSizeGuard<'a>, Arc<Blocker>> {
         match self
             .size
             .fetch_update(Ordering::AcqRel, Ordering::Acquire, |size| {
@@ -382,7 +383,7 @@ impl<'a> DecrementSizeGuard<'a> {
 
     pub fn from_permit<DB: Database>(
         pool: &'a SharedPool<DB>,
-        mut permit: usize,
+        mut permit: Arc<Blocker>,
     ) -> Self {
         // here we effectively take ownership of the permit
         //permit.disarm();
