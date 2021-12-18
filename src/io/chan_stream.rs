@@ -58,11 +58,7 @@ impl<T> Stream for ChanStream<T> {
                 match v {
                     None => { None }
                     Some(v) => {
-                        if let Ok(v)=v{
-                            Some(Ok(v))
-                        }else{
-                            None
-                        }
+                        Some(v)
                     }
                 }
             }

@@ -23,7 +23,7 @@ fn main() {
                 m.insert(column.name().to_string(),r);
                 // println!("{:?}",r);
             }
-            //println!("{:?}",m);
+            println!("{:?}",m);
             drop(m);
         });
     }
