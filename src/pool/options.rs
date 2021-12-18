@@ -49,7 +49,7 @@ impl<DB: Database> PoolOptions<DB> {
             after_release: None,
             max_connections: 10,
             min_connections: 0,
-            connect_timeout: Duration::from_secs(30),
+            connect_timeout: Duration::from_secs(10),
             idle_timeout: Some(Duration::from_secs(10 * 60)),
             max_lifetime: Some(Duration::from_secs(30 * 60)),
             fair: true,

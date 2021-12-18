@@ -38,19 +38,21 @@ mod test {
     use cdbc::column::Column;
     use cdbc::decode::Decode;
     use cdbc::executor::Executor;
-    use cdbc::io::chan_stream::{ChanStream, Stream};
+    use cdbc::io::chan_stream::{ChanStream, Stream, TryStream};
     use cdbc::query::Query;
     use cdbc::row::Row;
 
     #[test]
     fn test_mysql() {
+        println!("conn");
         let pool = MySqlPool::connect("mysql://root:123456@localhost:3306/test").unwrap();
+        println!("acq");
         let mut conn = pool.acquire().unwrap();
         let mut data:ChanStream<_> = conn.fetch("select * from biz_activity;");
-        data.for_each(|item |{
+        data.try_for_each(|item |{
             let mut  m=BTreeMap::new();
 
-            let it:MySqlRow=item.unwrap();
+            let it:MySqlRow=item;
             for column in it.columns() {
                // println!("{:?}",column.name());
                 let v=it.try_get_raw(column.name()).unwrap();
@@ -59,6 +61,7 @@ mod test {
                // println!("{:?}",r);
             }
             println!("{:?}",m);
-        });
+            Ok(())
+        }).unwrap();
     }
 }

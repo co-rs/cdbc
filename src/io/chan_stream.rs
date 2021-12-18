@@ -28,6 +28,16 @@ pub trait Stream {
 pub trait TryStream: Stream {
     type Ok;
     fn try_next(&mut self) -> crate::error::Result<Option<Self::Ok>>;
+
+    fn try_for_each(&mut self, f: fn(a: Self::Ok)->Result<()>) -> Result<()> where Self: Sized {
+        loop {
+            if let Some(v) = self.try_next()? {
+                f(v);
+            } else {
+                break Ok(());
+            }
+        }
+    }
 }
 
 
