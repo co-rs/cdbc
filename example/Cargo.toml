@@ -3,9 +3,23 @@ name = "example"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "mysql"
+path = "src/main-mysql.rs"
+
+[[bin]]
+name = "pg"
+path = "src/main-pg.rs"
+
+[[bin]]
+name = "sqlite"
+path = "src/main-sqlite.rs"
+
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 
 cdbc = {path = "../"}
 cdbc-mysql = {path = "../cdbc-mysql"}
+cdbc-pg = {path = "../cdbc-pg"}

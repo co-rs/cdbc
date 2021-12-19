@@ -9,7 +9,7 @@ use std::io;
 use std::ops::{Deref, DerefMut};
 
 pub struct BufStream<T> where T: Write + Read {
-    pub(crate) stream: T,
+    pub stream: T,
 
     // writes with `write` to the underlying stream are buffered
     // this can be flushed with `flush`

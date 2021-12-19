@@ -9,7 +9,7 @@ Database driver based on coroutine of [may](https://github.com/Xudong-Huang/may)
 
 # support database-driver
 * cdbc-mysql  (done)
-* cdbc-pg     (ing)
+* cdbc-pg     (done)
 * cdbc-sqlite (ing)
 
 

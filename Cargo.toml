@@ -17,6 +17,7 @@ authors = ["zhuxiujia@qq.com"]
 default = []
 offline = ["serde", "either/serde"]
 _tls-native-tls = []
+json = ["offline","serde_json"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -32,3 +33,4 @@ either = "1.5.3"
 bstr = { version = "0.2.14", default-features = false, features = ["std"] }
 native-tls = {version ="0.2"}
 ahash = "0.7.2"
+serde_json = { version = "1.0.51", features = ["raw_value"], optional = true }

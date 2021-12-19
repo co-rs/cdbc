@@ -92,7 +92,7 @@ impl<DB: Database> PoolConnection<DB> {
     /// Test the connection to make sure it is still live before returning it to the pool.
     ///
     /// This effectively runs the drop handler eagerly instead of spawning a task to do it.
-    pub(crate) fn return_to_pool(&mut self) -> () {
+    pub fn return_to_pool(&mut self) -> () {
         // we want these to happen synchronously so the drop handler doesn't try to spawn a task anyway
         // this also makes the returned future `'static`
         let live = self.live.take();
