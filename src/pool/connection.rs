@@ -263,3 +263,12 @@ impl<C> DerefMut for Floating<'_, C> {
         &mut self.inner
     }
 }
+
+
+impl<'c,D:Database> From<crate::pool::PoolConnection<D>>
+    for Box<crate::pool::MaybePoolConnection<'c, D>>
+{
+    fn from(v: crate::pool::PoolConnection<D>) -> Self {
+        Box::from(crate::pool::MaybePoolConnection::PoolConnection(v))
+    }
+}
