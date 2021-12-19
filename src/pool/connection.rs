@@ -7,6 +7,7 @@ use may::sync::Blocker;
 use crate::connection::Connection;
 use crate::database::Database;
 use crate::error::Error;
+use crate::executor::Executor;
 
 use super::inner::{DecrementSizeGuard, SharedPool};
 

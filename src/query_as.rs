@@ -86,7 +86,7 @@ impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
     pub fn fetch<'e, 'c: 'e, E>(self, executor: E) -> ChanStream<O>
         where
             'q: 'e,
-            E: 'e + Executor<'c, Database=DB>,
+            E: 'e + Executor< Database=DB>,
             DB: 'e,
             O: 'e,
             A: 'e,
@@ -105,7 +105,7 @@ impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
     ) -> ChanStream<Either<DB::QueryResult, O>>
         where
             'q: 'e,
-            E: 'e + Executor<'c, Database=DB>,
+            E: 'e + Executor< Database=DB>,
             DB: 'e,
             O: 'e,
             A: 'e,
@@ -129,7 +129,7 @@ impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
     pub fn fetch_all<'e, 'c: 'e, E>(self, executor: E) -> Result<Vec<O>, Error>
         where
             'q: 'e,
-            E: 'e + Executor<'c, Database=DB>,
+            E: 'e + Executor< Database=DB>,
             DB: 'e,
             O: 'e,
             A: 'e,
@@ -143,7 +143,7 @@ impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
     pub fn fetch_one<'e, 'c: 'e, E>(self, executor: E) -> Result<O, Error>
         where
             'q: 'e,
-            E: 'e + Executor<'c, Database=DB>,
+            E: 'e + Executor< Database=DB>,
             DB: 'e,
             O: 'e,
             A: 'e,
@@ -156,7 +156,7 @@ impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
     /// Execute the query and returns at most one row.
     pub fn fetch_optional<'c, E>(self, executor: E) -> Result<Option<O>, Error>
         where
-            E: Executor<'c, Database=DB>,
+            E: Executor< Database=DB>,
     {
         let row = executor.fetch_optional(self.inner)?;
         if let Some(row) = row {

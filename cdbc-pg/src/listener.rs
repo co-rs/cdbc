@@ -275,7 +275,7 @@ impl Drop for PgListener {
     }
 }
 
-impl<'c> Executor<'c> for &'c mut PgListener {
+impl<'c> Executor for &'c mut PgListener {
     type Database = Postgres;
 
     fn fetch_many<'q, E: 'q>(

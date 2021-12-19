@@ -146,7 +146,7 @@ impl<'q, DB, A: Send> Query<'q, DB, A>
     /// Execute the query and return the total number of rows affected.
     #[inline]
     pub fn execute<'c, E>(self, executor: E) -> Result<DB::QueryResult, Error>
-        where E: Executor<'c, Database=DB>,
+        where E: Executor< Database=DB>,
     {
         executor.execute(self)
     }
@@ -157,7 +157,7 @@ impl<'q, DB, A: Send> Query<'q, DB, A>
         self,
         executor: E,
     ) -> ChanStream<DB::QueryResult>
-        where E: Executor<'c, Database=DB>,
+        where E: Executor< Database=DB>,
     {
         executor.execute_many(self)
     }
@@ -165,7 +165,7 @@ impl<'q, DB, A: Send> Query<'q, DB, A>
     /// Execute the query and return the generated results as a stream.
     #[inline]
     pub fn fetch<'c, E>(self, executor: E) -> ChanStream<DB::Row>
-        where E: Executor<'c, Database=DB>,
+        where E: Executor< Database=DB>,
     {
         executor.fetch(self)
     }
@@ -177,7 +177,7 @@ impl<'q, DB, A: Send> Query<'q, DB, A>
         self,
         executor: E,
     ) -> ChanStream<Either<DB::QueryResult, DB::Row>>
-        where E: Executor<'c, Database=DB>,
+        where E: Executor< Database=DB>,
     {
         executor.fetch_many(self)
     }
@@ -185,7 +185,7 @@ impl<'q, DB, A: Send> Query<'q, DB, A>
     /// Execute the query and return all the generated results, collected into a [`Vec`].
     #[inline]
     pub fn fetch_all<'c, E>(self, executor: E) -> Result<Vec<DB::Row>, Error>
-        where E: Executor<'c, Database=DB>,
+        where E: Executor< Database=DB>,
     {
         executor.fetch_all(self)
     }
@@ -193,7 +193,7 @@ impl<'q, DB, A: Send> Query<'q, DB, A>
     /// Execute the query and returns exactly one row.
     #[inline]
     pub fn fetch_one<'c, E>(self, executor: E) -> Result<DB::Row, Error>
-        where E: Executor<'c, Database=DB>,
+        where E: Executor< Database=DB>,
     {
         executor.fetch_one(self)
     }
@@ -201,7 +201,7 @@ impl<'q, DB, A: Send> Query<'q, DB, A>
     /// Execute the query and returns at most one row.
     #[inline]
     pub fn fetch_optional<'c, E>(self, executor: E) -> Result<Option<DB::Row>, Error>
-        where E: Executor<'c, Database=DB>,
+        where E: Executor< Database=DB>,
     {
         executor.fetch_optional(self)
     }
@@ -280,7 +280,7 @@ impl<'q, DB, F, O, A> Map<'q, DB, F, A>
 
     /// Execute the query and return the generated results as a stream.
     pub fn fetch<'c, E>(self, executor: E) -> ChanStream<O>
-        where E: 'c + Executor<'c, Database=DB>,
+        where E: 'c + Executor< Database=DB>,
               DB: 'c,
               F: 'c,
               O: 'c,
@@ -300,7 +300,7 @@ impl<'q, DB, F, O, A> Map<'q, DB, F, A>
         mut self,
         executor: E,
     ) -> ChanStream<Either<DB::QueryResult, O>>
-        where E: 'c + Executor<'c, Database=DB>,
+        where E: 'c + Executor< Database=DB>,
               DB: 'c,
               F: 'c,
               O: 'c,
@@ -323,7 +323,7 @@ impl<'q, DB, F, O, A> Map<'q, DB, F, A>
 
     /// Execute the query and return all the generated results, collected into a [`Vec`].
     pub fn fetch_all<'c, E>(self, executor: E) -> Result<Vec<O>, Error>
-        where E: 'c + Executor<'c, Database=DB>,
+        where E: 'c + Executor< Database=DB>,
               DB: 'c,
               F: 'c,
               O: 'c,
@@ -335,7 +335,7 @@ impl<'q, DB, F, O, A> Map<'q, DB, F, A>
 
     /// Execute the query and returns exactly one row.
     pub fn fetch_one<'c, E>(self, executor: E) -> Result<O, Error>
-        where E: 'c + Executor<'c, Database=DB>,
+        where E: 'c + Executor< Database=DB>,
               DB: 'c,
               F: 'c,
               O: 'c,
@@ -349,7 +349,7 @@ impl<'q, DB, F, O, A> Map<'q, DB, F, A>
 
     /// Execute the query and returns at most one row.
     pub fn fetch_optional<'c, E>(mut self, executor: E) -> Result<Option<O>, Error>
-        where E: 'c + Executor<'c, Database=DB>,
+        where E: 'c + Executor< Database=DB>,
               DB: 'c,
               F: 'c,
               O: 'c,

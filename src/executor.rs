@@ -21,7 +21,7 @@ use crate::io::chan_stream::{ChanStream, Stream, TryStream};
 ///  * [`&mut PoolConnection`](super::pool::PoolConnection)
 ///  * [`&mut Connection`](super::connection::Connection)
 ///
-pub trait Executor<'c>: Send + Debug + Sized {
+pub trait Executor: Send + Debug + Sized {
     type Database: Database;
 
     /// Execute the query and return the total number of rows affected.

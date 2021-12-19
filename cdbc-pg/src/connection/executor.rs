@@ -326,7 +326,7 @@ impl PgConnection {
     }
 }
 
-impl<'c> Executor<'c> for &'c mut PgConnection {
+impl<'c> Executor for &'c mut PgConnection {
     type Database = Postgres;
 
     fn fetch_many< 'q, E: 'q>(

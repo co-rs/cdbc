@@ -83,7 +83,7 @@ impl Drop for StatementResetter<'_> {
     }
 }
 
-impl<'c> Executor<'c> for &'c mut SqliteConnection {
+impl<'c> Executor for &'c mut SqliteConnection {
     type Database = Sqlite;
 
     fn fetch_many<'q, E: 'q>(

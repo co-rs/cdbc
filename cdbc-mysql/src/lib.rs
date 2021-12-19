@@ -48,8 +48,8 @@ pub type MySqlPool = cdbc::pool::Pool<MySql>;
 pub type MySqlPoolOptions = cdbc::pool::PoolOptions<MySql>;
 
 /// An alias for [`Executor<'_, Database = MySql>`][Executor].
-pub trait MySqlExecutor<'c>: Executor<'c, Database = MySql> {}
-impl<'c, T: Executor<'c, Database = MySql>> MySqlExecutor<'c> for T {}
+pub trait MySqlExecutor<'c>: Executor< Database = MySql> {}
+impl<'c, T: Executor<Database = MySql>> MySqlExecutor<'c> for T {}
 
 // NOTE: required due to the lack of lazy normalization
 impl_into_arguments_for_arguments!(MySqlArguments);

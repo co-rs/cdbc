@@ -199,7 +199,7 @@ impl MySqlConnection {
     }
 }
 
-impl<'c> Executor<'c> for &'c mut MySqlConnection {
+impl<'c> Executor for &'c mut MySqlConnection {
     type Database = MySql;
 
     fn fetch_many<'q, E: 'q>(

@@ -84,7 +84,7 @@ where
     pub fn fetch<'e, 'c: 'e, E>(self, executor: E) -> ChanStream<O>
     where
         'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
+        E: 'e + Executor< Database = DB>,
         DB: 'e,
         A: 'e,
         O: 'e,
@@ -104,7 +104,7 @@ where
     ) -> ChanStream<Either<DB::QueryResult, O>>
     where
         'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
+        E: 'e + Executor< Database = DB>,
         DB: 'e,
         A: 'e,
         O: 'e,
@@ -121,7 +121,7 @@ where
     pub fn fetch_all<'e, 'c: 'e, E>(self, executor: E) -> Result<Vec<O>, Error>
     where
         'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
+        E: 'e + Executor< Database = DB>,
         DB: 'e,
         (O,): 'e,
         A: 'e,
@@ -140,7 +140,7 @@ where
     pub fn fetch_one<'e, 'c: 'e, E>(self, executor: E) -> Result<O, Error>
     where
         'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
+        E: 'e + Executor< Database = DB>,
         DB: 'e,
         O: 'e,
         A: 'e,
@@ -153,7 +153,7 @@ where
     pub fn fetch_optional<'e, 'c: 'e, E>(self, executor: E) -> Result<Option<O>, Error>
     where
         'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
+        E: 'e + Executor< Database = DB>,
         DB: 'e,
         O: 'e,
         A: 'e,

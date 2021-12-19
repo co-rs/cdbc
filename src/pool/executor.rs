@@ -9,9 +9,9 @@ use crate::pool::Pool;
 use crate::{chan_stream};
 use crate::io::chan_stream::TryStream;
 
-impl<'p, DB: Database> Executor<'p> for &'_ Pool<DB>
+impl<DB: Database> Executor for &'_ Pool<DB>
 where
-    for<'c> &'c mut DB::Connection: Executor<'c, Database = DB>,
+    for<'c> &'c mut DB::Connection: Executor< Database = DB>,
 {
     type Database = DB;
 

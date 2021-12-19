@@ -48,8 +48,8 @@ pub type PgPool = cdbc::pool::Pool<Postgres>;
 pub type PgPoolOptions = cdbc::pool::PoolOptions<Postgres>;
 
 /// An alias for [`Executor<'_, Database = Postgres>`][Executor].
-pub trait PgExecutor<'c>: Executor<'c, Database = Postgres> {}
-impl<'c, T: Executor<'c, Database = Postgres>> PgExecutor<'c> for T {}
+pub trait PgExecutor<'c>: Executor<Database = Postgres> {}
+impl<'c, T: Executor<Database = Postgres>> PgExecutor<'c> for T {}
 
 impl_into_arguments_for_arguments!(PgArguments);
 impl_column_index_for_row!(PgRow);
