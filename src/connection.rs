@@ -4,10 +4,10 @@ use crate::transaction::Transaction;
 use std::fmt::Debug;
 use std::str::FromStr;
 use std::time::Duration;
+use crate::executor::Executor;
 
 /// Represents a single database connection.
-pub trait Connection: Send {
-    type Database: Database;
+pub trait Connection: Send+Executor {
 
     type Options: ConnectOptions<Connection = Self>;
 

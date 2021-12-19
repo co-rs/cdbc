@@ -105,7 +105,6 @@ impl Debug for PgConnection {
 }
 
 impl Connection for PgConnection {
-    type Database = Postgres;
 
     type Options = PgConnectOptions;
 

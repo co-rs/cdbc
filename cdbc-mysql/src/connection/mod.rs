@@ -40,7 +40,6 @@ impl Debug for MySqlConnection {
 }
 
 impl Connection for MySqlConnection {
-    type Database = MySql;
 
     type Options = MySqlConnectOptions;
 

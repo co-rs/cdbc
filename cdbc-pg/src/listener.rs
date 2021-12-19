@@ -279,7 +279,7 @@ impl<'c> Executor for &'c mut PgListener {
     type Database = Postgres;
 
     fn fetch_many<'q, E: 'q>(
-        self,
+        &mut self,
         query: E,
     ) -> ChanStream<Either<PgQueryResult, PgRow>>
     where
@@ -289,7 +289,7 @@ impl<'c> Executor for &'c mut PgListener {
     }
 
     fn fetch_optional<'q, E: 'q>(
-        self,
+        &mut self,
         query: E,
     ) -> Result<Option<PgRow>, Error>
     where E: Execute<'q, Self::Database>,
@@ -298,7 +298,7 @@ impl<'c> Executor for &'c mut PgListener {
     }
 
     fn prepare_with<'q>(
-        self,
+        &mut self,
         query: &'q str,
         parameters: &'q [PgTypeInfo],
     ) -> Result<PgStatement<'q>, Error>
@@ -309,7 +309,7 @@ impl<'c> Executor for &'c mut PgListener {
 
     #[doc(hidden)]
     fn describe< 'q>(
-        self,
+        &mut self,
         query: &'q str,
     ) -> Result<Describe<Self::Database>, Error>
     where

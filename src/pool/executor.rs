@@ -5,7 +5,7 @@ use crate::describe::Describe;
 use crate::error::Error;
 use crate::executor::{Execute, Executor};
 use crate::io::chan_stream::ChanStream;
-use crate::pool::Pool;
+use crate::pool::{Pool, PoolConnection};
 use crate::{chan_stream};
 use crate::io::chan_stream::TryStream;
 
@@ -16,7 +16,7 @@ where
     type Database = DB;
 
     fn fetch_many<'q, E: 'q>(
-        self,
+        &mut self,
         query: E,
     ) -> ChanStream<Either<DB::QueryResult, DB::Row>>
     where
@@ -37,7 +37,7 @@ where
     }
 
     fn fetch_optional<'q, E: 'q>(
-        self,
+        &mut self,
         query: E,
     ) ->  Result<Option<DB::Row>, Error>
     where
@@ -49,7 +49,7 @@ where
     }
 
     fn prepare_with<'q>(
-        self,
+        &mut self,
         sql: &'q str,
         parameters: &'q [<Self::Database as Database>::TypeInfo],
     ) ->  Result<<Self::Database as HasStatement<'q>>::Statement, Error> {
@@ -60,7 +60,7 @@ where
 
     #[doc(hidden)]
     fn describe<'q>(
-        self,
+        &mut self,
         sql: &'q str,
     ) ->  Result<Describe<Self::Database>, Error> {
         let pool = self.clone();
@@ -68,3 +68,5 @@ where
         pool.acquire()?.describe(sql)
     }
 }
+
+

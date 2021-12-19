@@ -83,7 +83,7 @@ impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
         O: Send + for<'r> FromRow<'r, DB::Row>,
 {
     /// Execute the query and return the generated results as a stream.
-    pub fn fetch<'e, 'c: 'e, E>(self, executor: E) -> ChanStream<O>
+    pub fn fetch<'e, 'c: 'e, E>(self, mut executor: E) -> ChanStream<O>
         where
             'q: 'e,
             E: 'e + Executor< Database=DB>,
@@ -101,7 +101,7 @@ impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
     /// from each query, in a stream.
     pub fn fetch_many<'e, 'c: 'e, E>(
         self,
-        executor: E,
+        mut executor: E,
     ) -> ChanStream<Either<DB::QueryResult, O>>
         where
             'q: 'e,
@@ -126,7 +126,7 @@ impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
 
     /// Execute the query and return all the generated results, collected into a [`Vec`].
     #[inline]
-    pub fn fetch_all<'e, 'c: 'e, E>(self, executor: E) -> Result<Vec<O>, Error>
+    pub fn fetch_all<'e, 'c: 'e, E>(self, mut executor: E) -> Result<Vec<O>, Error>
         where
             'q: 'e,
             E: 'e + Executor< Database=DB>,
@@ -140,7 +140,7 @@ impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
     }
 
     /// Execute the query and returns exactly one row.
-    pub fn fetch_one<'e, 'c: 'e, E>(self, executor: E) -> Result<O, Error>
+    pub fn fetch_one<'e, 'c: 'e, E>(self, mut  executor: E) -> Result<O, Error>
         where
             'q: 'e,
             E: 'e + Executor< Database=DB>,
@@ -154,7 +154,7 @@ impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
     }
 
     /// Execute the query and returns at most one row.
-    pub fn fetch_optional<'c, E>(self, executor: E) -> Result<Option<O>, Error>
+    pub fn fetch_optional<'c, E>(self, mut executor: E) -> Result<Option<O>, Error>
         where
             E: Executor< Database=DB>,
     {

@@ -12,6 +12,7 @@ use either::Either;
 use libsqlite3_sys::sqlite3_last_insert_rowid;
 use std::borrow::Cow;
 use std::sync::Arc;
+use cdbc::database::{Database, HasStatement};
 use cdbc::io::chan_stream::ChanStream;
 use cdbc::utils::statement_cache::StatementCache;
 
@@ -83,11 +84,11 @@ impl Drop for StatementResetter<'_> {
     }
 }
 
-impl<'c> Executor for &'c mut SqliteConnection {
+impl Executor for SqliteConnection {
     type Database = Sqlite;
 
     fn fetch_many<'q, E: 'q>(
-        self,
+        &mut self,
         mut query: E,
     ) -> ChanStream<Either<SqliteQueryResult, SqliteRow>>
     where
@@ -167,7 +168,7 @@ impl<'c> Executor for &'c mut SqliteConnection {
     }
 
     fn fetch_optional< 'q, E: 'q>(
-        self,
+        &mut self,
         mut query: E,
     ) ->  Result<Option<SqliteRow>, Error>
     where
@@ -223,7 +224,7 @@ impl<'c> Executor for &'c mut SqliteConnection {
     }
 
     fn prepare_with< 'q>(
-        self,
+        &mut self,
         sql: &'q str,
         _parameters: &[SqliteTypeInfo],
     ) ->  Result<SqliteStatement<'q>, Error>
@@ -263,9 +264,29 @@ impl<'c> Executor for &'c mut SqliteConnection {
     }
 
     #[doc(hidden)]
-    fn describe< 'q>(self, sql: &'q str) ->  Result<Describe<Sqlite>, Error>
+    fn describe< 'q>(&mut self, sql: &'q str) ->  Result<Describe<Sqlite>, Error>
     where
     {
         describe(self, sql)
+    }
+}
+
+impl Executor for &mut SqliteConnection {
+    type Database = Sqlite;
+
+    fn fetch_many<'q, E: 'q>(&mut self, query: E) -> ChanStream<Either<<Self::Database as Database>::QueryResult, <Self::Database as Database>::Row>> where E: Execute<'q, Self::Database> {
+        SqliteConnection::fetch_many(self,query)
+    }
+
+    fn fetch_optional<'q, E: 'q>(&mut self, query: E) -> Result<Option<<Self::Database as Database>::Row>, Error> where E: Execute<'q, Self::Database> {
+        SqliteConnection::fetch_optional(self,query)
+    }
+
+    fn prepare_with<'q>(&mut self, sql: &'q str, parameters: &'q [<Self::Database as Database>::TypeInfo]) -> Result<<Self::Database as HasStatement<'q>>::Statement, Error> {
+        SqliteConnection::prepare_with(self,sql,parameters)
+    }
+
+    fn describe(&mut self, sql: &str) -> Result<Describe<Self::Database>, Error> {
+        SqliteConnection::describe(self,sql)
     }
 }

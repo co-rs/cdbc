@@ -3,6 +3,7 @@ Database driver based on coroutine of [may](https://github.com/Xudong-Huang/may)
 
 * High concurrency，based on coroutine
 * No Future ，No ``` async fn ```, No ```.await ```, no Poll* func，No ```Pin``` 
+* Optimize the trait system so that it has intelligent hints of the base method
 * NativeTls and TCP connections are supported
 * Low coupling，The database driver and the abstraction layer are designed separately
 * Inspired by golang, [may](https://github.com/Xudong-Huang/may), sqlx

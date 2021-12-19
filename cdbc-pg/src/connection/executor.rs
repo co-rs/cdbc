@@ -13,6 +13,7 @@ use crate::{
 };
 use either::Either;
 use std::{borrow::Cow, sync::Arc};
+use cdbc::database::{Database, HasStatement};
 use cdbc::io::chan_stream::{ChanStream, TryStream};
 fn prepare(
     conn: &mut PgConnection,
@@ -326,11 +327,11 @@ impl PgConnection {
     }
 }
 
-impl<'c> Executor for &'c mut PgConnection {
+impl<'c> Executor for PgConnection {
     type Database = Postgres;
 
     fn fetch_many< 'q, E: 'q>(
-        self,
+        &mut self,
         mut query: E,
     ) -> ChanStream<Either<PgQueryResult, PgRow>>
     where
@@ -351,7 +352,7 @@ impl<'c> Executor for &'c mut PgConnection {
     }
 
     fn fetch_optional<'q, E: 'q>(
-        self,
+        &mut self,
         mut query: E,
     ) ->  Result<Option<PgRow>, Error>
     where E: Execute<'q, Self::Database>,
@@ -371,7 +372,7 @@ impl<'c> Executor for &'c mut PgConnection {
     }
 
     fn prepare_with< 'q>(
-        self,
+        &mut self,
         sql: &'q str,
         parameters: &'q [PgTypeInfo],
     ) ->  Result<PgStatement<'q>, Error>
@@ -388,7 +389,7 @@ impl<'c> Executor for &'c mut PgConnection {
     }
 
     fn describe< 'q>(
-        self,
+        &mut self,
         sql: &'q str,
     ) ->  Result<Describe<Self::Database>, Error>
     where
@@ -404,5 +405,25 @@ impl<'c> Executor for &'c mut PgConnection {
                 nullable,
                 parameters: Some(Either::Left(metadata.parameters.clone())),
             })
+    }
+}
+
+impl<'c> Executor for &mut PgConnection{
+    type Database = Postgres;
+
+    fn fetch_many<'q, E: 'q>(&mut self, query: E) -> ChanStream<Either<<Self::Database as Database>::QueryResult, <Self::Database as Database>::Row>> where E: Execute<'q, Self::Database> {
+        PgConnection::fetch_many(self,query)
+    }
+
+    fn fetch_optional<'q, E: 'q>(&mut self, query: E) -> Result<Option<<Self::Database as Database>::Row>, Error> where E: Execute<'q, Self::Database> {
+        PgConnection::fetch_optional(self,query)
+    }
+
+    fn prepare_with<'q>(&mut self, sql: &'q str, parameters: &'q [<Self::Database as Database>::TypeInfo]) -> Result<<Self::Database as HasStatement<'q>>::Statement, Error> {
+        PgConnection::prepare_with(self,sql,parameters)
+    }
+
+    fn describe(&mut self, sql: &str) -> Result<Describe<Self::Database>, Error> {
+        PgConnection::describe(self,sql)
     }
 }

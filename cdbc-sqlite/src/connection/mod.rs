@@ -55,8 +55,6 @@ impl Debug for SqliteConnection {
 }
 
 impl Connection for SqliteConnection {
-    type Database = Sqlite;
-
     type Options = SqliteConnectOptions;
 
     fn close(mut self) ->  Result<(), Error> {
