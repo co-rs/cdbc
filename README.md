@@ -3,6 +3,13 @@ Database driver based on coroutine
 
 
 use example:
+
+```toml
+cdbc = {path = "../"}
+cdbc-mysql = {path = "../cdbc-mysql"}
+```
+
+
 ```rust
 use std::collections::{BTreeMap, HashMap};
 use cdbc::database::Database;
