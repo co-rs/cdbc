@@ -77,7 +77,7 @@ where
     DB: Database,
     O: Send + Unpin,
     A: 'q + IntoArguments<'q, DB>,
-    (O,): Send + Unpin + for<'r> FromRow<'r, DB::Row>,
+    (O,): Send +  for<'r> FromRow<'r, DB::Row>,
 {
     /// Execute the query and return the generated results as a stream.
     #[inline]

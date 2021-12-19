@@ -180,7 +180,7 @@ fn configure_tls_connector(
 
 impl<S> Read for MaybeTlsStream<S>
 where
-    S: Unpin + Write + Read,
+    S:  Write + Read,
 {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         match &mut *self {
@@ -193,7 +193,7 @@ where
 
 impl<S> std::io::Write for MaybeTlsStream<S>
 where
-    S: Unpin + Write + Read,
+    S:  Write + Read,
 {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         match self {
@@ -217,7 +217,7 @@ where
 
 impl<S> Deref for MaybeTlsStream<S>
 where
-    S: Unpin + Write + Read,
+    S:  Write + Read,
 {
     type Target = S;
 
@@ -236,7 +236,7 @@ where
 
 impl<S> DerefMut for MaybeTlsStream<S>
 where
-    S: Unpin + Write + Read,
+    S:  Write + Read,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         match self {
@@ -253,7 +253,7 @@ where
 
 // impl<S>  MaybeTlsStream<S>
 //     where
-//         S: Unpin + Write + Read,
+//         S:  Write + Read,
 // {
 //     pub fn write_with<'en, C>(&mut self, value: T, context: C)
 //         where

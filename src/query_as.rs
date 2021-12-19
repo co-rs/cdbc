@@ -80,7 +80,7 @@ impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
 where
     DB: Database,
     A: 'q + IntoArguments<'q, DB>,
-    O: Send + Unpin + for<'r> FromRow<'r, DB::Row>,
+    O: Send +  for<'r> FromRow<'r, DB::Row>,
 {
     /// Execute the query and return the generated results as a stream.
     pub fn fetch<'e, 'c: 'e, E>(self, executor: E) -> ChanStream<O>
