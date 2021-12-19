@@ -4,12 +4,12 @@ Database driver based on coroutine
 
 use example:
 
+> cargo.toml
 ```toml
 cdbc = {path = "../"}
 cdbc-mysql = {path = "../cdbc-mysql"}
 ```
-
-
+> main.rs
 ```rust
 use std::collections::{BTreeMap, HashMap};
 use cdbc::database::Database;
