@@ -55,8 +55,6 @@
 //! [`Pool::begin`].
 
 use self::inner::SharedPool;
-#[cfg(feature = "any")]
-use crate::any::{Any, AnyKind};
 use crate::connection::Connection;
 use crate::database::Database;
 use crate::error::Error;
@@ -334,17 +332,6 @@ impl<DB: Database> Pool<DB> {
     /// changing rapidly, this may run indefinitely.
     pub fn num_idle(&self) -> usize {
         self.0.num_idle()
-    }
-}
-
-#[cfg(feature = "any")]
-impl Pool<Any> {
-    /// Returns the database driver currently in-use by this `Pool`.
-    ///
-    /// Determined by the connection URI.
-    #[cfg(feature = "any")]
-    pub fn any_kind(&self) -> AnyKind {
-        self.0.connect_options.kind()
     }
 }
 

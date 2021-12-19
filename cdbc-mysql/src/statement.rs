@@ -58,21 +58,3 @@ impl ColumnIndex<MySqlStatement<'_>> for &'_ str {
             .map(|v| *v)
     }
 }
-
-#[cfg(feature = "any")]
-impl<'q> From<MySqlStatement<'q>> for crate::any::AnyStatement<'q> {
-    #[inline]
-    fn from(statement: MySqlStatement<'q>) -> Self {
-        crate::any::AnyStatement::<'q> {
-            columns: statement
-                .metadata
-                .columns
-                .iter()
-                .map(|col| col.clone().into())
-                .collect(),
-            column_names: statement.metadata.column_names,
-            parameters: Some(Either::Right(statement.metadata.parameters)),
-            sql: statement.sql,
-        }
-    }
-}
