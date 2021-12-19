@@ -15,6 +15,22 @@ Coroutine([may](https://github.com/Xudong-Huang/may) Database driver Connectivit
 * ```cdbc-sqlite```  CDBC sqlite driver library
 
 
+### Supported functions
+* execute： Execute the query and return the total number of rows affected.
+* execute_many： Execute multiple queries and return the rows affected from each query, in a stream.
+* fetch：   Execute the query and return the generated results as a stream.
+* fetch_many： Execute multiple queries and return the generated results as a stream，from each query, in a stream.
+* fetch_all： Execute the query and return all the generated results, collected into a [`Vec`].
+* fetch_one： Execute the query and returns exactly one row.
+* fetch_optional： Execute the query and returns at most one row.
+* prepare： Prepare the SQL query to inspect the type information of its parameters and results
+* prepare_with: Prepare the SQL query, with parameter type information, to inspect the type information about its parameters and results.
+### Supported transaction
+* pool.begin(),commit(),rollback()
+* connection.begin(),commit(),rollback()
+
+
+
 use example:
 
 > cargo.toml
