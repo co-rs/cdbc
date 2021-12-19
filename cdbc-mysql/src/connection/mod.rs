@@ -1,5 +1,5 @@
 use cdbc::utils::statement_cache::StatementCache;
-use cdbc::connection::{Connection, LogSettings};
+use cdbc::connection::{Connection};
 use cdbc::error::Error;
 use crate::protocol::statement::StmtClose;
 use crate::protocol::text::{Ping, Quit};
@@ -31,8 +31,6 @@ pub struct MySqlConnection {
 
     // cache by query string to the statement id and metadata
     cache_statement: StatementCache<(u32, MySqlStatementMetadata)>,
-
-    log_settings: LogSettings,
 }
 
 impl Debug for MySqlConnection {

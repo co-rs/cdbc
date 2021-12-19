@@ -5,7 +5,7 @@ mod connect;
 mod parse;
 mod pgpass;
 mod ssl_mode;
-use cdbc::{connection::LogSettings, net::CertificateInput};
+use cdbc::{ net::CertificateInput};
 pub use ssl_mode::PgSslMode;
 
 /// Options and flags which can be used to configure a PostgreSQL connection.
@@ -84,7 +84,6 @@ pub struct PgConnectOptions {
     pub(crate) ssl_root_cert: Option<CertificateInput>,
     pub(crate) statement_cache_capacity: usize,
     pub(crate) application_name: Option<String>,
-    pub(crate) log_settings: LogSettings,
 }
 
 impl Default for PgConnectOptions {
@@ -144,7 +143,6 @@ impl PgConnectOptions {
                 .unwrap_or_default(),
             statement_cache_capacity: 100,
             application_name: var("PGAPPNAME").ok(),
-            log_settings: Default::default(),
         }
     }
 

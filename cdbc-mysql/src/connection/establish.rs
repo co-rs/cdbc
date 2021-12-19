@@ -129,7 +129,6 @@ impl MySqlConnection {
             stream,
             transaction_depth: 0,
             cache_statement: StatementCache::new(options.statement_cache_capacity),
-            log_settings: options.log_settings.clone(),
         })
     }
 }

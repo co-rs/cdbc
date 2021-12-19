@@ -2,7 +2,6 @@ use cdbc::connection::ConnectOptions;
 use cdbc::error::Error;
 use cdbc::executor::Executor;
 use crate::{MySqlConnectOptions, MySqlConnection};
-use log::LevelFilter;
 use std::time::Duration;
 
 impl ConnectOptions for MySqlConnectOptions {
@@ -53,15 +52,5 @@ impl ConnectOptions for MySqlConnectOptions {
 
             Ok(conn)
 
-    }
-
-    fn log_statements(&mut self, level: LevelFilter) -> &mut Self {
-        self.log_settings.log_statements(level);
-        self
-    }
-
-    fn log_slow_statements(&mut self, level: LevelFilter, duration: Duration) -> &mut Self {
-        self.log_settings.log_slow_statements(level, duration);
-        self
     }
 }

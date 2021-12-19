@@ -3,7 +3,6 @@ use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
 
 use bytes::{Buf, Bytes};
-use log::Level;
 use may::sync::mpsc::Sender;
 
 use cdbc::error::Error;
@@ -131,28 +130,7 @@ impl PgStream {
                     // do we need this to be more configurable?
                     // if you are reading this comment and think so, open an issue
 
-                    let notice: Notice = message.decode()?;
-
-                    let lvl = match notice.severity() {
-                        PgSeverity::Fatal | PgSeverity::Panic | PgSeverity::Error => Level::Error,
-                        PgSeverity::Warning => Level::Warn,
-                        PgSeverity::Notice => Level::Info,
-                        PgSeverity::Debug => Level::Debug,
-                        PgSeverity::Info => Level::Trace,
-                        PgSeverity::Log => Level::Trace,
-                    };
-
-                    if lvl <= log::STATIC_MAX_LEVEL && lvl <= log::max_level() {
-                        log::logger().log(
-                            &log::Record::builder()
-                                .args(format_args!("{}", notice.message()))
-                                .level(lvl)
-                                .module_path_static(Some("sqlx::postgres::notice"))
-                                .file_static(Some(file!()))
-                                .line(Some(line!()))
-                                .build(),
-                        );
-                    }
+                    //let notice: Notice = message.decode()?;
 
                     continue;
                 }

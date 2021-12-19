@@ -6,8 +6,6 @@ mod journal_mode;
 mod locking_mode;
 mod parse;
 mod synchronous;
-
-use cdbc::connection::LogSettings;
 pub use auto_vacuum::SqliteAutoVacuum;
 pub use journal_mode::SqliteJournalMode;
 pub use locking_mode::SqliteLockingMode;
@@ -58,7 +56,6 @@ pub struct SqliteConnectOptions {
     pub(crate) shared_cache: bool,
     pub(crate) statement_cache_capacity: usize,
     pub(crate) busy_timeout: Duration,
-    pub(crate) log_settings: LogSettings,
     pub(crate) immutable: bool,
     pub(crate) pragmas: IndexMap<Cow<'static, str>, Cow<'static, str>>,
     pub(crate) serialized: bool,
@@ -107,7 +104,6 @@ impl SqliteConnectOptions {
             shared_cache: false,
             statement_cache_capacity: 100,
             busy_timeout: Duration::from_secs(5),
-            log_settings: Default::default(),
             immutable: false,
             pragmas,
             serialized: false,

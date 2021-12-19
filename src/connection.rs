@@ -1,7 +1,6 @@
 use crate::database::{Database, HasStatementCache};
 use crate::error::Error;
 use crate::transaction::Transaction;
-use log::LevelFilter;
 use std::fmt::Debug;
 use std::str::FromStr;
 use std::time::Duration;
@@ -119,33 +118,6 @@ pub trait Connection: Send {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct LogSettings {
-    pub(crate) statements_level: LevelFilter,
-    pub(crate) slow_statements_level: LevelFilter,
-    pub(crate) slow_statements_duration: Duration,
-}
-
-impl Default for LogSettings {
-    fn default() -> Self {
-        LogSettings {
-            statements_level: LevelFilter::Info,
-            slow_statements_level: LevelFilter::Warn,
-            slow_statements_duration: Duration::from_secs(1),
-        }
-    }
-}
-
-impl LogSettings {
-    pub fn log_statements(&mut self, level: LevelFilter) {
-        self.statements_level = level;
-    }
-    pub fn log_slow_statements(&mut self, level: LevelFilter, duration: Duration) {
-        self.slow_statements_level = level;
-        self.slow_statements_duration = duration;
-    }
-}
-
 pub trait ConnectOptions: 'static + Send + Sync + FromStr<Err = Error> + Debug {
     type Connection: Connection + ?Sized;
 
@@ -153,17 +125,4 @@ pub trait ConnectOptions: 'static + Send + Sync + FromStr<Err = Error> + Debug {
     fn connect(&self) -> Result<Self::Connection, Error>
         where
             Self::Connection: Sized;
-
-    /// Log executed statements with the specified `level`
-    fn log_statements(&mut self, level: LevelFilter) -> &mut Self;
-
-    /// Log executed statements with a duration above the specified `duration`
-    /// at the specified `level`.
-    fn log_slow_statements(&mut self, level: LevelFilter, duration: Duration) -> &mut Self;
-
-    /// Entirely disables statement logging (both slow and regular).
-    fn disable_statement_logging(&mut self) -> &mut Self {
-        self.log_statements(LevelFilter::Off)
-            .log_slow_statements(LevelFilter::Off, Duration::default())
-    }
 }

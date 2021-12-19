@@ -1,5 +1,5 @@
 
-use cdbc::connection::{Connection, LogSettings};
+use cdbc::connection::{Connection};
 use cdbc::error::Error;
 use crate::statement::{StatementWorker, VirtualStatement};
 use crate::{Sqlite, SqliteConnectOptions};
@@ -31,8 +31,6 @@ pub struct SqliteConnection {
 
     // most recent non-persistent statement
     pub(crate) statement: Option<VirtualStatement>,
-
-    log_settings: LogSettings,
 }
 
 impl SqliteConnection {

@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use cdbc::HashMap;
 use cdbc::utils::statement_cache::StatementCache;
-use cdbc::connection::{Connection, LogSettings};
+use cdbc::connection::{Connection};
 use cdbc::error::Error;
 use cdbc::executor::Executor;
 use cdbc::utils::ustr::UStr;
@@ -58,8 +58,6 @@ pub struct PgConnection {
     // current transaction status
     transaction_status: TransactionStatus,
     pub(crate) transaction_depth: usize,
-
-    log_settings: LogSettings,
 }
 
 impl PgConnection {

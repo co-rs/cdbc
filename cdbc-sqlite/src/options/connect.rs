@@ -3,7 +3,6 @@ use cdbc::error::Error;
 use cdbc::executor::Executor;
 use crate::connection::establish::establish;
 use crate::{SqliteConnectOptions, SqliteConnection};
-use log::LevelFilter;
 use std::time::Duration;
 
 impl ConnectOptions for SqliteConnectOptions {
@@ -26,15 +25,5 @@ impl ConnectOptions for SqliteConnectOptions {
             conn.execute(&*init)?;
 
             Ok(conn)
-    }
-
-    fn log_statements(&mut self, level: LevelFilter) -> &mut Self {
-        self.log_settings.log_statements(level);
-        self
-    }
-
-    fn log_slow_statements(&mut self, level: LevelFilter, duration: Duration) -> &mut Self {
-        self.log_settings.log_slow_statements(level, duration);
-        self
     }
 }
