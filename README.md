@@ -1,5 +1,12 @@
 # cdbc
 Database driver based on coroutine(https://github.com/Xudong-Huang/may)
+
+* High concurrency，based on coroutine
+* No Future ，No ``` async fn ```, No ```.await ```, no Poll* No abuse of generics
+* NativeTls and TCP connections are supported
+
+
+
 ## Note: CDBC is the driver abstraction. For details, use the cDB-mysql or CDB-Postgres sublibraries
 
 
