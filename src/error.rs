@@ -255,6 +255,11 @@ impl From<RecvError> for Error {
     }
 }
 
+impl From<Box<dyn std::error::Error + Send + Sync>> for Error {
+    fn from(arg: Box<dyn StdError + Send + Sync>) -> Self {
+        Self::Protocol(arg.to_string())
+    }
+}
 
 // Format an error message as a `Protocol` error
 #[macro_export]
