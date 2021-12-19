@@ -1,5 +1,5 @@
 # cdbc
-Database driver based on coroutine
+Database driver based on coroutine(https://github.com/Xudong-Huang/may)
 ## Note: CDBC is the driver abstraction. For details, use the cDB-mysql or CDB-Postgres sublibraries
 
 
