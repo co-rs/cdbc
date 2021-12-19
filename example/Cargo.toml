@@ -23,3 +23,7 @@ path = "src/main-sqlite.rs"
 cdbc = {path = "../"}
 cdbc-mysql = {path = "../cdbc-mysql"}
 cdbc-pg = {path = "../cdbc-pg"}
+cdbc-sqlite = {path = "../cdbc-sqlite"}
+
+log = "0.4"
+fast_log = "1.4"
