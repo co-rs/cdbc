@@ -8,8 +8,8 @@ use std::thread;
 use crate::connection::ConnectionHandleRef;
 
 use libsqlite3_sys::{sqlite3_reset, sqlite3_step, SQLITE_DONE, SQLITE_ROW};
-use std::future::Future;
-use may::sync::mpmc::{channel, Sender};
+use crossbeam_channel::Sender;
+
 
 // Each SQLite connection has a dedicated thread.
 
@@ -37,7 +37,7 @@ enum StatementWorkerCommand {
 
 impl StatementWorker {
     pub(crate) fn new(conn: ConnectionHandleRef) -> Self {
-        let (tx, rx) = channel();
+        let (tx, rx) = crossbeam_channel::unbounded();
 
         thread::spawn(move || {
             for cmd in rx {
@@ -96,7 +96,7 @@ impl StatementWorker {
         &mut self,
         statement: &Arc<StatementHandle>,
     ) -> Result<Either<u64, ()>, Error> {
-        let (tx, rx) = channel();
+        let (tx, rx) = crossbeam_channel::unbounded();
 
         self.tx
             .send(StatementWorkerCommand::Step {
@@ -124,7 +124,7 @@ impl StatementWorker {
         statement: &Arc<StatementHandle>,
     ) ->  Result<(), Error> {
         // execute the sending eagerly so we don't need to spawn the future
-        let (tx, rx) = channel();
+        let (tx, rx) = crossbeam_channel::unbounded();
 
         let send_res = self
             .tx
@@ -152,7 +152,7 @@ impl StatementWorker {
     /// Subsequent calls to `step()`, `reset()`, or this method will fail with
     /// `WorkerCrashed`. Ensure that any associated statements are dropped first.
     pub(crate) fn shutdown(&mut self) ->  Result<(), Error> {
-        let (tx, rx) = channel();
+        let (tx, rx) = crossbeam_channel::unbounded();
 
         let send_res = self
             .tx
