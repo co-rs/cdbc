@@ -10,7 +10,7 @@ Database driver based on coroutine of [may](https://github.com/Xudong-Huang/may)
 # support database-driver
 * cdbc-mysql  (done)
 * cdbc-pg     (done)
-* cdbc-sqlite (ing)
+* cdbc-sqlite (done)
 
 
 ## Note: CDBC is the driver abstraction. For details, use the cDB-mysql or CDB-Postgres sublibraries
