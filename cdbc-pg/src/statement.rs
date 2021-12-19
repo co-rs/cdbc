@@ -57,28 +57,3 @@ impl ColumnIndex<PgStatement<'_>> for &'_ str {
             .map(|v| *v)
     }
 }
-
-#[cfg(feature = "any")]
-impl<'q> From<PgStatement<'q>> for crate::any::AnyStatement<'q> {
-    #[inline]
-    fn from(statement: PgStatement<'q>) -> Self {
-        crate::any::AnyStatement::<'q> {
-            columns: statement
-                .metadata
-                .columns
-                .iter()
-                .map(|col| col.clone().into())
-                .collect(),
-            column_names: std::sync::Arc::new(statement.metadata.column_names.clone()),
-            parameters: Some(Either::Left(
-                statement
-                    .metadata
-                    .parameters
-                    .iter()
-                    .map(|ty| ty.clone().into())
-                    .collect(),
-            )),
-            sql: statement.sql,
-        }
-    }
-}
