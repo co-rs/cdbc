@@ -327,7 +327,7 @@ impl PgConnection {
     }
 }
 
-impl<'c> Executor for PgConnection {
+impl Executor for PgConnection {
     type Database = Postgres;
 
     fn fetch_many< 'q, E: 'q>(
@@ -408,7 +408,7 @@ impl<'c> Executor for PgConnection {
     }
 }
 
-impl<'c> Executor for &mut PgConnection{
+impl Executor for &mut PgConnection{
     type Database = Postgres;
 
     fn fetch_many<'q, E: 'q>(&mut self, query: E) -> ChanStream<Either<<Self::Database as Database>::QueryResult, <Self::Database as Database>::Row>> where E: Execute<'q, Self::Database> {

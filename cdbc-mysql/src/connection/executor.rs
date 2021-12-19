@@ -17,6 +17,7 @@ use crate::{
 use cdbc::{chan_stream, HashMap};
 use either::Either;
 use std::{borrow::Cow, sync::Arc};
+use cdbc::database::{Database, HasStatement};
 use cdbc::io::chan_stream::{ChanStream, Stream, TryStream};
 use cdbc::utils::ustr::UStr;
 
@@ -199,7 +200,7 @@ impl MySqlConnection {
     }
 }
 
-impl<'c> Executor for MySqlConnection {
+impl Executor for MySqlConnection {
     type Database = MySql;
 
     fn fetch_many<'q, E: 'q>(
@@ -335,4 +336,26 @@ fn recv_result_metadata(
     stream.maybe_recv_eof()?;
 
     Ok(column_names)
+}
+
+
+
+impl Executor for &mut MySqlConnection{
+    type Database = MySql;
+
+    fn fetch_many<'q, E: 'q>(&mut self, query: E) -> ChanStream<Either<<Self::Database as Database>::QueryResult, <Self::Database as Database>::Row>> where E: Execute<'q, Self::Database> {
+        MySqlConnection::fetch_many(self,query)
+    }
+
+    fn fetch_optional<'q, E: 'q>(&mut self, query: E) -> Result<Option<<Self::Database as Database>::Row>, Error> where E: Execute<'q, Self::Database> {
+        MySqlConnection::fetch_optional(self,query)
+    }
+
+    fn prepare_with<'q>(&mut self, sql: &'q str, parameters: &'q [<Self::Database as Database>::TypeInfo]) -> Result<<Self::Database as HasStatement<'q>>::Statement, Error> {
+        MySqlConnection::prepare_with(self,sql,parameters)
+    }
+
+    fn describe(&mut self, sql: &str) -> Result<Describe<Self::Database>, Error> {
+        MySqlConnection::describe(self,sql)
+    }
 }
