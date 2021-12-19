@@ -4,6 +4,7 @@ Database driver based on coroutine(https://github.com/Xudong-Huang/may)
 * High concurrency，based on coroutine
 * No Future ，No ``` async fn ```, No ```.await ```, no Poll* No abuse of generics
 * NativeTls and TCP connections are supported
+* Low coupling，The database driver and the abstraction layer are designed separately
 
 
 
