@@ -4,7 +4,7 @@ use std::io;
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
-use std::pin::Pin;
+
 use std::task::{Context, Poll};
 
 use crate::error::Error;

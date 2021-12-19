@@ -4,7 +4,7 @@ use std::io;
 use std::io::{Read, Write};
 use std::net::Shutdown;
 use std::path::Path;
-use std::pin::Pin;
+
 use std::task::{Context, Poll};
 use may::net::TcpStream;
 

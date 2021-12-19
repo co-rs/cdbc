@@ -75,7 +75,7 @@ where
 impl<'q, DB, O, A> QueryScalar<'q, DB, O, A>
 where
     DB: Database,
-    O: Send + Unpin,
+    O: Send,
     A: 'q + IntoArguments<'q, DB>,
     (O,): Send +  for<'r> FromRow<'r, DB::Row>,
 {

@@ -179,7 +179,7 @@ impl<C: DerefMut<Target = PgConnection>> PgCopyIn<C> {
     ///
     /// ### Note
     /// You must still call either [Self::finish] or [Self::abort] to complete the process.
-    pub fn read_from(&mut self, mut source: impl std::io::Read + Unpin) -> Result<&mut Self> {
+    pub fn read_from(&mut self, mut source: impl std::io::Read) -> Result<&mut Self> {
         // this is a separate guard from WriteAndFlush so we can reuse the buffer without zeroing
         struct BufGuard<'s>(&'s mut Vec<u8>);
 

@@ -1,5 +1,5 @@
 use std::fmt::{Debug, Display};
-use std::pin::Pin;
+
 use std::sync::mpsc::RecvError;
 use may::sync::mpsc::{Receiver, Sender};
 use crate::Error;

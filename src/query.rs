@@ -122,7 +122,7 @@ impl<'q, DB, A: Send> Query<'q, DB, A>
     ) -> Map<'q, DB, impl FnMut(DB::Row) -> Result<O, Error> + Send, A>
         where
             F: FnMut(DB::Row) -> O + Send,
-            O: Unpin,
+
     {
         self.try_map(move |row| Ok(f(row)))
     }
@@ -135,7 +135,7 @@ impl<'q, DB, A: Send> Query<'q, DB, A>
     pub fn try_map<F, O>(self, f: F) -> Map<'q, DB, F, A>
         where
             F: FnMut(DB::Row) -> Result<O, Error> + Send,
-            O: Unpin,
+
     {
         Map {
             inner: self,
@@ -237,7 +237,7 @@ impl<'q, DB, F, O, A> Map<'q, DB, F, A>
     where
         DB: Database,
         F: FnMut(DB::Row) -> Result<O, Error> + Send,
-        O: Send + Unpin,
+        O: Send,
         A: 'q + Send + IntoArguments<'q, DB>,
 {
     /// Map each row in the result to another type.
@@ -253,7 +253,6 @@ impl<'q, DB, F, O, A> Map<'q, DB, F, A>
     ) -> Map<'q, DB, impl FnMut(DB::Row) -> Result<P, Error> + Send, A>
         where
             G: FnMut(O) -> P + Send,
-            P: Unpin,
     {
         self.try_map(move |data| Ok(g(data)))
     }
@@ -268,8 +267,7 @@ impl<'q, DB, F, O, A> Map<'q, DB, F, A>
         mut g: G,
     ) -> Map<'q, DB, impl FnMut(DB::Row) -> Result<P, Error> + Send, A>
         where
-            G: FnMut(O) -> Result<P, Error> + Send,
-            P: Unpin,
+            G: FnMut(O) -> Result<P, Error> + Send
     {
         let mut f = self.mapper;
         Map {
