@@ -32,7 +32,7 @@ pub trait TryStream: Stream {
     fn try_for_each(&mut self, f: fn(a: Self::Ok)->Result<()>) -> Result<()> where Self: Sized {
         loop {
             if let Some(v) = self.try_next()? {
-                f(v);
+                f(v)?;
             } else {
                 break Ok(());
             }
