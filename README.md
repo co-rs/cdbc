@@ -35,12 +35,11 @@ fn main() -> cdbc::Result<()> {
     let pool = MySqlPool::connect("mysql://root:123456@localhost:3306/test")?;
     let mut conn = pool.acquire()?;
     loop {
-        let mut data: ChanStream<_> = conn.fetch("select * from biz_activity;");
+        let mut data: ChanStream<MySqlRow> = conn.fetch("select * from biz_activity;");
         data.try_for_each(|item| {
             let mut m = BTreeMap::new();
-            let it: MySqlRow = item;
-            for column in it.columns() {
-                let v = it.try_get_raw(column.name())?;
+            for column in item.columns() {
+                let v = item.try_get_raw(column.name())?;
                 let r: Option<String> = Decode::<'_, MySql>::decode(v)?;
                 m.insert(column.name().to_string(), r);
             }
