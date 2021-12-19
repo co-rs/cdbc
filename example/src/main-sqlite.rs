@@ -12,13 +12,11 @@ use cdbc::row::Row;
 
 
 fn main() -> cdbc::Result<()> {
-    may::config().set_stack_size(2*0x1000);
-    fast_log::init_log("target/db/test.log",Level::Info,None,true);
-
+    //first. create sqlite dir/file
     std::fs::create_dir_all("target/db/");
     let file=File::create("target/db/sqlite.db");
     drop(file);
-
+    //next create table and query result
     let pool = SqlitePool::connect("sqlite://target/db/sqlite.db")?;
     let mut conn = pool.acquire()?;
     conn.execute("CREATE TABLE biz_activity(
