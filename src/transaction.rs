@@ -91,63 +91,6 @@ where
     }
 }
 
-// NOTE: required due to lack of lazy normalization
-#[macro_export]
-#[allow(unused_macros)]
-macro_rules! impl_executor_for_transaction {
-    ($DB:ident, $Row:ident) => {
-        impl<'c, 't> cdbc::executor::Executor<'t>
-            for &'t mut cdbc::transaction::Transaction<'c, $DB>
-        {
-            type Database = $DB;
-
-            fn fetch_many<'q, E: 'q>(
-                self,
-                query: E,
-            ) -> cdbc::io::chan_stream::ChanStream<
-                    either::Either<<$DB as cdbc::database::Database>::QueryResult, $Row>>
-            where 't: 'q,E: cdbc::executor::Execute<'q, Self::Database>,
-            {
-                (&mut **self).fetch_many(query)
-            }
-
-            fn fetch_optional<'e, 'q: 'e, E: 'q>(
-                self,
-                query: E,
-            ) ->  Result<Option<$Row>, cdbc::error::Error>
-            where
-                't: 'e,
-                E: cdbc::executor::Execute<'q, Self::Database>,
-            {
-                (&mut **self).fetch_optional(query)
-            }
-
-            fn prepare_with<'e, 'q: 'e>(
-                self,
-                sql: &'q str,
-                parameters: &'e [<Self::Database as cdbc::database::Database>::TypeInfo],
-            ) ->
-                Result<<Self::Database as cdbc::database::HasStatement<'q>>::Statement,cdbc::error::Error>
-            where
-                't: 'e,
-            {
-                (&mut **self).prepare_with(sql, parameters)
-            }
-
-            #[doc(hidden)]
-            fn describe<'e, 'q: 'e>(
-                self,
-                query: &'q str,
-            ) ->Result<cdbc::describe::Describe<Self::Database>, cdbc::error::Error>
-            where
-                't: 'e,
-            {
-                (&mut **self).describe(query)
-            }
-        }
-    };
-}
-
 impl<'c, DB> Debug for Transaction<'c, DB>
 where
     DB: Database,

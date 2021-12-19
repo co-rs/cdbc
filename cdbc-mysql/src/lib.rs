@@ -53,12 +53,8 @@ impl<'c, T: Executor<'c, Database = MySql>> MySqlExecutor<'c> for T {}
 
 // NOTE: required due to the lack of lazy normalization
 impl_into_arguments_for_arguments!(MySqlArguments);
-//impl_executor_for_pool_connection!(MySql, MySqlConnection, MySqlRow);
-//impl_executor_for_transaction!(MySql, MySqlRow);
-//impl_acquire!(MySql, MySqlConnection);
 impl_column_index_for_row!(MySqlRow);
 impl_column_index_for_statement!(MySqlStatement);
 impl_into_maybe_pool!(MySql, MySqlConnection);
-
 // required because some databases have a different handling of NULL
 impl_encode_for_option!(MySql);
