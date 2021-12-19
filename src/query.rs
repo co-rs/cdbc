@@ -144,36 +144,27 @@ where
 
     /// Execute the query and return the total number of rows affected.
     #[inline]
-    pub fn execute<'e, 'c: 'e, E>(self, executor: E) -> Result<DB::QueryResult, Error>
-    where
-        'q: 'e,
-        A: 'e,
-        E: Executor<'c, Database = DB>,
+    pub fn execute<'c, E>(self, executor: E) -> Result<DB::QueryResult, Error>
+        where  E: Executor<'c, Database = DB>,
     {
         executor.execute(self)
     }
 
     /// Execute multiple queries and return the rows affected from each query, in a stream.
     #[inline]
-    pub fn execute_many<'e, 'c: 'e, E>(
+    pub fn execute_many<'c, E>(
         self,
         executor: E,
     ) -> ChanStream<DB::QueryResult>
-    where
-        'q: 'e,
-        A: 'e,
-        E: Executor<'c, Database = DB>,
+    where E: Executor<'c, Database = DB>,
     {
         executor.execute_many(self)
     }
 
     /// Execute the query and return the generated results as a stream.
     #[inline]
-    pub fn fetch<'e, 'c: 'e, E>(self, executor: E) -> ChanStream<DB::Row>
-    where
-        'q: 'e,
-        A: 'e,
-        E: Executor<'c, Database = DB>,
+    pub fn fetch<'c, E>(self, executor: E) -> ChanStream<DB::Row>
+    where E: Executor<'c, Database = DB>,
     {
         executor.fetch(self)
     }
@@ -181,47 +172,35 @@ where
     /// Execute multiple queries and return the generated results as a stream
     /// from each query, in a stream.
     #[inline]
-    pub fn fetch_many<'e, 'c: 'e, E>(
+    pub fn fetch_many<'c, E>(
         self,
         executor: E,
     ) -> ChanStream< Either<DB::QueryResult, DB::Row>>
-    where
-        'q: 'e,
-        A: 'e,
-        E: Executor<'c, Database = DB>,
+    where E: Executor<'c, Database = DB>,
     {
         executor.fetch_many(self)
     }
 
     /// Execute the query and return all the generated results, collected into a [`Vec`].
     #[inline]
-    pub fn fetch_all<'e, 'c: 'e, E>(self, executor: E) -> Result<Vec<DB::Row>, Error>
-    where
-        'q: 'e,
-        A: 'e,
-        E: Executor<'c, Database = DB>,
+    pub fn fetch_all<'c, E>(self, executor: E) -> Result<Vec<DB::Row>, Error>
+    where E: Executor<'c, Database = DB>,
     {
         executor.fetch_all(self)
     }
 
     /// Execute the query and returns exactly one row.
     #[inline]
-    pub fn fetch_one<'e, 'c: 'e, E>(self, executor: E) -> Result<DB::Row, Error>
-    where
-        'q: 'e,
-        A: 'e,
-        E: Executor<'c, Database = DB>,
+    pub fn fetch_one<'c, E>(self, executor: E) -> Result<DB::Row, Error>
+    where E: Executor<'c, Database = DB>,
     {
         executor.fetch_one(self)
     }
 
     /// Execute the query and returns at most one row.
     #[inline]
-    pub fn fetch_optional<'e, 'c: 'e, E>(self, executor: E) -> Result<Option<DB::Row>, Error>
-    where
-        'q: 'e,
-        A: 'e,
-        E: Executor<'c, Database = DB>,
+    pub fn fetch_optional<'c, E>(self, executor: E) -> Result<Option<DB::Row>, Error>
+    where E: Executor<'c, Database = DB>,
     {
         executor.fetch_optional(self)
     }
@@ -299,13 +278,11 @@ where
     }
 
     /// Execute the query and return the generated results as a stream.
-    pub fn fetch<'e, 'c: 'e, E>(self, executor: E) -> ChanStream<O>
-    where
-        'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
-        DB: 'e,
-        F: 'e,
-        O: 'e,
+    pub fn fetch<'c, E>(self, executor: E) -> ChanStream<O>
+    where E: 'c + Executor<'c, Database = DB>,
+        DB: 'c,
+        F: 'c,
+        O: 'c,
     {
         self.fetch_many(executor)
             .map(|step|{
@@ -318,16 +295,14 @@ where
 
     /// Execute multiple queries and return the generated results as a stream
     /// from each query, in a stream.
-    pub fn fetch_many<'e, 'c: 'e, E>(
+    pub fn fetch_many<'c, E>(
         mut self,
         executor: E,
     ) -> ChanStream<Either<DB::QueryResult, O>>
-    where
-        'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
-        DB: 'e,
-        F: 'e,
-        O: 'e,
+    where E: 'c + Executor<'c, Database = DB>,
+        DB: 'c,
+        F: 'c,
+        O: 'c,
     {
        chan_stream! {
             let mut s = executor.fetch_many(self.inner);
@@ -346,13 +321,11 @@ where
     }
 
     /// Execute the query and return all the generated results, collected into a [`Vec`].
-    pub fn fetch_all<'e, 'c: 'e, E>(self, executor: E) -> Result<Vec<O>, Error>
-    where
-        'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
-        DB: 'e,
-        F: 'e,
-        O: 'e,
+    pub fn fetch_all<'c, E>(self, executor: E) -> Result<Vec<O>, Error>
+    where E: 'c + Executor<'c, Database = DB>,
+        DB: 'c,
+        F: 'c,
+        O: 'c,
     {
         self.fetch(executor).collect(|it|{
             Some(Ok(it))
@@ -360,13 +333,11 @@ where
     }
 
     /// Execute the query and returns exactly one row.
-    pub fn fetch_one<'e, 'c: 'e, E>(self, executor: E) -> Result<O, Error>
-    where
-        'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
-        DB: 'e,
-        F: 'e,
-        O: 'e,
+    pub fn fetch_one<'c, E>(self, executor: E) -> Result<O, Error>
+    where E: 'c + Executor<'c, Database = DB>,
+        DB: 'c,
+        F: 'c,
+        O: 'c,
     {
         self.fetch_optional(executor)
             .and_then(|row| match row {
@@ -377,13 +348,11 @@ where
     }
 
     /// Execute the query and returns at most one row.
-    pub fn fetch_optional<'e, 'c: 'e, E>(mut self, executor: E) -> Result<Option<O>, Error>
-    where
-        'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
-        DB: 'e,
-        F: 'e,
-        O: 'e,
+    pub fn fetch_optional<'c, E>(mut self, executor: E) -> Result<Option<O>, Error>
+    where E: 'c + Executor<'c, Database = DB>,
+        DB: 'c,
+        F: 'c,
+        O: 'c,
     {
         let row = executor.fetch_optional(self.inner)?;
 

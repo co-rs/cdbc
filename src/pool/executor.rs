@@ -15,7 +15,7 @@ where
 {
     type Database = DB;
 
-    fn fetch_many<'e, 'q: 'e, E: 'q>(
+    fn fetch_many<'q, E: 'q>(
         self,
         query: E,
     ) -> ChanStream<Either<DB::QueryResult, DB::Row>>
@@ -36,7 +36,7 @@ where
         }
     }
 
-    fn fetch_optional<'e, 'q: 'e, E: 'q>(
+    fn fetch_optional<'q, E: 'q>(
         self,
         query: E,
     ) ->  Result<Option<DB::Row>, Error>
@@ -48,10 +48,10 @@ where
        pool.acquire()?.fetch_optional(query)
     }
 
-    fn prepare_with<'e, 'q: 'e>(
+    fn prepare_with<'q>(
         self,
         sql: &'q str,
-        parameters: &'e [<Self::Database as Database>::TypeInfo],
+        parameters: &'q [<Self::Database as Database>::TypeInfo],
     ) ->  Result<<Self::Database as HasStatement<'q>>::Statement, Error> {
         let pool = self.clone();
 
@@ -59,7 +59,7 @@ where
     }
 
     #[doc(hidden)]
-    fn describe<'e, 'q: 'e>(
+    fn describe<'q>(
         self,
         sql: &'q str,
     ) ->  Result<Describe<Self::Database>, Error> {

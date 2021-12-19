@@ -101,14 +101,12 @@ macro_rules! impl_executor_for_transaction {
         {
             type Database = $DB;
 
-            fn fetch_many<'e, 'q: 'e, E: 'q>(
+            fn fetch_many<'q, E: 'q>(
                 self,
                 query: E,
             ) -> cdbc::io::chan_stream::ChanStream<
                     either::Either<<$DB as cdbc::database::Database>::QueryResult, $Row>>
-            where
-                't: 'e,
-                E: cdbc::executor::Execute<'q, Self::Database>,
+            where 't: 'q,E: cdbc::executor::Execute<'q, Self::Database>,
             {
                 (&mut **self).fetch_many(query)
             }

@@ -202,13 +202,11 @@ impl MySqlConnection {
 impl<'c> Executor<'c> for &'c mut MySqlConnection {
     type Database = MySql;
 
-    fn fetch_many<'e, 'q: 'e, E: 'q>(
+    fn fetch_many<'q, E: 'q>(
         self,
         mut query: E,
     ) -> ChanStream<Either<MySqlQueryResult, MySqlRow>>
-    where
-        'c: 'e,
-        E: Execute<'q, Self::Database>,
+    where E: Execute<'q, Self::Database>,
     {
         let sql = query.sql();
         let arguments = query.take_arguments();
@@ -225,13 +223,11 @@ impl<'c> Executor<'c> for &'c mut MySqlConnection {
         }
     }
 
-    fn fetch_optional<'e, 'q: 'e, E: 'q>(
+    fn fetch_optional<'q, E: 'q>(
         self,
         query: E,
     ) -> Result<Option<MySqlRow>, Error>
-    where
-        'c: 'e,
-        E: Execute<'q, Self::Database>,
+    where E: Execute<'q, Self::Database>,
     {
         let mut s = self.fetch_many(query);
             while let Some(v) = s.try_next()? {
@@ -242,13 +238,11 @@ impl<'c> Executor<'c> for &'c mut MySqlConnection {
             Ok(None)
     }
 
-    fn prepare_with<'e, 'q: 'e>(
+    fn prepare_with<'q>(
         self,
         sql: &'q str,
-        _parameters: &'e [MySqlTypeInfo],
+        _parameters: &'q [MySqlTypeInfo],
     ) -> Result<MySqlStatement<'q>, Error>
-    where
-        'c: 'e,
     {
             self.stream.wait_until_ready()?;
             let (_, metadata) = self.get_or_prepare(sql, true)?;
@@ -260,10 +254,7 @@ impl<'c> Executor<'c> for &'c mut MySqlConnection {
     }
 
     #[doc(hidden)]
-    fn describe<'e, 'q: 'e>(self, sql: &'q str) ->Result<Describe<MySql>, Error>
-    where
-        'c: 'e,
-    {
+    fn describe<'q>(self, sql: &'q str) ->Result<Describe<MySql>, Error> {
             self.stream.wait_until_ready()?;
             let (_, metadata) = self.get_or_prepare(sql, false)?;
             let columns = (&*metadata.columns).clone();

@@ -154,13 +154,9 @@ where
     }
 
     /// Execute the query and returns at most one row.
-    pub fn fetch_optional<'e, 'c: 'e, E>(self, executor: E) -> Result<Option<O>, Error>
+    pub fn fetch_optional<'c,E>(self, executor: E) -> Result<Option<O>, Error>
     where
-        'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
-        DB: 'e,
-        O: 'e,
-        A: 'e,
+        E:  Executor<'c, Database = DB>,
     {
         let row = executor.fetch_optional(self.inner)?;
         if let Some(row) = row {

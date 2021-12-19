@@ -25,13 +25,10 @@ pub trait Executor<'c>: Send + Debug + Sized {
     type Database: Database;
 
     /// Execute the query and return the total number of rows affected.
-    fn execute<'e, 'q: 'e, E: 'q>(
+    fn execute<'q,E:'q>(
         self,
         query: E,
-    ) -> Result<<Self::Database as Database>::QueryResult, Error>
-        where
-            'c: 'e,
-            E: Execute<'q, Self::Database>,
+    ) -> Result<<Self::Database as Database>::QueryResult, Error> where E: Execute<'q, Self::Database>
     {
         let mut s = self.execute_many(query);
         s.collect(|it|{
@@ -40,13 +37,11 @@ pub trait Executor<'c>: Send + Debug + Sized {
     }
 
     /// Execute multiple queries and return the rows affected from each query, in a stream.
-    fn execute_many<'e, 'q: 'e, E: 'q>(
+    fn execute_many<'q,E: 'q>(
         self,
         query: E,
     ) -> ChanStream<<Self::Database as Database>::QueryResult>
-        where
-            'c: 'e,
-            E: Execute<'q, Self::Database>,
+        where E: Execute<'q, Self::Database>,
     {
         let mut s = self.fetch_many(query);
         s.map(|either| {
@@ -62,13 +57,10 @@ pub trait Executor<'c>: Send + Debug + Sized {
     }
 
     /// Execute the query and return the generated results as a stream.
-    fn fetch<'e, 'q: 'e, E: 'q>(
+    fn fetch<'q, E: 'q>(
         self,
         query: E,
-    ) -> ChanStream<<Self::Database as Database>::Row>
-        where
-            'c: 'e,
-            E: Execute<'q, Self::Database>,
+    ) -> ChanStream<<Self::Database as Database>::Row> where E: Execute<'q, Self::Database>,
     {
         let mut s = self.fetch_many(query);
         s.map(|either| {
@@ -85,22 +77,16 @@ pub trait Executor<'c>: Send + Debug + Sized {
 
     /// Execute multiple queries and return the generated results as a stream
     /// from each query, in a stream.
-    fn fetch_many<'e, 'q: 'e, E: 'q>(
+    fn fetch_many<'q, E: 'q>(
         self,
         query: E,
-    ) -> ChanStream<Either<<Self::Database as Database>::QueryResult, <Self::Database as Database>::Row>>
-        where
-            'c: 'e,
-            E: Execute<'q, Self::Database>;
+    ) -> ChanStream<Either<<Self::Database as Database>::QueryResult, <Self::Database as Database>::Row>> where E: Execute<'q, Self::Database>;
 
     /// Execute the query and return all the generated results, collected into a [`Vec`].
-    fn fetch_all<'e, 'q: 'e, E: 'q>(
+    fn fetch_all< 'q, E: 'q>(
         self,
         query: E,
-    ) -> Result<Vec<<Self::Database as Database>::Row>, Error>
-        where
-            'c: 'e,
-            E: Execute<'q, Self::Database>
+    ) -> Result<Vec<<Self::Database as Database>::Row>, Error> where  E: Execute<'q, Self::Database>
     {
          self.fetch(query).collect(|it|{
             Some(Ok(it))
@@ -108,13 +94,11 @@ pub trait Executor<'c>: Send + Debug + Sized {
     }
 
     /// Execute the query and returns exactly one row.
-    fn fetch_one<'e, 'q: 'e, E: 'q>(
+    fn fetch_one<'q, E: 'q>(
         self,
         query: E,
     ) -> Result<<Self::Database as Database>::Row, Error>
-        where
-            'c: 'e,
-            E: Execute<'q, Self::Database>,
+        where E: Execute<'q, Self::Database>,
     {
         let row = self.fetch_optional(query)?;
         match row {
@@ -124,13 +108,11 @@ pub trait Executor<'c>: Send + Debug + Sized {
     }
 
     /// Execute the query and returns at most one row.
-    fn fetch_optional<'e, 'q: 'e, E: 'q>(
+    fn fetch_optional<'q, E: 'q>(
         self,
         query: E,
     ) -> Result<Option<<Self::Database as Database>::Row>, Error>
-        where
-            'c: 'e,
-            E: Execute<'q, Self::Database>;
+        where E: Execute<'q, Self::Database>;
 
     /// Prepare the SQL query to inspect the type information of its parameters
     /// and results.
@@ -141,13 +123,10 @@ pub trait Executor<'c>: Send + Debug + Sized {
     /// This explicit API is provided to allow access to the statement metadata available after
     /// it prepared but before the first row is returned.
     #[inline]
-    fn prepare<'e, 'q: 'e>(
+    fn prepare<'q>(
         self,
         query: &'q str,
-    ) -> Result<<Self::Database as HasStatement<'q>>::Statement, Error>
-        where
-            'c: 'e,
-    {
+    ) -> Result<<Self::Database as HasStatement<'q>>::Statement, Error> {
         self.prepare_with(query, &[])
     }
 
@@ -156,13 +135,11 @@ pub trait Executor<'c>: Send + Debug + Sized {
     ///
     /// Only some database drivers (PostgreSQL, MSSQL) can take advantage of
     /// this extra information to influence parameter type inference.
-    fn prepare_with<'e, 'q: 'e>(
+    fn prepare_with<'q>(
         self,
         sql: &'q str,
-        parameters: &'e [<Self::Database as Database>::TypeInfo],
-    ) -> Result<<Self::Database as HasStatement<'q>>::Statement, Error>
-        where
-            'c: 'e;
+        parameters: &'q [<Self::Database as Database>::TypeInfo],
+    ) -> Result<<Self::Database as HasStatement<'q>>::Statement, Error>;
 
     /// Describe the SQL query and return type information about its parameters
     /// and results.
@@ -170,12 +147,10 @@ pub trait Executor<'c>: Send + Debug + Sized {
     /// This is used by compile-time verification in the query macros to
     /// power their type inference.
     #[doc(hidden)]
-    fn describe<'e, 'q: 'e>(
+    fn describe(
         self,
-        sql: &'q str,
-    ) -> Result<Describe<Self::Database>, Error>
-        where
-            'c: 'e;
+        sql: &str,
+    ) -> Result<Describe<Self::Database>, Error>;
 }
 
 /// A type that may be executed against a database connection.
