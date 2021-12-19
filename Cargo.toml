@@ -11,7 +11,8 @@ name = "cdbc"
 version = "0.1.0"
 edition = "2021"
 authors = ["zhuxiujia@qq.com"]
-
+description = "Rust Coroutine Database Driver Connectivity"
+repository = "https://github.com/rbatis/cdbc"
 
 [features]
 default = []
