@@ -16,14 +16,14 @@ use crate::types::Type;
 /// Returned from [`query_as`].
 #[must_use = "query must be executed to affect database"]
 pub struct QueryAs<'q, DB: Database, O, A> {
-    pub(crate) inner: Query<'q, DB, A>,
-    pub(crate) output: PhantomData<O>,
+    pub inner: Query<'q, DB, A>,
+    pub output: PhantomData<O>,
 }
 
 impl<'q, DB, O: Send, A: Send> Execute<'q, DB> for QueryAs<'q, DB, O, A>
-where
-    DB: Database,
-    A: 'q + IntoArguments<'q, DB>,
+    where
+        DB: Database,
+        A: 'q + IntoArguments<'q, DB>,
 {
     #[inline]
     fn sql(&self) -> &'q str {
@@ -57,8 +57,8 @@ impl<'q, DB: Database, O> QueryAs<'q, DB, O, <DB as HasArguments<'q>>::Arguments
 }
 
 impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
-where
-    DB: Database + HasStatementCache,
+    where
+        DB: Database + HasStatementCache,
 {
     /// If `true`, the statement will get prepared once and cached to the
     /// connection's statement cache.
@@ -77,19 +77,19 @@ where
 // FIXME: This is very close, nearly 1:1 with `Map`
 // noinspection DuplicatedCode
 impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
-where
-    DB: Database,
-    A: 'q + IntoArguments<'q, DB>,
-    O: Send +  for<'r> FromRow<'r, DB::Row>,
+    where
+        DB: Database,
+        A: 'q + IntoArguments<'q, DB>,
+        O: Send + for<'r> FromRow<'r, DB::Row>,
 {
     /// Execute the query and return the generated results as a stream.
     pub fn fetch<'e, 'c: 'e, E>(self, executor: E) -> ChanStream<O>
-    where
-        'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
-        DB: 'e,
-        O: 'e,
-        A: 'e,
+        where
+            'q: 'e,
+            E: 'e + Executor<'c, Database=DB>,
+            DB: 'e,
+            O: 'e,
+            A: 'e,
     {
         self.fetch_many(executor)
             .map(|v| {
@@ -103,12 +103,12 @@ where
         self,
         executor: E,
     ) -> ChanStream<Either<DB::QueryResult, O>>
-    where
-        'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
-        DB: 'e,
-        O: 'e,
-        A: 'e,
+        where
+            'q: 'e,
+            E: 'e + Executor<'c, Database=DB>,
+            DB: 'e,
+            O: 'e,
+            A: 'e,
     {
         chan_stream! {
             let mut s = executor.fetch_many(self.inner);
@@ -127,36 +127,36 @@ where
     /// Execute the query and return all the generated results, collected into a [`Vec`].
     #[inline]
     pub fn fetch_all<'e, 'c: 'e, E>(self, executor: E) -> Result<Vec<O>, Error>
-    where
-        'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
-        DB: 'e,
-        O: 'e,
-        A: 'e,
+        where
+            'q: 'e,
+            E: 'e + Executor<'c, Database=DB>,
+            DB: 'e,
+            O: 'e,
+            A: 'e,
     {
-        self.fetch(executor).collect(|it|{
+        self.fetch(executor).collect(|it| {
             Some(Ok(it))
         })
     }
 
     /// Execute the query and returns exactly one row.
     pub fn fetch_one<'e, 'c: 'e, E>(self, executor: E) -> Result<O, Error>
-    where
-        'q: 'e,
-        E: 'e + Executor<'c, Database = DB>,
-        DB: 'e,
-        O: 'e,
-        A: 'e,
+        where
+            'q: 'e,
+            E: 'e + Executor<'c, Database=DB>,
+            DB: 'e,
+            O: 'e,
+            A: 'e,
     {
         self.fetch_optional(executor)
-            
+
             .and_then(|row| row.ok_or(Error::RowNotFound))
     }
 
     /// Execute the query and returns at most one row.
-    pub fn fetch_optional<'c,E>(self, executor: E) -> Result<Option<O>, Error>
-    where
-        E:  Executor<'c, Database = DB>,
+    pub fn fetch_optional<'c, E>(self, executor: E) -> Result<Option<O>, Error>
+        where
+            E: Executor<'c, Database=DB>,
     {
         let row = executor.fetch_optional(self.inner)?;
         if let Some(row) = row {
@@ -171,9 +171,9 @@ where
 /// using [`FromRow`].
 #[inline]
 pub fn query_as<'q, DB, O>(sql: &'q str) -> QueryAs<'q, DB, O, <DB as HasArguments<'q>>::Arguments>
-where
-    DB: Database,
-    O: for<'r> FromRow<'r, DB::Row>,
+    where
+        DB: Database,
+        O: for<'r> FromRow<'r, DB::Row>,
 {
     QueryAs {
         inner: query(sql),
@@ -185,10 +185,10 @@ where
 /// using [`FromRow`].
 #[inline]
 pub fn query_as_with<'q, DB, O, A>(sql: &'q str, arguments: A) -> QueryAs<'q, DB, O, A>
-where
-    DB: Database,
-    A: IntoArguments<'q, DB>,
-    O: for<'r> FromRow<'r, DB::Row>,
+    where
+        DB: Database,
+        A: IntoArguments<'q, DB>,
+        O: for<'r> FromRow<'r, DB::Row>,
 {
     QueryAs {
         inner: query_with(sql, arguments),
@@ -200,9 +200,9 @@ where
 pub fn query_statement_as<'q, DB, O>(
     statement: &'q <DB as HasStatement<'q>>::Statement,
 ) -> QueryAs<'q, DB, O, <DB as HasArguments<'_>>::Arguments>
-where
-    DB: Database,
-    O: for<'r> FromRow<'r, DB::Row>,
+    where
+        DB: Database,
+        O: for<'r> FromRow<'r, DB::Row>,
 {
     QueryAs {
         inner: query_statement(statement),
@@ -215,10 +215,10 @@ pub fn query_statement_as_with<'q, DB, O, A>(
     statement: &'q <DB as HasStatement<'q>>::Statement,
     arguments: A,
 ) -> QueryAs<'q, DB, O, A>
-where
-    DB: Database,
-    A: IntoArguments<'q, DB>,
-    O: for<'r> FromRow<'r, DB::Row>,
+    where
+        DB: Database,
+        A: IntoArguments<'q, DB>,
+        O: for<'r> FromRow<'r, DB::Row>,
 {
     QueryAs {
         inner: query_statement_with(statement, arguments),

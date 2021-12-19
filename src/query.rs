@@ -12,13 +12,14 @@ use crate::statement::Statement;
 use crate::types::Type;
 use crate::chan_stream;
 use crate::io::chan_stream::TryStream;
+
 /// Raw SQL query with bind parameters. Returned by [`query`][crate::query::query].
 #[must_use = "query must be executed to affect database"]
 pub struct Query<'q, DB: Database, A> {
-    pub(crate) statement: Either<&'q str, &'q <DB as HasStatement<'q>>::Statement>,
-    pub(crate) arguments: Option<A>,
-    pub(crate) database: PhantomData<DB>,
-    pub(crate) persistent: bool,
+    pub statement: Either<&'q str, &'q <DB as HasStatement<'q>>::Statement>,
+    pub arguments: Option<A>,
+    pub database: PhantomData<DB>,
+    pub persistent: bool,
 }
 
 /// SQL query that will map its results to owned Rust types.
@@ -37,9 +38,9 @@ pub struct Map<'q, DB: Database, F, A> {
 }
 
 impl<'q, DB, A> Execute<'q, DB> for Query<'q, DB, A>
-where
-    DB: Database,
-    A: Send + IntoArguments<'q, DB>,
+    where
+        DB: Database,
+        A: Send + IntoArguments<'q, DB>,
 {
     #[inline]
     fn sql(&self) -> &'q str {
@@ -86,8 +87,8 @@ impl<'q, DB: Database> Query<'q, DB, <DB as HasArguments<'q>>::Arguments> {
 }
 
 impl<'q, DB, A> Query<'q, DB, A>
-where
-    DB: Database + HasStatementCache,
+    where
+        DB: Database + HasStatementCache,
 {
     /// If `true`, the statement will get prepared once and cached to the
     /// connection's statement cache.
@@ -104,9 +105,9 @@ where
 }
 
 impl<'q, DB, A: Send> Query<'q, DB, A>
-where
-    DB: Database,
-    A: 'q + IntoArguments<'q, DB>,
+    where
+        DB: Database,
+        A: 'q + IntoArguments<'q, DB>,
 {
     /// Map each row in the result to another type.
     ///
@@ -119,9 +120,9 @@ where
         self,
         mut f: F,
     ) -> Map<'q, DB, impl FnMut(DB::Row) -> Result<O, Error> + Send, A>
-    where
-        F: FnMut(DB::Row) -> O + Send,
-        O: Unpin,
+        where
+            F: FnMut(DB::Row) -> O + Send,
+            O: Unpin,
     {
         self.try_map(move |row| Ok(f(row)))
     }
@@ -132,9 +133,9 @@ where
     /// a [`FromRow`](super::from_row::FromRow) implementation.
     #[inline]
     pub fn try_map<F, O>(self, f: F) -> Map<'q, DB, F, A>
-    where
-        F: FnMut(DB::Row) -> Result<O, Error> + Send,
-        O: Unpin,
+        where
+            F: FnMut(DB::Row) -> Result<O, Error> + Send,
+            O: Unpin,
     {
         Map {
             inner: self,
@@ -145,7 +146,7 @@ where
     /// Execute the query and return the total number of rows affected.
     #[inline]
     pub fn execute<'c, E>(self, executor: E) -> Result<DB::QueryResult, Error>
-        where  E: Executor<'c, Database = DB>,
+        where E: Executor<'c, Database=DB>,
     {
         executor.execute(self)
     }
@@ -156,7 +157,7 @@ where
         self,
         executor: E,
     ) -> ChanStream<DB::QueryResult>
-    where E: Executor<'c, Database = DB>,
+        where E: Executor<'c, Database=DB>,
     {
         executor.execute_many(self)
     }
@@ -164,7 +165,7 @@ where
     /// Execute the query and return the generated results as a stream.
     #[inline]
     pub fn fetch<'c, E>(self, executor: E) -> ChanStream<DB::Row>
-    where E: Executor<'c, Database = DB>,
+        where E: Executor<'c, Database=DB>,
     {
         executor.fetch(self)
     }
@@ -175,8 +176,8 @@ where
     pub fn fetch_many<'c, E>(
         self,
         executor: E,
-    ) -> ChanStream< Either<DB::QueryResult, DB::Row>>
-    where E: Executor<'c, Database = DB>,
+    ) -> ChanStream<Either<DB::QueryResult, DB::Row>>
+        where E: Executor<'c, Database=DB>,
     {
         executor.fetch_many(self)
     }
@@ -184,7 +185,7 @@ where
     /// Execute the query and return all the generated results, collected into a [`Vec`].
     #[inline]
     pub fn fetch_all<'c, E>(self, executor: E) -> Result<Vec<DB::Row>, Error>
-    where E: Executor<'c, Database = DB>,
+        where E: Executor<'c, Database=DB>,
     {
         executor.fetch_all(self)
     }
@@ -192,7 +193,7 @@ where
     /// Execute the query and returns exactly one row.
     #[inline]
     pub fn fetch_one<'c, E>(self, executor: E) -> Result<DB::Row, Error>
-    where E: Executor<'c, Database = DB>,
+        where E: Executor<'c, Database=DB>,
     {
         executor.fetch_one(self)
     }
@@ -200,16 +201,16 @@ where
     /// Execute the query and returns at most one row.
     #[inline]
     pub fn fetch_optional<'c, E>(self, executor: E) -> Result<Option<DB::Row>, Error>
-    where E: Executor<'c, Database = DB>,
+        where E: Executor<'c, Database=DB>,
     {
         executor.fetch_optional(self)
     }
 }
 
 impl<'q, DB, F: Send, A: Send> Execute<'q, DB> for Map<'q, DB, F, A>
-where
-    DB: Database,
-    A: IntoArguments<'q, DB>,
+    where
+        DB: Database,
+        A: IntoArguments<'q, DB>,
 {
     #[inline]
     fn sql(&self) -> &'q str {
@@ -233,11 +234,11 @@ where
 }
 
 impl<'q, DB, F, O, A> Map<'q, DB, F, A>
-where
-    DB: Database,
-    F: FnMut(DB::Row) -> Result<O, Error> + Send,
-    O: Send + Unpin,
-    A: 'q + Send + IntoArguments<'q, DB>,
+    where
+        DB: Database,
+        F: FnMut(DB::Row) -> Result<O, Error> + Send,
+        O: Send + Unpin,
+        A: 'q + Send + IntoArguments<'q, DB>,
 {
     /// Map each row in the result to another type.
     ///
@@ -250,9 +251,9 @@ where
         self,
         mut g: G,
     ) -> Map<'q, DB, impl FnMut(DB::Row) -> Result<P, Error> + Send, A>
-    where
-        G: FnMut(O) -> P + Send,
-        P: Unpin,
+        where
+            G: FnMut(O) -> P + Send,
+            P: Unpin,
     {
         self.try_map(move |data| Ok(g(data)))
     }
@@ -266,9 +267,9 @@ where
         self,
         mut g: G,
     ) -> Map<'q, DB, impl FnMut(DB::Row) -> Result<P, Error> + Send, A>
-    where
-        G: FnMut(O) -> Result<P, Error> + Send,
-        P: Unpin,
+        where
+            G: FnMut(O) -> Result<P, Error> + Send,
+            P: Unpin,
     {
         let mut f = self.mapper;
         Map {
@@ -279,13 +280,13 @@ where
 
     /// Execute the query and return the generated results as a stream.
     pub fn fetch<'c, E>(self, executor: E) -> ChanStream<O>
-    where E: 'c + Executor<'c, Database = DB>,
-        DB: 'c,
-        F: 'c,
-        O: 'c,
+        where E: 'c + Executor<'c, Database=DB>,
+              DB: 'c,
+              F: 'c,
+              O: 'c,
     {
         self.fetch_many(executor)
-            .map(|step|{
+            .map(|step| {
                 match step {
                     Either::Left(_) => None,
                     Either::Right(o) => Some(o),
@@ -299,12 +300,12 @@ where
         mut self,
         executor: E,
     ) -> ChanStream<Either<DB::QueryResult, O>>
-    where E: 'c + Executor<'c, Database = DB>,
-        DB: 'c,
-        F: 'c,
-        O: 'c,
+        where E: 'c + Executor<'c, Database=DB>,
+              DB: 'c,
+              F: 'c,
+              O: 'c,
     {
-       chan_stream! {
+        chan_stream! {
             let mut s = executor.fetch_many(self.inner);
 
             while let Some(v) = s.try_next()? {
@@ -322,37 +323,36 @@ where
 
     /// Execute the query and return all the generated results, collected into a [`Vec`].
     pub fn fetch_all<'c, E>(self, executor: E) -> Result<Vec<O>, Error>
-    where E: 'c + Executor<'c, Database = DB>,
-        DB: 'c,
-        F: 'c,
-        O: 'c,
+        where E: 'c + Executor<'c, Database=DB>,
+              DB: 'c,
+              F: 'c,
+              O: 'c,
     {
-        self.fetch(executor).collect(|it|{
+        self.fetch(executor).collect(|it| {
             Some(Ok(it))
         })
     }
 
     /// Execute the query and returns exactly one row.
     pub fn fetch_one<'c, E>(self, executor: E) -> Result<O, Error>
-    where E: 'c + Executor<'c, Database = DB>,
-        DB: 'c,
-        F: 'c,
-        O: 'c,
+        where E: 'c + Executor<'c, Database=DB>,
+              DB: 'c,
+              F: 'c,
+              O: 'c,
     {
         self.fetch_optional(executor)
             .and_then(|row| match row {
                 Some(row) => Ok(row),
                 None => Err(Error::RowNotFound),
             })
-            
     }
 
     /// Execute the query and returns at most one row.
     pub fn fetch_optional<'c, E>(mut self, executor: E) -> Result<Option<O>, Error>
-    where E: 'c + Executor<'c, Database = DB>,
-        DB: 'c,
-        F: 'c,
-        O: 'c,
+        where E: 'c + Executor<'c, Database=DB>,
+              DB: 'c,
+              F: 'c,
+              O: 'c,
     {
         let row = executor.fetch_optional(self.inner)?;
 
@@ -368,8 +368,8 @@ where
 pub fn query_statement<'q, DB>(
     statement: &'q <DB as HasStatement<'q>>::Statement,
 ) -> Query<'q, DB, <DB as HasArguments<'_>>::Arguments>
-where
-    DB: Database,
+    where
+        DB: Database,
 {
     Query {
         database: PhantomData,
@@ -384,9 +384,9 @@ pub fn query_statement_with<'q, DB, A>(
     statement: &'q <DB as HasStatement<'q>>::Statement,
     arguments: A,
 ) -> Query<'q, DB, A>
-where
-    DB: Database,
-    A: IntoArguments<'q, DB>,
+    where
+        DB: Database,
+        A: IntoArguments<'q, DB>,
 {
     Query {
         database: PhantomData,
@@ -398,8 +398,8 @@ where
 
 /// Make a SQL query.
 pub fn query<DB>(sql: &str) -> Query<'_, DB, <DB as HasArguments<'_>>::Arguments>
-where
-    DB: Database,
+    where
+        DB: Database,
 {
     Query {
         database: PhantomData,
@@ -411,9 +411,9 @@ where
 
 /// Make a SQL query, with the given arguments.
 pub fn query_with<'q, DB, A>(sql: &'q str, arguments: A) -> Query<'q, DB, A>
-where
-    DB: Database,
-    A: IntoArguments<'q, DB>,
+    where
+        DB: Database,
+        A: IntoArguments<'q, DB>,
 {
     Query {
         database: PhantomData,
