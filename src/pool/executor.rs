@@ -70,20 +70,21 @@ where
 }
 
 // NOTE: required due to lack of lazy normalization
+#[macro_export]
 #[allow(unused_macros)]
 macro_rules! impl_executor_for_pool_connection {
     ($DB:ident, $C:ident, $R:ident) => {
-        impl<'c> crate::executor::Executor<'c> for &'c mut crate::pool::PoolConnection<$DB> {
+        impl<'c> cdbc::executor::Executor<'c> for &'c mut cdbc::pool::PoolConnection<$DB> {
             type Database = $DB;
 
             #[inline]
             fn fetch_many<'e, 'q: 'e, E: 'q>(
                 self,
                 query: E,
-            ) -> crate::io::chan_stream::ChanStream<either::Either<<$DB as crate::database::Database>::QueryResult, $R>>
+            ) -> cdbc::io::chan_stream::ChanStream<either::Either<<$DB as cdbc::database::Database>::QueryResult, $R>>
             where
                 'c: 'e,
-                E: crate::executor::Execute<'q, $DB>,
+                E: cdbc::executor::Execute<'q, $DB>,
             {
                 (**self).fetch_many(query)
             }
@@ -92,10 +93,10 @@ macro_rules! impl_executor_for_pool_connection {
             fn fetch_optional<'e, 'q: 'e, E: 'q>(
                 self,
                 query: E,
-            ) ->  Result<Option<$R>, crate::error::Error>
+            ) ->  Result<Option<$R>, cdbc::error::Error>
             where
                 'c: 'e,
-                E: crate::executor::Execute<'q, $DB>,
+                E: cdbc::executor::Execute<'q, $DB>,
             {
                 (**self).fetch_optional(query)
             }
@@ -104,9 +105,9 @@ macro_rules! impl_executor_for_pool_connection {
             fn prepare_with<'e, 'q: 'e>(
                 self,
                 sql: &'q str,
-                parameters: &'e [<$DB as crate::database::Database>::TypeInfo],
+                parameters: &'e [<$DB as cdbc::database::Database>::TypeInfo],
             ) ->
-                Result<<$DB as crate::database::HasStatement<'q>>::Statement, crate::error::Error>
+                Result<<$DB as cdbc::database::HasStatement<'q>>::Statement, cdbc::error::Error>
             where
                 'c: 'e,
             {
@@ -118,7 +119,7 @@ macro_rules! impl_executor_for_pool_connection {
             fn describe<'e, 'q: 'e>(
                 self,
                 sql: &'q str,
-            ) ->Result<crate::describe::Describe<$DB>, crate::error::Error>
+            ) ->Result<cdbc::describe::Describe<$DB>, cdbc::error::Error>
             where
                 'c: 'e,
             {

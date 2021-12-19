@@ -78,7 +78,7 @@ mod options;
 mod semaphore;
 
 pub use self::connection::PoolConnection;
-pub(crate) use self::maybe::MaybePoolConnection;
+pub use self::maybe::MaybePoolConnection;
 pub use self::options::PoolOptions;
 
 /// An asynchronous pool of SQLx database connections.

@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, HashMap};
 use cdbc::database::Database;
-use cdbc::{MySql, MySqlPool, MySqlRow};
+use cdbc_mysql::{MySql, MySqlPool, MySqlRow};
 use cdbc::column::Column;
 use cdbc::decode::Decode;
 use cdbc::executor::Executor;

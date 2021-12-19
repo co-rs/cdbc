@@ -37,10 +37,7 @@ pub mod describe;
 
 pub use error::*;
 
-pub mod db;
-pub use db::*;
-
 pub mod net;
 
 
-use ahash::AHashMap as HashMap;
+pub use ahash::AHashMap as HashMap;

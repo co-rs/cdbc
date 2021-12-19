@@ -1,6 +1,7 @@
 [workspace]
 members = [
-  "example"
+  "example",
+  "cdbc-mysql"
 ]
 
 [package]

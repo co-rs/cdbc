@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 
 cdbc = {path = "../"}
+cdbc-mysql = {path = "../cdbc-mysql"}

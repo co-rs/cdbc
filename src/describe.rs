@@ -19,9 +19,9 @@ use std::convert::identity;
 )]
 #[doc(hidden)]
 pub struct Describe<DB: Database> {
-    pub(crate) columns: Vec<DB::Column>,
-    pub(crate) parameters: Option<Either<Vec<DB::TypeInfo>, usize>>,
-    pub(crate) nullable: Vec<Option<bool>>,
+    pub columns: Vec<DB::Column>,
+    pub parameters: Option<Either<Vec<DB::TypeInfo>, usize>>,
+    pub nullable: Vec<Option<bool>>,
 }
 
 impl<DB: Database> Describe<DB> {

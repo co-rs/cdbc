@@ -98,7 +98,7 @@ pub trait FromRow<'r, R: Row>: Sized {
 
 // implement FromRow for tuples of types that implement Decode
 // up to tuples of 9 values
-
+#[macro_export]
 macro_rules! impl_from_row_for_tuple {
     ($( ($idx:tt) -> $T:ident );+;) => {
         impl<'r, R, $($T,)+> FromRow<'r, R> for ($($T,)+)

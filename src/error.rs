@@ -125,13 +125,13 @@ impl Error {
 
     #[allow(dead_code)]
     #[inline]
-    pub(crate) fn protocol(err: impl Display) -> Self {
+    pub fn protocol(err: impl Display) -> Self {
         Error::Protocol(err.to_string())
     }
 
     #[allow(dead_code)]
     #[inline]
-    pub(crate) fn config(err: impl StdError + Send + Sync + 'static) -> Self {
+    pub fn config(err: impl StdError + Send + Sync + 'static) -> Self {
         Error::Configuration(err.into())
     }
 }

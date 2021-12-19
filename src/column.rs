@@ -2,7 +2,7 @@ use crate::database::Database;
 use crate::error::Error;
 use std::fmt::Debug;
 
-pub trait Column: private_column::Sealed + 'static + Send + Sync + Debug {
+pub trait Column:'static + Send + Sync + Debug {
     type Database: Database;
 
     /// Gets the column ordinal.
@@ -54,15 +54,15 @@ impl<T: ?Sized, I: ColumnIndex<T> + ?Sized> ColumnIndex<T> for &'_ I {
         (**self).index(row)
     }
 }
-
+#[macro_export]
 macro_rules! impl_column_index_for_row {
     ($R:ident) => {
-        impl crate::column::ColumnIndex<$R> for usize {
-            fn index(&self, row: &$R) -> Result<usize, crate::error::Error> {
-                let len = crate::row::Row::len(row);
+        impl cdbc::column::ColumnIndex<$R> for usize {
+            fn index(&self, row: &$R) -> Result<usize, cdbc::error::Error> {
+                let len = cdbc::row::Row::len(row);
 
                 if *self >= len {
-                    return Err(crate::error::Error::ColumnIndexOutOfBounds { len, index: *self });
+                    return Err(cdbc::error::Error::ColumnIndexOutOfBounds { len, index: *self });
                 }
 
                 Ok(*self)
@@ -70,15 +70,15 @@ macro_rules! impl_column_index_for_row {
         }
     };
 }
-
+#[macro_export]
 macro_rules! impl_column_index_for_statement {
     ($S:ident) => {
-        impl crate::column::ColumnIndex<$S<'_>> for usize {
-            fn index(&self, statement: &$S<'_>) -> Result<usize, crate::error::Error> {
-                let len = crate::statement::Statement::columns(statement).len();
+        impl cdbc::column::ColumnIndex<$S<'_>> for usize {
+            fn index(&self, statement: &$S<'_>) -> Result<usize, cdbc::error::Error> {
+                let len = cdbc::statement::Statement::columns(statement).len();
 
                 if *self >= len {
-                    return Err(crate::error::Error::ColumnIndexOutOfBounds { len, index: *self });
+                    return Err(cdbc::error::Error::ColumnIndexOutOfBounds { len, index: *self });
                 }
 
                 Ok(*self)

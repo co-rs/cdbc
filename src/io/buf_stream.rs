@@ -13,7 +13,7 @@ pub struct BufStream<T> where T: Write + Read {
 
     // writes with `write` to the underlying stream are buffered
     // this can be flushed with `flush`
-    pub(crate) wbuf: Vec<u8>,
+    pub wbuf: Vec<u8>,
 
     // we read into the read buffer using 100% safe code
     rbuf: BytesMut,

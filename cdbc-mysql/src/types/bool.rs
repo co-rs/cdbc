@@ -1,0 +1,44 @@
+use cdbc::decode::Decode;
+use cdbc::encode::{Encode, IsNull};
+use cdbc::error::BoxDynError;
+use crate::{
+    protocol::text::{ColumnFlags, ColumnType},
+    MySql, MySqlTypeInfo, MySqlValueRef,
+};
+use cdbc::types::Type;
+
+impl Type<MySql> for bool {
+    fn type_info() -> MySqlTypeInfo {
+        // MySQL has no actual `BOOLEAN` type, the type is an alias of `TINYINT(1)`
+        MySqlTypeInfo {
+            flags: ColumnFlags::BINARY | ColumnFlags::UNSIGNED,
+            char_set: 63,
+            max_size: Some(1),
+            r#type: ColumnType::Tiny,
+        }
+    }
+
+    fn compatible(ty: &MySqlTypeInfo) -> bool {
+        matches!(
+            ty.r#type,
+            ColumnType::Tiny
+                | ColumnType::Short
+                | ColumnType::Long
+                | ColumnType::Int24
+                | ColumnType::LongLong
+                | ColumnType::Bit
+        )
+    }
+}
+
+impl Encode<'_, MySql> for bool {
+    fn encode_by_ref(&self, buf: &mut Vec<u8>) -> IsNull {
+        <i8 as Encode<MySql>>::encode(*self as i8, buf)
+    }
+}
+
+impl Decode<'_, MySql> for bool {
+    fn decode(value: MySqlValueRef<'_>) -> Result<Self, BoxDynError> {
+        Ok(<i8 as Decode<MySql>>::decode(value)? != 0)
+    }
+}

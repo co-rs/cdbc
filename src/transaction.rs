@@ -61,7 +61,7 @@ impl<'c, DB> Transaction<'c, DB>
 where
     DB: Database,
 {
-    pub(crate) fn begin(
+    pub fn begin(
         conn: impl Into<MaybePoolConnection<'c, DB>>,
     ) ->  Result<Self, Error> {
         let mut conn = conn.into();
@@ -92,22 +92,23 @@ where
 }
 
 // NOTE: required due to lack of lazy normalization
+#[macro_export]
 #[allow(unused_macros)]
 macro_rules! impl_executor_for_transaction {
     ($DB:ident, $Row:ident) => {
-        impl<'c, 't> crate::executor::Executor<'t>
-            for &'t mut crate::transaction::Transaction<'c, $DB>
+        impl<'c, 't> cdbc::executor::Executor<'t>
+            for &'t mut cdbc::transaction::Transaction<'c, $DB>
         {
             type Database = $DB;
 
             fn fetch_many<'e, 'q: 'e, E: 'q>(
                 self,
                 query: E,
-            ) -> crate::io::chan_stream::ChanStream<
-                    either::Either<<$DB as crate::database::Database>::QueryResult, $Row>>
+            ) -> cdbc::io::chan_stream::ChanStream<
+                    either::Either<<$DB as cdbc::database::Database>::QueryResult, $Row>>
             where
                 't: 'e,
-                E: crate::executor::Execute<'q, Self::Database>,
+                E: cdbc::executor::Execute<'q, Self::Database>,
             {
                 (&mut **self).fetch_many(query)
             }
@@ -115,10 +116,10 @@ macro_rules! impl_executor_for_transaction {
             fn fetch_optional<'e, 'q: 'e, E: 'q>(
                 self,
                 query: E,
-            ) ->  Result<Option<$Row>, crate::error::Error>
+            ) ->  Result<Option<$Row>, cdbc::error::Error>
             where
                 't: 'e,
-                E: crate::executor::Execute<'q, Self::Database>,
+                E: cdbc::executor::Execute<'q, Self::Database>,
             {
                 (&mut **self).fetch_optional(query)
             }
@@ -126,9 +127,9 @@ macro_rules! impl_executor_for_transaction {
             fn prepare_with<'e, 'q: 'e>(
                 self,
                 sql: &'q str,
-                parameters: &'e [<Self::Database as crate::database::Database>::TypeInfo],
+                parameters: &'e [<Self::Database as cdbc::database::Database>::TypeInfo],
             ) ->
-                Result<<Self::Database as crate::database::HasStatement<'q>>::Statement,crate::error::Error>
+                Result<<Self::Database as cdbc::database::HasStatement<'q>>::Statement,cdbc::error::Error>
             where
                 't: 'e,
             {
@@ -139,7 +140,7 @@ macro_rules! impl_executor_for_transaction {
             fn describe<'e, 'q: 'e>(
                 self,
                 query: &'q str,
-            ) ->Result<crate::describe::Describe<Self::Database>, crate::error::Error>
+            ) ->Result<cdbc::describe::Describe<Self::Database>, cdbc::error::Error>
             where
                 't: 'e,
             {
@@ -199,7 +200,7 @@ where
 }
 
 #[allow(dead_code)]
-pub(crate) fn begin_ansi_transaction_sql(depth: usize) -> Cow<'static, str> {
+pub fn begin_ansi_transaction_sql(depth: usize) -> Cow<'static, str> {
     if depth == 0 {
         Cow::Borrowed("BEGIN")
     } else {
@@ -208,7 +209,7 @@ pub(crate) fn begin_ansi_transaction_sql(depth: usize) -> Cow<'static, str> {
 }
 
 #[allow(dead_code)]
-pub(crate) fn commit_ansi_transaction_sql(depth: usize) -> Cow<'static, str> {
+pub fn commit_ansi_transaction_sql(depth: usize) -> Cow<'static, str> {
     if depth == 1 {
         Cow::Borrowed("COMMIT")
     } else {
@@ -217,7 +218,7 @@ pub(crate) fn commit_ansi_transaction_sql(depth: usize) -> Cow<'static, str> {
 }
 
 #[allow(dead_code)]
-pub(crate) fn rollback_ansi_transaction_sql(depth: usize) -> Cow<'static, str> {
+pub fn rollback_ansi_transaction_sql(depth: usize) -> Cow<'static, str> {
     if depth == 1 {
         Cow::Borrowed("ROLLBACK")
     } else {

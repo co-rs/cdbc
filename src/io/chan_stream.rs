@@ -96,7 +96,7 @@ impl<T> TryStream for ChanStream<T> {
 #[macro_export]
 macro_rules! chan_stream {
     ($($block:tt)*) => {
-        crate::io::chan_stream::ChanStream::new(move |sender| {
+        ChanStream::new(move |sender| {
             macro_rules! r#yield {
                 ($v:expr) => {{
                     may::sync::mpsc::Sender::send(&sender,Some(Ok($v)));

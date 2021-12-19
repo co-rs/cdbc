@@ -29,18 +29,19 @@ impl<'a, DB: Database> Acquire<'a> for &'_ Pool<DB> {
     }
 }
 
+#[macro_export]
 #[allow(unused_macros)]
 macro_rules! impl_acquire {
     ($DB:ident, $C:ident) => {
-        impl<'c> crate::acquire::Acquire<'c> for &'c mut $C {
+        impl<'c> cdbc::acquire::Acquire<'c> for &'c mut $C {
             type Database = $DB;
 
-            type Connection = &'c mut <$DB as crate::database::Database>::Connection;
+            type Connection = &'c mut <$DB as cdbc::database::Database>::Connection;
 
             #[inline]
             fn acquire(
                 self,
-            ) -> Result<Self::Connection, crate::error::Error>
+            ) -> Result<Self::Connection, cdbc::error::Error>
             {
                 Ok(self)
             }
@@ -48,20 +49,20 @@ macro_rules! impl_acquire {
             #[inline]
             fn begin(
                 self,
-            ) -> Result<crate::transaction::Transaction<'c, $DB>, crate::error::Error>{
-                crate::transaction::Transaction::begin(self)
+            ) -> Result<cdbc::transaction::Transaction<'c, $DB>, cdbc::error::Error>{
+                cdbc::transaction::Transaction::begin(self)
             }
         }
 
-        impl<'c> crate::acquire::Acquire<'c> for &'c mut crate::pool::PoolConnection<$DB> {
+        impl<'c> cdbc::acquire::Acquire<'c> for &'c mut cdbc::pool::PoolConnection<$DB> {
             type Database = $DB;
 
-            type Connection = &'c mut <$DB as crate::database::Database>::Connection;
+            type Connection = &'c mut <$DB as cdbc::database::Database>::Connection;
 
             #[inline]
             fn acquire(
                 self,
-            ) ->  Result<Self::Connection, crate::error::Error>
+            ) ->  Result<Self::Connection, cdbc::error::Error>
             {
                 Ok(&mut **self)
             }
@@ -69,22 +70,22 @@ macro_rules! impl_acquire {
             #[inline]
             fn begin(
                 self,
-            ) -> Result<crate::transaction::Transaction<'c, $DB>, crate::error::Error>{
-                crate::transaction::Transaction::begin(&mut **self)
+            ) -> Result<cdbc::transaction::Transaction<'c, $DB>, cdbc::error::Error>{
+                cdbc::transaction::Transaction::begin(&mut **self)
             }
         }
 
-        impl<'c, 't> crate::acquire::Acquire<'t>
-            for &'t mut crate::transaction::Transaction<'c, $DB>
+        impl<'c, 't> cdbc::acquire::Acquire<'t>
+            for &'t mut cdbc::transaction::Transaction<'c, $DB>
         {
             type Database = $DB;
 
-            type Connection = &'t mut <$DB as crate::database::Database>::Connection;
+            type Connection = &'t mut <$DB as cdbc::database::Database>::Connection;
 
             #[inline]
             fn acquire(
                 self,
-            ) -> Result<Self::Connection, crate::error::Error>
+            ) -> Result<Self::Connection, cdbc::error::Error>
             {
                 Ok(&mut **self)
             }
@@ -92,8 +93,8 @@ macro_rules! impl_acquire {
             #[inline]
             fn begin(
                 self,
-            ) ->Result<crate::transaction::Transaction<'t, $DB>, crate::error::Error>{
-                crate::transaction::Transaction::begin(&mut **self)
+            ) ->Result<cdbc::transaction::Transaction<'t, $DB>, cdbc::error::Error>{
+                cdbc::transaction::Transaction::begin(&mut **self)
             }
         }
     };

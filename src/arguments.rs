@@ -23,13 +23,14 @@ pub trait IntoArguments<'q, DB: HasArguments<'q>>: Sized + Send {
 }
 
 // NOTE: required due to lack of lazy normalization
+#[macro_export]
 #[allow(unused_macros)]
 macro_rules! impl_into_arguments_for_arguments {
     ($Arguments:path) => {
         impl<'q>
-            crate::arguments::IntoArguments<
+            cdbc::arguments::IntoArguments<
                 'q,
-                <$Arguments as crate::arguments::Arguments<'q>>::Database,
+                <$Arguments as cdbc::arguments::Arguments<'q>>::Database,
             > for $Arguments
         {
             fn into_arguments(self) -> $Arguments {
