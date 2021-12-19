@@ -104,13 +104,11 @@ impl StatementWorker {
                 tx,
             })
             .map_err(|e| {
-                log::error!("{}", e);
-                Error::WorkerCrashed
+                Error::WorkerCrashed(e.to_string())
             })?;
 
         rx.recv().map_err(|e| {
-            log::error!("{}", e);
-            Error::WorkerCrashed
+            Error::WorkerCrashed(e.to_string())
         })?
     }
 
@@ -135,8 +133,7 @@ impl StatementWorker {
                 tx,
             })
             .map_err(|e| {
-                log::error!("{}", e);
-                Error::WorkerCrashed
+                Error::WorkerCrashed(e.to_string())
             });
 
          {
@@ -144,8 +141,7 @@ impl StatementWorker {
 
             // wait for the response
             rx.recv().map_err(|e| {
-                log::error!("{}", e);
-                Error::WorkerCrashed
+                Error::WorkerCrashed(e.to_string())
             })
         }
     }
@@ -162,8 +158,7 @@ impl StatementWorker {
             .tx
             .send(StatementWorkerCommand::Shutdown { tx })
             .map_err(|e| {
-                log::error!("{}", e);
-                Error::WorkerCrashed
+                Error::WorkerCrashed(e.to_string())
             });
 
         {
@@ -171,8 +166,7 @@ impl StatementWorker {
 
             // wait for the response
             rx.recv().map_err(|e| {
-                log::error!("{}", e);
-                Error::WorkerCrashed
+                Error::WorkerCrashed(e.to_string())
             })
         }
     }

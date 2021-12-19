@@ -103,7 +103,7 @@ pub enum Error {
 
     /// A background worker has crashed.
     #[error("attempted to communicate with a crashed background worker")]
-    WorkerCrashed,
+    WorkerCrashed(String),
 }
 
 impl StdError for Box<dyn DatabaseError> {}
