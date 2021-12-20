@@ -26,8 +26,8 @@ Coroutine Database driver Connectivity.based on ([may](https://github.com/Xudong
 * prepare： Prepare the SQL query to inspect the type information of its parameters and results
 * prepare_with: Prepare the SQL query, with parameter type information, to inspect the type information about its parameters and results.
 ### Supported transaction
-* pool.begin(),commit(),rollback()
-* connection.begin(),commit(),rollback()
+* Pool:       begin(),commit(),rollback()
+* Connection: begin(),commit(),rollback()
 
 
 
