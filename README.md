@@ -6,6 +6,7 @@ Coroutine Database driver Connectivity.based on [may](https://github.com/Xudong-
 * Optimize the trait system so that it has intelligent hints of the base method
 * NativeTls and TCP connections are supported
 * Low coupling，The database driver and the abstraction layer are designed separately
+* Lightweight, no over-design, macro with intelligent tips
 * Inspired by golang, [may](https://github.com/Xudong-Huang/may), sqlx
 
 ## Database Support:
