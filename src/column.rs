@@ -22,7 +22,7 @@ pub trait Column:'static + Send + Sync + Debug {
 }
 
 // Prevent users from implementing the `Row` trait.
-pub(crate) mod private_column {
+pub mod private_column {
     pub trait Sealed {}
 }
 

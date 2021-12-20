@@ -18,7 +18,7 @@ use super::inner::{DecrementSizeGuard, SharedPool};
 /// Will be returned to the pool on-drop.
 pub struct PoolConnection<DB: Database> {
     live: Option<Live<DB>>,
-    pub(crate) pool: Arc<SharedPool<DB>>,
+    pub pool: Arc<SharedPool<DB>>,
 }
 
 pub(super) struct Live<DB: Database> {

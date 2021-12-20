@@ -226,7 +226,7 @@ pub use self::options::PoolOptions;
 ///
 /// Depending on the database server, a connection will have caches for all kinds of other data as
 /// well and queries will generally benefit from these caches being "warm" (populated with data).
-pub struct Pool<DB: Database>(pub(crate) Arc<SharedPool<DB>>);
+pub struct Pool<DB: Database>(pub Arc<SharedPool<DB>>);
 
 impl<DB: Database> Pool<DB> {
     /// Creates a new connection pool with a default pool configuration and

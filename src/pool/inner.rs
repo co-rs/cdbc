@@ -24,7 +24,7 @@ use crate::pool::semaphore::{BoxSemaphore, PermitGuard};
 /// potentially overflowing the permits count in the semaphore itself.
 const WAKE_ALL_PERMITS: usize = usize::MAX / 2;
 
-pub(crate) struct SharedPool<DB: Database> {
+pub struct SharedPool<DB: Database> {
     pub(super) connect_options: <DB::Connection as Connection>::Options,
     pub(super) idle_conns: ArrayQueue<Idle<DB>>,
     pub(super) semaphore: BoxSemaphore,

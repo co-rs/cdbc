@@ -181,6 +181,6 @@ pub trait Row: Send + Sync + 'static {
 }
 
 // Prevent users from implementing the `Row` trait.
-pub(crate) mod private_row {
+pub mod private_row {
     pub trait Sealed {}
 }
