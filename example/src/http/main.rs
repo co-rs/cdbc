@@ -33,16 +33,6 @@ pub struct BizActivity {
     pub delete_flag: Option<i32>,
 }
 
-impl BizActivity {
-    fn scan(x:MySqlRow) -> cdbc::Result<BizActivity> {
-        scan_struct!(x,BizActivity{
-            id: None,
-            name: None,
-            delete_flag: None,
-           })
-    }
-}
-
 impl HelloWorld {
     //query from database
     pub fn query(&self) -> cdbc::Result<Vec<BizActivity>> {
@@ -50,11 +40,12 @@ impl HelloWorld {
         let mut data = conn.fetch_all("select * from biz_activity;")?;
         let mut vec = vec![];
         for x in data {
-            vec.push(scan_struct!(x,BizActivity{
+            let item = scan_struct!(x,BizActivity{
             id: None,
             name: None,
             delete_flag: None,
-           })?);
+           })?;
+            vec.push(item);
         }
         Ok(vec)
     }
