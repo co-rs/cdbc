@@ -31,6 +31,11 @@ fn main() -> cdbc::Result<()> {
 #[cfg(test)]
 mod test {
     use std::collections::{BTreeMap, HashMap};
+    use std::sync::Arc;
+    use std::thread::sleep;
+    use std::time::Duration;
+    use may::go;
+    use may::sync::mpmc::channel;
     use cdbc::database::Database;
 
     use cdbc::column::Column;
@@ -75,6 +80,44 @@ mod test {
                 m.insert(column.name().to_string(), r);
             }
             println!("{:?}", m);
+        }
+    }
+
+    #[test]
+    fn test_mysql_pool() {
+        may::config().set_stack_size(0x1000*2);
+        let total=1000;
+        let (s,r)=channel();
+        let pool = Arc::new(MySqlPool::connect("mysql://root:123456@localhost:3306/test").unwrap());
+        for idx in 0..total{
+            let s1=s.clone();
+            let p = pool.clone();
+            sleep(Duration::from_millis(10));
+            let f=move ||{
+                let mut conn = p.acquire().unwrap();
+                let mut data: Vec<MySqlRow> = conn.fetch_all("select * from biz_activity;").unwrap();
+                for it in data {
+                    let mut m = BTreeMap::new();
+                    for column in it.columns() {
+                        let v = it.try_get_raw(column.name()).unwrap();
+                        let r: Option<String> = Decode::<'_, MySql>::decode(v).unwrap();
+                        m.insert(column.name().to_string(), r);
+                    }
+                    //println!("{:?}", m);
+                }
+                println!("done:{}",idx);
+                s1.send(1);
+            };
+            go!(f);
+        }
+        let mut recvs =0;
+        loop{
+            if let Ok(v)=r.recv(){
+                recvs+=1;
+            }
+            if recvs==total{
+                break;
+            }
         }
     }
 }
