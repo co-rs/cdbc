@@ -9,6 +9,7 @@ pub struct BizActivity {
     pub delete_flag: Option<i32>,
 }
 
+/// Using the row_scan_struct macro saves a lot of code
 impl BizActivity {
 
     pub fn fetch_one(pool: &SqlitePool) -> cdbc::Result<BizActivity> {
