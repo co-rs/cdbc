@@ -32,31 +32,31 @@ pub struct BizActivity {
     pub delete_flag: Option<i32>,
 }
 impl BizActivity{
-    fn scan(row: MySqlRow) -> BizActivity {
+    fn scan(row: MySqlRow) -> cdbc::Result<BizActivity> {
         let mut table = BizActivity {
             id: None,
             name: None,
             delete_flag: None,
         };
         for column in row.columns() {
-            let v = row.try_get_raw(column.name()).unwrap();
+            let v = row.try_get_raw(column.name())?;
             match column.name() {
                 "id" => {
-                    let r: Option<String> = Decode::<'_, MySql>::decode(v).unwrap();
+                    let r: Option<String> = Decode::<'_, MySql>::decode(v)?;
                     table.id = r;
                 }
                 "name" => {
-                    let r: Option<String> = Decode::<'_, MySql>::decode(v).unwrap();
+                    let r: Option<String> = Decode::<'_, MySql>::decode(v)?;
                     table.name = r;
                 }
                 "delete_flag" => {
-                    let r: Option<i32> = Decode::<'_, MySql>::decode(v).unwrap();
+                    let r: Option<i32> = Decode::<'_, MySql>::decode(v)?;
                     table.delete_flag = r;
                 }
                 _ => {}
             }
         }
-        return table;
+        return Ok(table);
     }
 }
 
@@ -68,7 +68,7 @@ impl HelloWorld {
         let mut data = conn.fetch_all("select * from biz_activity;")?;
         let mut vec = vec![];
         for x in data {
-            vec.push(BizActivity::scan(x));
+            vec.push(BizActivity::scan(x)?);
         }
         Ok(vec)
     }
