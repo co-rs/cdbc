@@ -16,6 +16,11 @@ name = "sqlite"
 path = "src/main-sqlite.rs"
 
 
+
+[[bin]]
+name = "mayhttp"
+path = "src/http/main.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -29,3 +34,6 @@ cdbc-sqlite = {path = "../cdbc-sqlite"}
 
 log = "0.4"
 fast_log = "1.4"
+
+may_minihttp = { git = "https://github.com/Xudong-Huang/may_minihttp.git" }
+lazy_static = "1.4"
