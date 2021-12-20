@@ -388,7 +388,7 @@ impl<'a> DecrementSizeGuard<'a> {
         mut permit: PermitGuard<'a>,
     ) -> Self {
         // here we effectively take ownership of the permit
-        //permit.disarm();
+        permit.disarm();
         Self::new_permit(pool)
     }
 

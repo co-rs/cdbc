@@ -10,12 +10,11 @@ pub struct PermitGuard<'a> {
     blocker: Arc<may::sync::Blocker>,
 }
 
-impl<'a> Drop for PermitGuard<'a> {
-    fn drop(&mut self) {
-        //self.inner.release();
+impl <'a>PermitGuard<'a>{
+    pub fn disarm(self){
+        self.inner.release();
     }
 }
-
 
 pub struct BoxSemaphore {
     /// permit total num
