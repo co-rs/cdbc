@@ -40,7 +40,6 @@ cdbc-mysql = {path = "../cdbc-mysql"}
 ```
 * row_scan macro
 ```rust
-#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct BizActivity {
     pub id: Option<String>,
     pub name: Option<String>,
