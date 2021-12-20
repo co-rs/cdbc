@@ -42,16 +42,13 @@ impl BizActivity{
             let v = row.try_get_raw(column.name())?;
             match column.name() {
                 "id" => {
-                    let r: Option<String> = Decode::<'_, MySql>::decode(v)?;
-                    table.id = r;
+                    table.id = Decode::decode(v)?;
                 }
                 "name" => {
-                    let r: Option<String> = Decode::<'_, MySql>::decode(v)?;
-                    table.name = r;
+                    table.name = Decode::decode(v)?;
                 }
                 "delete_flag" => {
-                    let r: Option<i32> = Decode::<'_, MySql>::decode(v)?;
-                    table.delete_flag = r;
+                    table.delete_flag = Decode::decode(v)?;
                 }
                 _ => {}
             }
