@@ -9,28 +9,22 @@ pub struct BizActivity {
     pub delete_flag: Option<i32>,
 }
 
-/// Using the row_scan_struct macro saves a lot of code
-impl BizActivity {
-
-    pub fn fetch_one(pool: &SqlitePool) -> cdbc::Result<BizActivity> {
+fn main() -> cdbc::Result<()> {
+    let pool = make_sqlite()?;
+    /// fetch one record
+    let record = {
         let mut conn = pool.acquire()?;
         let row = conn.fetch_one("select * from biz_activity limit 1")?;
         cdbc::row_scan_struct!(row,BizActivity{id: None,name: None,delete_flag: None})
-    }
-
-    pub fn fetch_all(pool: &SqlitePool) -> cdbc::Result<Vec<BizActivity>> {
+    }?;
+    /// fetch  records vec
+    println!("record: {}", serde_json::to_string(&record).unwrap());
+    let records = {
         let mut conn = pool.acquire()?;
         let row = conn.fetch_all("select * from biz_activity limit 1")?;
         cdbc::row_scan_structs!(row,BizActivity{id: None,name: None,delete_flag: None})
-    }
-}
-
-fn main() -> cdbc::Result<()> {
-    let pool = make_sqlite()?;
-    let data = BizActivity::fetch_one(&pool)?;
-    println!("fetch_one: {}", serde_json::to_string(&data).unwrap());
-    let datas = BizActivity::fetch_all(&pool)?;
-    println!("fetch_all: {}", serde_json::to_string(&datas).unwrap());
+    }?;
+    println!("records: {}", serde_json::to_string(&records).unwrap());
     Ok(())
 }
 
