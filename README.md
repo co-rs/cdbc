@@ -35,8 +35,12 @@ use example:
 
 > cargo.toml
 ```toml
-cdbc = {path = "../"}
-cdbc-mysql = {path = "../cdbc-mysql"}
+#must dep
+cdbc = {version = "*"}
+#optional dep
+cdbc-mysql = {version = "*"}
+cdbc-pg = {version = "*"}
+cdbc-sqlite = {version = "*"}
 ```
 * row_scan macro
 ```rust
