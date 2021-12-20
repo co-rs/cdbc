@@ -39,3 +39,4 @@ fast_log = "1.4"
 
 may_minihttp = { git = "https://github.com/Xudong-Huang/may_minihttp.git" }
 lazy_static = "1.4"
+serde_json = "1.0"

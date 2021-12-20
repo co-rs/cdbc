@@ -9,7 +9,7 @@ use cdbc::executor::Executor;
 use cdbc::row::Row;
 
 use cdbc::pool::Pool;
-use cdbc_mysql::{MySqlPool,MySql,MySqlRow};
+use cdbc_mysql::{MySqlPool, MySql, MySqlRow};
 
 #[macro_use]
 extern crate lazy_static;
@@ -34,22 +34,29 @@ fn row_to_map(row: MySqlRow) -> BTreeMap<String, Option<String>> {
     m
 }
 
+impl HelloWorld {
+    //query from database
+    pub fn query(&self) -> Result<Vec<BTreeMap<String, Option<String>>>, std::io::Error> {
+        let mut conn = POOL.acquire()?;
+        let mut data = conn.fetch_all("select * from biz_activity;")?;
+        let mut vec = vec![];
+        for x in data {
+            vec.push(row_to_map(x));
+        }
+        Ok(vec)
+    }
+}
+
 impl HttpService for HelloWorld {
     fn call(&mut self, req: Request, resp: &mut Response) -> io::Result<()> {
-        let r:Result<Vec<BTreeMap<String,Option<String>>>,std::io::Error>={
-            let mut conn =POOL.acquire()?;
-            let mut data = conn.fetch_all("select * from biz_activity;")?;
-            let mut vec = vec![];
-            for x in data {
-                vec.push(row_to_map(x));
-            }
-            Ok(vec)
-        };
-        if let Err(e) = r{
-            resp.body_vec(format!("{:?}",e).into_bytes());
-            return  Ok(());
+        let r = self.query();
+        if let Err(e) = r {
+            return {
+                resp.body_vec(e.to_string().into_bytes());
+                Ok(())
+            };
         }
-        resp.body_vec(format!("{:?}",r.unwrap()).into_bytes());
+        resp.body_vec(serde_json::to_string(&r.unwrap()).unwrap().into_bytes());
         Ok(())
     }
 }
