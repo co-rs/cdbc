@@ -5,6 +5,7 @@ use std::borrow::Cow;
 use std::error::Error as StdError;
 use std::fmt::Display;
 use std::io;
+use std::io::ErrorKind;
 use std::result::Result as StdResult;
 use std::sync::mpsc::RecvError;
 use native_tls::HandshakeError;
@@ -252,6 +253,12 @@ impl From<String> for Error{
 impl From<RecvError> for Error {
     fn from(arg: RecvError) -> Self {
          Self::Protocol(arg.to_string())
+    }
+}
+
+impl From<Error> for std::io::Error{
+    fn from(arg: Error) -> Self {
+        std::io::Error::new(ErrorKind::UnexpectedEof, Box::new(arg))
     }
 }
 
