@@ -84,7 +84,7 @@ pub trait Executor: Send + Debug + Sized {
 
     /// Execute the query and return all the generated results, collected into a [`Vec`].
     fn fetch_all< 'q, E: 'q>(
-        mut self,
+        &mut self,
         query: E,
     ) -> Result<Vec<<Self::Database as Database>::Row>, Error> where  E: Execute<'q, Self::Database>
     {

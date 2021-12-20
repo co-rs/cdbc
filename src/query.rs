@@ -184,7 +184,7 @@ impl<'q, DB, A: Send> Query<'q, DB, A>
 
     /// Execute the query and return all the generated results, collected into a [`Vec`].
     #[inline]
-    pub fn fetch_all<'c, E>(self, executor: E) -> Result<Vec<DB::Row>, Error>
+    pub fn fetch_all<'c, E>(self, mut executor: E) -> Result<Vec<DB::Row>, Error>
         where E: Executor< Database=DB>,
     {
         executor.fetch_all(self)
