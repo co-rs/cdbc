@@ -24,17 +24,17 @@ lazy_static!(
 #[derive(Clone)]
 struct HelloWorld;
 
-fn row_to_map(row: MySqlRow) -> BTreeMap<String, Option<String>> {
-    let mut m = BTreeMap::new();
-    for column in row.columns() {
-        let v = row.try_get_raw(column.name()).unwrap();
-        let r: Option<String> = Decode::<'_, MySql>::decode(v).unwrap();
-        m.insert(column.name().to_string(), r);
-    }
-    m
-}
 
 impl HelloWorld {
+    fn row_to_map(row: MySqlRow) -> BTreeMap<String, Option<String>> {
+        let mut m = BTreeMap::new();
+        for column in row.columns() {
+            let v = row.try_get_raw(column.name()).unwrap();
+            let r: Option<String> = Decode::<'_, MySql>::decode(v).unwrap();
+            m.insert(column.name().to_string(), r);
+        }
+        m
+    }
     //query from database
     pub fn query(&self) -> Result<Vec<BTreeMap<String, Option<String>>>, std::io::Error> {
         let mut conn = POOL.acquire()?;
