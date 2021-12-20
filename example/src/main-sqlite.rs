@@ -13,20 +13,9 @@ use cdbc::row::Row;
 
 fn main() -> cdbc::Result<()> {
     //first. create sqlite dir/file
-    std::fs::create_dir_all("target/db/");
-    let file=File::create("target/db/sqlite.db");
-    drop(file);
+    let pool = make_sqlite().unwrap();
     //next create table and query result
-    let pool = SqlitePool::connect("sqlite://target/db/sqlite.db")?;
     let mut conn = pool.acquire()?;
-    conn.execute("CREATE TABLE biz_activity(
-   id string,
-   name string,
-   age int,
-   delete_flag int)
-   ");
-    conn.execute("INSERT INTO biz_activity (id,name,age,delete_flag) values (\"1\",\"1\",1,0)");
-
     loop {
         let mut data: ChanStream<SqliteRow> = conn.fetch("select * from biz_activity;");
         data.try_for_each(|item| {
@@ -40,5 +29,43 @@ fn main() -> cdbc::Result<()> {
             drop(m);
             Ok(())
         })?;
+    }
+}
+
+fn make_sqlite() -> cdbc::Result<SqlitePool> {
+    //first. create sqlite dir/file
+    std::fs::create_dir_all("target/db/");
+    File::create("target/db/sqlite.db");
+    //next create table and query result
+    let pool = SqlitePool::connect("sqlite://target/db/sqlite.db")?;
+    let mut conn = pool.acquire()?;
+    conn.execute("CREATE TABLE biz_activity(  id string, name string,age int, delete_flag int) ");
+    conn.execute("INSERT INTO biz_activity (id,name,age,delete_flag) values (\"1\",\"1\",1,0)");
+    Ok(pool)
+}
+
+#[cfg(test)]
+mod test {
+    use cdbc::executor::Executor;
+    use cdbc_sqlite::SqlitePool;
+    use crate::make_sqlite;
+
+
+    #[test]
+    fn test_prepare_sql() -> cdbc::Result<()> {
+        let pool = make_sqlite()?;
+        #[derive(Debug)]
+        pub struct BizActivity {
+            pub id: Option<String>,
+            pub name: Option<String>,
+            pub delete_flag: Option<i32>,
+        }
+        let mut conn = pool.acquire()?;
+        let mut q = cdbc::query::query("select * from biz_activity where id = ?");
+        q = q.bind("1");
+        let r = conn.fetch_all(q)?;
+        let data = cdbc::row_scan_structs!(r,BizActivity{id:None,name:None,delete_flag:None})?;
+        println!("{:?}", data);
+        Ok(())
     }
 }

@@ -26,3 +26,27 @@ fn main() -> cdbc::Result<()> {
         })?;
     }
 }
+
+#[cfg(test)]
+mod test {
+    use cdbc::executor::Executor;
+    use cdbc_pg::PgPool;
+
+    #[test]
+    fn test_prepare_sql() -> cdbc::Result<()> {
+        #[derive(Debug)]
+        pub struct BizActivity {
+            pub id: Option<String>,
+            pub name: Option<String>,
+            pub delete_flag: Option<i32>,
+        }
+        let pool = PgPool::connect("postgres://postgres:123456@localhost:5432/postgres")?;
+        let mut conn = pool.acquire()?;
+        let mut q = cdbc::query::query("select * from biz_activity where delete_flag = $1");
+        q = q.bind(0);
+        let r = conn.fetch_one(q)?;
+        let data = cdbc::row_scan_struct!(r,BizActivity{id:None,name:None,delete_flag:None})?;
+        println!("{:?}", data);
+        Ok(())
+    }
+}
