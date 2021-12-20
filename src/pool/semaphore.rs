@@ -29,8 +29,8 @@ impl BoxSemaphore {
             Blocker::current()
         } else {
             let b = Blocker::current();
-            b.park(None);
             self.waiters.push(b.clone());
+            b.park(None);
             b
         }
     }
@@ -56,8 +56,8 @@ impl BoxSemaphore {
         } else {
             let w = self.waiters.pop();
             if let Some(w) = w {
-                w.unpark();
                 self.cur.fetch_sub(1, Ordering::Relaxed);
+                w.unpark();
             }
         }
     }
@@ -91,8 +91,8 @@ impl BoxSemaphore {
 #[cfg(test)]
 mod test {
     use std::sync::Arc;
-    use std::thread::sleep;
     use std::time::Duration;
+    use may::coroutine::sleep;
     use may::go;
     use crate::pool::semaphore::{BoxSemaphore};
 
@@ -103,21 +103,30 @@ mod test {
         go!(move ||{
             b1.acquire();
             println!("{}",1);
+            println!("num:{}",b1.cur());
         });
         sleep(Duration::from_secs(1));
         let b2 = b.clone();
         go!(move ||{
             b2.acquire();
             println!("{}",2);
+            println!("num:{}",b2.cur());
         });
         sleep(Duration::from_secs(1));
         let b3 = b.clone();
         go!(move ||{
-            b3.release();
+            println!("req b3");
+            println!("num:{}",b3.cur());
             b3.acquire();
             println!("{}",3);
         });
-
+        sleep(Duration::from_secs(1));
+        let b4 = b.clone();
+        go!(move ||{
+            println!("release");
+            b4.release();
+            println!("num:{}",b4.cur());
+        });
         sleep(Duration::from_secs(2));
     }
 }
