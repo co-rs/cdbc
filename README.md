@@ -48,7 +48,11 @@ pub struct BizActivity {
 let pool = MySqlPool::connect("mysql://root:123456@localhost:3306/test")?;
 let mut conn = pool.acquire()?;
 let row = conn.fetch_one("select * from biz_activity limit 1")?;
-let datas:Vec<BizActivity> = cdbc::row_scan_struct!(row,BizActivity{id: None,name: None,delete_flag: None})?;
+//data: BizActivity
+let data = cdbc::row_scan_struct!(row,BizActivity{id: None,name: None,delete_flag: None})?;
+let rows = conn.fetch_all("select * from biz_activity")?;
+//datas: Vec<BizActivity>
+let datas = cdbc::row_scan_structs!(rows,BizActivity{id: None,name: None,delete_flag: None})?;
 ```
 
 * Processing read streams
