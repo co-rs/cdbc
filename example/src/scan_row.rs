@@ -10,7 +10,7 @@ pub struct BizActivity {
 }
 
 fn main() -> cdbc::Result<()> {
-    let pool = make_sqlite()?;
+    let pool = init_sqlite_pool()?;
     /// fetch one record
     let record = {
         let mut conn = pool.acquire()?;
@@ -28,7 +28,7 @@ fn main() -> cdbc::Result<()> {
     Ok(())
 }
 
-fn make_sqlite() -> cdbc::Result<SqlitePool> {
+fn init_sqlite_pool() -> cdbc::Result<SqlitePool> {
     //first. create sqlite dir/file
     std::fs::create_dir_all("target/db/");
     File::create("target/db/sqlite.db");
