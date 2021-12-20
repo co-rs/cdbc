@@ -49,16 +49,16 @@ use indexmap::IndexMap;
 /// ```
 #[derive(Clone, Debug)]
 pub struct SqliteConnectOptions {
-    pub(crate) filename: Cow<'static, Path>,
-    pub(crate) in_memory: bool,
-    pub(crate) read_only: bool,
-    pub(crate) create_if_missing: bool,
-    pub(crate) shared_cache: bool,
-    pub(crate) statement_cache_capacity: usize,
-    pub(crate) busy_timeout: Duration,
-    pub(crate) immutable: bool,
-    pub(crate) pragmas: IndexMap<Cow<'static, str>, Cow<'static, str>>,
-    pub(crate) serialized: bool,
+    pub filename: Cow<'static, Path>,
+    pub in_memory: bool,
+    pub read_only: bool,
+    pub create_if_missing: bool,
+    pub shared_cache: bool,
+    pub statement_cache_capacity: usize,
+    pub busy_timeout: Duration,
+    pub immutable: bool,
+    pub pragmas: IndexMap<Cow<'static, str>, Cow<'static, str>>,
+    pub serialized: bool,
 }
 
 impl Default for SqliteConnectOptions {

@@ -50,17 +50,17 @@ pub use ssl_mode::MySqlSslMode;
 /// ```
 #[derive(Debug, Clone)]
 pub struct MySqlConnectOptions {
-    pub(crate) host: String,
-    pub(crate) port: u16,
-    pub(crate) socket: Option<PathBuf>,
-    pub(crate) username: String,
-    pub(crate) password: Option<String>,
-    pub(crate) database: Option<String>,
-    pub(crate) ssl_mode: MySqlSslMode,
-    pub(crate) ssl_ca: Option<CertificateInput>,
-    pub(crate) statement_cache_capacity: usize,
-    pub(crate) charset: String,
-    pub(crate) collation: Option<String>,
+    pub host: String,
+    pub port: u16,
+    pub socket: Option<PathBuf>,
+    pub username: String,
+    pub password: Option<String>,
+    pub database: Option<String>,
+    pub ssl_mode: MySqlSslMode,
+    pub ssl_ca: Option<CertificateInput>,
+    pub statement_cache_capacity: usize,
+    pub charset: String,
+    pub collation: Option<String>,
 }
 
 impl Default for MySqlConnectOptions {
@@ -81,7 +81,7 @@ impl MySqlConnectOptions {
             database: None,
             charset: String::from("utf8mb4"),
             collation: None,
-            ssl_mode: MySqlSslMode::Preferred,
+            ssl_mode: MySqlSslMode::Disabled,
             ssl_ca: None,
             statement_cache_capacity: 100,
         }

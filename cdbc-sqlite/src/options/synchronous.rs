@@ -13,7 +13,7 @@ pub enum SqliteSynchronous {
 }
 
 impl SqliteSynchronous {
-    pub(crate) fn as_str(&self) -> &'static str {
+    pub fn as_str(&self) -> &'static str {
         match self {
             SqliteSynchronous::Off => "OFF",
             SqliteSynchronous::Normal => "NORMAL",

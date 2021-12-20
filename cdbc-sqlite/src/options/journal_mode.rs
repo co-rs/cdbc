@@ -12,7 +12,7 @@ pub enum SqliteJournalMode {
 }
 
 impl SqliteJournalMode {
-    pub(crate) fn as_str(&self) -> &'static str {
+    pub fn as_str(&self) -> &'static str {
         match self {
             SqliteJournalMode::Delete => "DELETE",
             SqliteJournalMode::Truncate => "TRUNCATE",

@@ -5,7 +5,7 @@ pub enum SqliteLockingMode {
 }
 
 impl SqliteLockingMode {
-    pub(crate) fn as_str(&self) -> &'static str {
+    pub fn as_str(&self) -> &'static str {
         match self {
             SqliteLockingMode::Normal => "NORMAL",
             SqliteLockingMode::Exclusive => "EXCLUSIVE",

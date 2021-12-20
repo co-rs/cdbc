@@ -74,16 +74,16 @@ pub use ssl_mode::PgSslMode;
 /// ```
 #[derive(Debug, Clone)]
 pub struct PgConnectOptions {
-    pub(crate) host: String,
-    pub(crate) port: u16,
-    pub(crate) socket: Option<PathBuf>,
-    pub(crate) username: String,
-    pub(crate) password: Option<String>,
-    pub(crate) database: Option<String>,
-    pub(crate) ssl_mode: PgSslMode,
-    pub(crate) ssl_root_cert: Option<CertificateInput>,
-    pub(crate) statement_cache_capacity: usize,
-    pub(crate) application_name: Option<String>,
+    pub host: String,
+    pub port: u16,
+    pub socket: Option<PathBuf>,
+    pub username: String,
+    pub password: Option<String>,
+    pub database: Option<String>,
+    pub ssl_mode: PgSslMode,
+    pub ssl_root_cert: Option<CertificateInput>,
+    pub statement_cache_capacity: usize,
+    pub application_name: Option<String>,
 }
 
 impl Default for PgConnectOptions {
@@ -319,7 +319,7 @@ impl PgConnectOptions {
 
     /// We try using a socket if hostname starts with `/` or if socket parameter
     /// is specified.
-    pub(crate) fn fetch_socket(&self) -> Option<String> {
+    pub fn fetch_socket(&self) -> Option<String> {
         match self.socket {
             Some(ref socket) => {
                 let full_path = format!("{}/.s.PGSQL.{}", socket.display(), self.port);

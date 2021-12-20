@@ -6,7 +6,7 @@ pub enum SqliteAutoVacuum {
 }
 
 impl SqliteAutoVacuum {
-    pub(crate) fn as_str(&self) -> &'static str {
+    pub fn as_str(&self) -> &'static str {
         match self {
             SqliteAutoVacuum::None => "NONE",
             SqliteAutoVacuum::Full => "FULL",

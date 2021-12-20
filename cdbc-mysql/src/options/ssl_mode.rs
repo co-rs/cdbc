@@ -7,12 +7,12 @@ use std::str::FromStr;
 #[derive(Debug, Clone, Copy)]
 pub enum MySqlSslMode {
     /// Establish an unencrypted connection.
+    /// This is the default
     Disabled,
 
     /// Establish an encrypted connection if the server supports encrypted connections, falling
     /// back to an unencrypted connection if an encrypted connection cannot be established.
     ///
-    /// This is the default if `ssl_mode` is not specified.
     Preferred,
 
     /// Establish an encrypted connection if the server supports encrypted connections.
@@ -32,7 +32,7 @@ pub enum MySqlSslMode {
 
 impl Default for MySqlSslMode {
     fn default() -> Self {
-        MySqlSslMode::Preferred
+        MySqlSslMode::Disabled
     }
 }
 

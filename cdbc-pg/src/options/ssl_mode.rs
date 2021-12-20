@@ -7,6 +7,7 @@ use std::str::FromStr;
 #[derive(Debug, Clone, Copy)]
 pub enum PgSslMode {
     /// Only try a non-SSL connection.
+    /// This is the default
     Disable,
 
     /// First try a non-SSL connection; if that fails, try an SSL connection.
@@ -30,7 +31,7 @@ pub enum PgSslMode {
 
 impl Default for PgSslMode {
     fn default() -> Self {
-        PgSslMode::Prefer
+        PgSslMode::Disable
     }
 }
 
