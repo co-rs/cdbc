@@ -30,20 +30,8 @@ fn main() -> cdbc::Result<()> {
 
 #[cfg(test)]
 mod test {
-    use std::collections::{BTreeMap, HashMap};
-    use std::sync::Arc;
-    use std::thread::sleep;
-    use std::time::Duration;
-    use may::go;
-    use may::sync::mpmc::channel;
-    use cdbc::database::Database;
-    use cdbc::column::Column;
-    use cdbc::decode::Decode;
     use cdbc::executor::Executor;
-    use cdbc::io::chan_stream::{ChanStream, Stream, TryStream};
-    use cdbc::query::Query;
-    use cdbc::row::Row;
-    use cdbc_mysql::{MySql, MySqlPool, MySqlRow};
+    use cdbc_mysql::MySqlPool;
 
     #[test]
     fn test_prepare_sql() -> cdbc::Result<()> {
