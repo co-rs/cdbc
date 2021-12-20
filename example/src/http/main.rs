@@ -24,21 +24,24 @@ lazy_static!(
 #[derive(Clone)]
 struct HelloWorld;
 
+fn row_to_map(row: MySqlRow) -> BTreeMap<String, Option<String>> {
+    let mut m = BTreeMap::new();
+    for column in row.columns() {
+        let v = row.try_get_raw(column.name()).unwrap();
+        let r: Option<String> = Decode::<'_, MySql>::decode(v).unwrap();
+        m.insert(column.name().to_string(), r);
+    }
+    m
+}
+
 impl HttpService for HelloWorld {
     fn call(&mut self, req: Request, resp: &mut Response) -> io::Result<()> {
         let r:Result<Vec<BTreeMap<String,Option<String>>>,std::io::Error>={
             let mut conn =POOL.acquire()?;
             let mut data = conn.fetch_all("select * from biz_activity;")?;
-            let mut vec =vec![];
-            for it in data {
-                let mut m = BTreeMap::new();
-                for column in it.columns() {
-                    let v = it.try_get_raw(column.name()).unwrap();
-                    let r: Option<String> = Decode::<'_, MySql>::decode(v).unwrap();
-                    m.insert(column.name().to_string(), r);
-                }
-                println!("{:?}", m);
-                vec.push(m);
+            let mut vec = vec![];
+            for x in data {
+                vec.push(row_to_map(x));
             }
             Ok(vec)
         };
