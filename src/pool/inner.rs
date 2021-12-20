@@ -7,7 +7,6 @@ use crate::pool::{deadline_as_timeout, PoolOptions};
 use crossbeam_queue::ArrayQueue;
 
 
-
 use std::cmp;
 use std::mem;
 use std::ptr;
@@ -50,7 +49,7 @@ impl<DB: Database> SharedPool<DB> {
         let pool = Self {
             connect_options,
             idle_conns: ArrayQueue::new(capacity),
-            semaphore: BoxSemaphore::new( capacity),
+            semaphore: BoxSemaphore::new(capacity),
             size: AtomicU32::new(0),
             is_closed: AtomicBool::new(false),
             options,
@@ -101,9 +100,12 @@ impl<DB: Database> SharedPool<DB> {
         if self.is_closed() {
             return None;
         }
-
         let permit = self.semaphore.try_acquire();
-        self.pop_idle(permit).ok()
+        if let Some(permit) = permit {
+            return self.pop_idle(permit).ok();
+        } else {
+            None
+        }
     }
 
     fn pop_idle<'a>(
@@ -248,7 +250,7 @@ impl<DB: Database> SharedPool<DB> {
 
                 // timed out
                 _ => {
-                    return Err(Error::PoolTimedOut)
+                    return Err(Error::PoolTimedOut);
                 }
             }
 

@@ -38,14 +38,12 @@ impl BoxSemaphore {
         }
     }
 
-    pub fn try_acquire(&self) -> Arc<Blocker> {
+    pub fn try_acquire(&self) -> Option<Arc<Blocker>> {
         if self.permit() < self.total {
             self.permit.fetch_add(1, Ordering::Relaxed);
-            Blocker::current()
+            Some(Blocker::current())
         } else {
-            let b = Blocker::current();
-            self.waiters.push(b.clone());
-            b
+            None
         }
     }
 
