@@ -25,23 +25,50 @@ lazy_static!(
 struct HelloWorld;
 
 
-impl HelloWorld {
-    fn row_to_map(row: MySqlRow) -> BTreeMap<String, Option<String>> {
-        let mut m = BTreeMap::new();
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+pub struct BizActivity {
+    pub id: Option<String>,
+    pub name: Option<String>,
+    pub delete_flag: Option<i32>,
+}
+impl BizActivity{
+    fn scan(row: MySqlRow) -> BizActivity {
+        let mut table = BizActivity {
+            id: None,
+            name: None,
+            delete_flag: None,
+        };
         for column in row.columns() {
             let v = row.try_get_raw(column.name()).unwrap();
-            let r: Option<String> = Decode::<'_, MySql>::decode(v).unwrap();
-            m.insert(column.name().to_string(), r);
+            match column.name() {
+                "id" => {
+                    let r: Option<String> = Decode::<'_, MySql>::decode(v).unwrap();
+                    table.id = r;
+                }
+                "name" => {
+                    let r: Option<String> = Decode::<'_, MySql>::decode(v).unwrap();
+                    table.name = r;
+                }
+                "delete_flag" => {
+                    let r: Option<i32> = Decode::<'_, MySql>::decode(v).unwrap();
+                    table.delete_flag = r;
+                }
+                _ => {}
+            }
         }
-        m
+        return table;
     }
+}
+
+
+impl HelloWorld {
     //query from database
-    pub fn query(&self) -> Result<Vec<BTreeMap<String, Option<String>>>, std::io::Error> {
+    pub fn query(&self) -> Result<Vec<BizActivity>, std::io::Error> {
         let mut conn = POOL.acquire()?;
         let mut data = conn.fetch_all("select * from biz_activity;")?;
         let mut vec = vec![];
         for x in data {
-            vec.push(row_to_map(x));
+            vec.push(BizActivity::scan(x));
         }
         Ok(vec)
     }
@@ -64,7 +91,7 @@ impl HttpService for HelloWorld {
 // start the server in main
 fn main() {
     ///if use ssl,or debug. Release mode doesn't require that much stack memory
-    may::config().set_stack_size(8*1024);//8kb
+    may::config().set_stack_size(8 * 1024);//8kb
     let server = HttpServer(HelloWorld).start("0.0.0.0:8000").unwrap();
     println!("http start on http://127.0.0.1:8000");
     server.join().unwrap();
