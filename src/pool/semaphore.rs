@@ -4,14 +4,14 @@ use may::sync::{Blocker, Semphore};
 use crate::Error;
 use crate::error::Result;
 
-/// RAII permit guard
+/// permit guard
 pub struct PermitGuard<'a> {
     inner: &'a BoxSemaphore,
     blocker: Arc<may::sync::Blocker>,
 }
 
 impl <'a>PermitGuard<'a>{
-    pub fn disarm(self){
+    pub fn release(self){
         self.inner.release();
     }
 }
