@@ -9,7 +9,6 @@ use cdbc::executor::Executor;
 use cdbc::row::Row;
 
 use cdbc::pool::Pool;
-use cdbc::scan_struct;
 use cdbc_mysql::{MySqlPool, MySql, MySqlRow};
 
 #[macro_use]
@@ -40,11 +39,7 @@ impl HelloWorld {
         let mut data = conn.fetch_all("select * from biz_activity;")?;
         let mut vec = vec![];
         for x in data {
-            let item = scan_struct!(x,BizActivity{
-            id: None,
-            name: None,
-            delete_flag: None,
-           })?;
+            let item = cdbc::scan_row_struct!(x,BizActivity{id: None,name: None,delete_flag: None})?;
             vec.push(item);
         }
         Ok(vec)

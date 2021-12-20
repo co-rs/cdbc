@@ -1,6 +1,6 @@
 #[macro_export]
-macro_rules! scan_struct {
-    ($row:ident,$target:path{$($field_name:ident: $field_value:expr,)+}) => {
+macro_rules! scan_row_struct {
+    ($row:ident,$target:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
         {
             //logic code
         let mut table = {
