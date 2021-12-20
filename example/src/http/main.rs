@@ -9,6 +9,7 @@ use cdbc::executor::Executor;
 use cdbc::row::Row;
 
 use cdbc::pool::Pool;
+use cdbc::scan_struct;
 use cdbc_mysql::{MySqlPool, MySql, MySqlRow};
 
 #[macro_use]
@@ -31,41 +32,26 @@ pub struct BizActivity {
     pub name: Option<String>,
     pub delete_flag: Option<i32>,
 }
-impl BizActivity{
-    fn scan(row: MySqlRow) -> cdbc::Result<BizActivity> {
-        let mut table = BizActivity {
+
+impl BizActivity {
+    fn scan(x:MySqlRow) -> cdbc::Result<BizActivity> {
+        scan_struct!(x,BizActivity{
             id: None,
             name: None,
             delete_flag: None,
-        };
-        for column in row.columns() {
-            let v = row.try_get_raw(column.name())?;
-            match column.name() {
-                "id" => {
-                    table.id = Decode::decode(v)?;
-                }
-                "name" => {
-                    table.name = Decode::decode(v)?;
-                }
-                "delete_flag" => {
-                    table.delete_flag = Decode::decode(v)?;
-                }
-                _ => {}
-            }
-        }
-        return Ok(table);
+           })
     }
 }
 
-
 impl HelloWorld {
     //query from database
-    pub fn query(&self) -> Result<Vec<BizActivity>, std::io::Error> {
+    pub fn query(&self) -> cdbc::Result<Vec<BizActivity>> {
         let mut conn = POOL.acquire()?;
         let mut data = conn.fetch_all("select * from biz_activity;")?;
         let mut vec = vec![];
         for x in data {
-            vec.push(BizActivity::scan(x)?);
+            let item= BizActivity::scan(x);
+            vec.push(item?);
         }
         Ok(vec)
     }
