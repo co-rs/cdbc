@@ -7,12 +7,12 @@ use crate::error::Result;
 /// RAII permit guard
 pub struct PermitGuard<'a> {
     inner: &'a BoxSemaphore,
-    blocker:Arc<may::sync::Blocker>
+    blocker: Arc<may::sync::Blocker>,
 }
 
-impl <'a>Drop for PermitGuard<'a> {
+impl<'a> Drop for PermitGuard<'a> {
     fn drop(&mut self) {
-        self.inner.release();
+        //self.inner.release();
     }
 }
 
@@ -30,7 +30,7 @@ impl BoxSemaphore {
     pub fn new(size: usize) -> Self {
         Self {
             total: size as i64,
-            permit: AtomicI64::new(0 as i64),
+            permit: AtomicI64::new(size as i64),
             waiters: crossbeam_queue::SegQueue::new(),
         }
     }
@@ -40,25 +40,25 @@ impl BoxSemaphore {
     }
 
     pub fn acquire(&self) -> PermitGuard {
-        if self.permit() < self.total {
-            self.permit.fetch_add(1, Ordering::Relaxed);
-            PermitGuard{
+        if self.permit() > 0 {
+            self.permit.fetch_sub(1,Ordering::Relaxed);
+            PermitGuard {
                 inner: &self,
-                blocker: Blocker::current()
+                blocker: Blocker::current(),
             }
         } else {
             let b = Blocker::current();
             self.waiters.push(b.clone());
             b.park(None);
-            PermitGuard{
+            PermitGuard {
                 inner: &self,
-                blocker: b
+                blocker: b,
             }
         }
     }
 
     pub fn try_acquire(&self) -> Option<PermitGuard> {
-        if self.permit() < self.total {
+        if self.permit() > 0 {
             Some(self.acquire())
         } else {
             None
@@ -66,37 +66,33 @@ impl BoxSemaphore {
     }
 
     pub fn release(&self) {
-        if self.permit() == 0 {
+        let per = self.permit();
+        if per >= self.total {
             return;
         }
         if self.waiters.is_empty() {
             // If there are no waiters, just decrement and we're done
-            self.permit.fetch_sub(1, Ordering::Relaxed);
+            self.permit.fetch_add(1,Ordering::Relaxed);
         } else {
             let w = self.waiters.pop();
             if let Some(w) = w {
-                self.permit.fetch_sub(1, Ordering::Relaxed);
+                self.permit.fetch_add(1,Ordering::Relaxed);
                 w.unpark();
             }
         }
     }
 
     pub fn release_left(&self, mut num: usize) -> usize {
-        if self.permit() == 0 {
+        if self.permit() == self.total {
             return 0;
         }
-        if num > self.permit() as usize {
-            num = self.permit() as usize;
+        if num > self.total as usize {
+            num = self.total as usize;
         }
-        if self.waiters.is_empty() {
-            self.permit.fetch_sub(num as i64, Ordering::Relaxed);
-            return num;
-        } else {
-            for _ in 0..num {
-                self.release();
-            }
-            return num as usize;
+        for _ in 0..num {
+            self.release();
         }
+        return num as usize;
     }
 }
 
@@ -148,24 +144,12 @@ mod test {
     #[test]
     fn test_acq_release_num() {
         let b = Arc::new(BoxSemaphore::new(3));
-        let b1 = b.clone();
-        go!(move ||{
-            b1.acquire();
-            println!("acq{}",1);
-        });
-        let b1 = b.clone();
-        go!(move ||{
-            b1.acquire();
-            println!("acq{}",2);
-        });
-        let b1 = b.clone();
-        go!(move ||{
-            b1.acquire();
-            println!("acq{}",3);
-        });
+        println!("permit:{}", b.permit());
+        b.acquire();
+        b.acquire();
+        b.acquire();
 
-        sleep(Duration::from_secs(1));
-        println!("num:{}",b.permit());
+        println!("permit:{}", b.permit());
 
         let b1 = b.clone();
         go!(move ||{
@@ -183,33 +167,34 @@ mod test {
             println!("acq{}",6);
         });
         sleep(Duration::from_secs(1));
-        println!("num:{}",b.permit());
+        println!("permit:{}", b.permit());
         b.release_left(2);
+        println!("permit:{}", b.permit());
         sleep(Duration::from_secs(1));
     }
 
     #[test]
     fn test_acq_mult() {
         let total = 1000;
-        let (s,r)=channel();
+        let (s, r) = channel();
         let b = Arc::new(BoxSemaphore::new(10));
-        for idx in 0..total{
+        for idx in 0..total {
             let s1 = s.clone();
             let b1 = b.clone();
-            let f1=move ||{
-                let permit=b1.acquire();
-                println!("acq{}",idx);
+            let f1 = move || {
+                let permit = b1.acquire();
+                println!("acq{}", idx);
                 s1.send(1);
                 drop(permit);
             };
             go!(f1);
         }
-        let mut recvs =0;
-        for idx in 0..total{
-            if let Ok(v)=r.recv(){
-                recvs+=1;
+        let mut recvs = 0;
+        for idx in 0..total {
+            if let Ok(v) = r.recv() {
+                recvs += 1;
             }
-            if recvs==total{
+            if recvs == total {
                 break;
             }
         }
