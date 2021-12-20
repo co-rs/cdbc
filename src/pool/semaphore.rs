@@ -40,8 +40,7 @@ impl BoxSemaphore {
 
     pub fn try_acquire(&self) -> Option<Arc<Blocker>> {
         if self.permit() < self.total {
-            self.permit.fetch_add(1, Ordering::Relaxed);
-            Some(Blocker::current())
+            Some(self.acquire())
         } else {
             None
         }
