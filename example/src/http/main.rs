@@ -7,7 +7,7 @@ use cdbc::column::Column;
 use cdbc::decode::Decode;
 use cdbc::executor::Executor;
 use cdbc::row::Row;
-use cdbc::pool::Pool;
+use cdbc::pool::{Pool, PoolConnection};
 use cdbc_mysql::{MySqlPool, MySql, MySqlRow};
 
 
@@ -27,26 +27,27 @@ pub struct BizActivity {
     pub name: Option<String>,
     pub delete_flag: Option<i32>,
 }
+
+impl BizActivity {
+    pub fn fetch_one() ->cdbc::Result<BizActivity>{
+        let mut conn = POOL.acquire()?;
+        let row= conn.fetch_one("select * from biz_activity limit 1")?;
+        cdbc::scan_row_struct!(row,BizActivity{id: None,name: None,delete_flag: None})
+    }
+}
+
 impl HttpService for HelloWorld {
     fn call(&mut self, req: Request, resp: &mut Response) -> io::Result<()> {
-        let r = {
-            let mut conn = POOL.acquire()?;
-            let mut data = conn.fetch_all("select * from biz_activity;")?;
-            let mut vec = vec![];
-            for x in data {
-                let item = cdbc::scan_row_struct!(x,BizActivity{id: None,name: None,delete_flag: None})?;
-                vec.push(item);
+        match BizActivity::fetch_one(){
+            Ok(v) => {
+                resp.body_vec(serde_json::to_string(&v).unwrap().into_bytes());
+                Ok(())
             }
-            cdbc::Result::Ok(vec)
-        };
-        if let Err(e) = r {
-            return {
+            Err(e) => {
                 resp.body_vec(e.to_string().into_bytes());
                 Ok(())
-            };
+            }
         }
-        resp.body_vec(serde_json::to_string(&r.unwrap()).unwrap().into_bytes());
-        Ok(())
     }
 }
 
