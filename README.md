@@ -1,5 +1,5 @@
 # cdbc
-Coroutine Database driver Connectivity.based on ([may](https://github.com/Xudong-Huang/may)
+Coroutine Database driver Connectivity.based on [may](https://github.com/Xudong-Huang/may)
 
 * High concurrency，based on coroutine
 * No ``` Future<'q,Output=*> ```，No ``` async fn ```, No ```.await ```, no Poll* func，No ```Pin``` 
