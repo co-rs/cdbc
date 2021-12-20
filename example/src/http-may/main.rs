@@ -1,18 +1,12 @@
 extern crate may_minihttp;
-
-use std::collections::BTreeMap;
-use std::io;
-use may_minihttp::{HttpServer, HttpService, Request, Response};
-use cdbc::column::Column;
-use cdbc::decode::Decode;
-use cdbc::executor::Executor;
-use cdbc::row::Row;
-use cdbc::pool::{Pool, PoolConnection};
-use cdbc_mysql::{MySqlPool, MySql, MySqlRow};
-
-
 #[macro_use]
 extern crate lazy_static;
+use std::io;
+use may_minihttp::{HttpServer, HttpService, Request, Response};
+use cdbc::executor::Executor;
+use cdbc::pool::Pool;
+use cdbc_mysql::{MySql, MySqlPool};
+
 lazy_static!(
     pub static ref POOL: Pool<MySql> = MySqlPool::connect("mysql://root:123456@localhost:3306/test").unwrap();
 );
