@@ -34,10 +34,10 @@ pub mod query_as;
 pub mod query_scalar;
 pub mod executor;
 pub mod describe;
+pub mod net;
+pub use ahash::AHashMap as HashMap;
 
 pub use error::*;
-
-pub mod net;
-
-
-pub use ahash::AHashMap as HashMap;
+pub use query::*;
+pub use query_as::*;
+pub use query_scalar::*;
