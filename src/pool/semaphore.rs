@@ -4,6 +4,19 @@ use may::sync::{Blocker, Semphore};
 use crate::Error;
 use crate::error::Result;
 
+/// RAII permit guard
+pub struct PermitGuard<'a> {
+    inner: &'a BoxSemaphore,
+    blocker:Arc<may::sync::Blocker>
+}
+
+impl <'a>Drop for PermitGuard<'a> {
+    fn drop(&mut self) {
+        self.inner.release();
+    }
+}
+
+
 pub struct BoxSemaphore {
     /// permit total num
     total: i64,
@@ -26,19 +39,25 @@ impl BoxSemaphore {
         self.permit.fetch_or(0, Ordering::Relaxed)
     }
 
-    pub fn acquire(&self) -> Arc<Blocker> {
+    pub fn acquire(&self) -> PermitGuard {
         if self.permit() < self.total {
             self.permit.fetch_add(1, Ordering::Relaxed);
-            Blocker::current()
+            PermitGuard{
+                inner: &self,
+                blocker: Blocker::current()
+            }
         } else {
             let b = Blocker::current();
             self.waiters.push(b.clone());
             b.park(None);
-            b
+            PermitGuard{
+                inner: &self,
+                blocker: b
+            }
         }
     }
 
-    pub fn try_acquire(&self) -> Option<Arc<Blocker>> {
+    pub fn try_acquire(&self) -> Option<PermitGuard> {
         if self.permit() < self.total {
             Some(self.acquire())
         } else {
@@ -178,9 +197,10 @@ mod test {
             let s1 = s.clone();
             let b1 = b.clone();
             let f1=move ||{
-                b1.acquire();
+                let permit=b1.acquire();
                 println!("acq{}",idx);
                 s1.send(1);
+                drop(permit);
             };
             go!(f1);
         }

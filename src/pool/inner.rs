@@ -16,7 +16,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use may::go;
 use may::sync::Blocker;
-use crate::pool::semaphore::BoxSemaphore;
+use crate::pool::semaphore::{BoxSemaphore, PermitGuard};
 
 /// Ihe number of permits to release to wake all waiters, such as on `SharedPool::close()`.
 ///
@@ -110,8 +110,8 @@ impl<DB: Database> SharedPool<DB> {
 
     fn pop_idle<'a>(
         &'a self,
-        permit: Arc<Blocker>,
-    ) -> Result<Floating<'a, Idle<DB>>, Arc<Blocker>> {
+        permit: PermitGuard<'a>,
+    ) -> Result<Floating<'a, Idle<DB>>, PermitGuard<'a>> {
         if let Some(idle) = self.idle_conns.pop() {
             Ok(Floating::from_idle(idle, self, permit))
         } else {
@@ -143,8 +143,8 @@ impl<DB: Database> SharedPool<DB> {
     /// Returns `None` if we are at max_connections or if the pool is closed.
     pub(super) fn try_increment_size<'a>(
         &'a self,
-        permit: Arc<Blocker>,
-    ) -> Result<DecrementSizeGuard<'a>, Arc<Blocker>> {
+        permit: PermitGuard<'a>,
+    ) -> Result<DecrementSizeGuard<'a>, PermitGuard<'a>> {
         match self
             .size
             .fetch_update(Ordering::AcqRel, Ordering::Acquire, |size| {
@@ -385,7 +385,7 @@ impl<'a> DecrementSizeGuard<'a> {
 
     pub fn from_permit<DB: Database>(
         pool: &'a SharedPool<DB>,
-        mut permit: Arc<Blocker>,
+        mut permit: PermitGuard<'a>,
     ) -> Self {
         // here we effectively take ownership of the permit
         //permit.disarm();

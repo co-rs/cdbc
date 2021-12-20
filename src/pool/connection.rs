@@ -8,6 +8,7 @@ use crate::connection::Connection;
 use crate::database::Database;
 use crate::error::Error;
 use crate::executor::Executor;
+use crate::pool::semaphore::PermitGuard;
 
 use super::inner::{DecrementSizeGuard, SharedPool};
 
@@ -223,7 +224,7 @@ impl<'s, DB: Database> Floating<'s, Idle<DB>> {
     pub fn from_idle(
         idle: Idle<DB>,
         pool: &'s SharedPool<DB>,
-        permit: Arc<Blocker>,
+        permit: PermitGuard<'s>,
     ) -> Self {
         Self {
             inner: idle,
