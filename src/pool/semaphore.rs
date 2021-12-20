@@ -5,27 +5,30 @@ use crate::Error;
 use crate::error::Result;
 
 pub struct BoxSemaphore {
-    limit: i64,
-    cur: AtomicI64,
+    /// permit total num
+    total: i64,
+    ///permit
+    permit: AtomicI64,
+    ///wait queue
     waiters: crossbeam_queue::SegQueue<Arc<may::sync::Blocker>>,
 }
 
 impl BoxSemaphore {
     pub fn new(size: usize) -> Self {
         Self {
-            limit: size as i64,
-            cur: AtomicI64::new(0 as i64),
+            total: size as i64,
+            permit: AtomicI64::new(0 as i64),
             waiters: crossbeam_queue::SegQueue::new(),
         }
     }
 
-    pub fn cur(&self) -> i64 {
-        self.cur.fetch_or(0, Ordering::Relaxed)
+    pub fn permit(&self) -> i64 {
+        self.permit.fetch_or(0, Ordering::Relaxed)
     }
 
     pub fn acquire(&self) -> Arc<Blocker> {
-        if self.cur() < self.limit {
-            self.cur.fetch_add(1, Ordering::Relaxed);
+        if self.permit() < self.total {
+            self.permit.fetch_add(1, Ordering::Relaxed);
             Blocker::current()
         } else {
             let b = Blocker::current();
@@ -36,8 +39,8 @@ impl BoxSemaphore {
     }
 
     pub fn try_acquire(&self) -> Arc<Blocker> {
-        if self.cur() < self.limit {
-            self.cur.fetch_add(1, Ordering::Relaxed);
+        if self.permit() < self.total {
+            self.permit.fetch_add(1, Ordering::Relaxed);
             Blocker::current()
         } else {
             let b = Blocker::current();
@@ -47,30 +50,30 @@ impl BoxSemaphore {
     }
 
     pub fn release(&self) {
-        if self.cur() == 0 {
+        if self.permit() == 0 {
             return;
         }
         if self.waiters.is_empty() {
             // If there are no waiters, just decrement and we're done
-            self.cur.fetch_sub(1, Ordering::Relaxed);
+            self.permit.fetch_sub(1, Ordering::Relaxed);
         } else {
             let w = self.waiters.pop();
             if let Some(w) = w {
-                self.cur.fetch_sub(1, Ordering::Relaxed);
+                self.permit.fetch_sub(1, Ordering::Relaxed);
                 w.unpark();
             }
         }
     }
 
     pub fn release_left(&self, mut num: usize) -> usize {
-        if self.cur() == 0 {
+        if self.permit() == 0 {
             return 0;
         }
-        if num > self.cur() as usize {
-            num = self.cur() as usize;
+        if num > self.permit() as usize {
+            num = self.permit() as usize;
         }
         if self.waiters.is_empty() {
-            self.cur.fetch_sub(num as i64, Ordering::Relaxed);
+            self.permit.fetch_sub(num as i64, Ordering::Relaxed);
             return num;
         } else {
             let mut releases = 0;
@@ -81,7 +84,7 @@ impl BoxSemaphore {
                     releases += 1;
                 }
             }
-            releases = self.cur.fetch_sub(releases, Ordering::Relaxed);
+            releases = self.permit.fetch_sub(releases, Ordering::Relaxed);
             return releases as usize;
         }
     }
@@ -103,20 +106,20 @@ mod test {
         go!(move ||{
             b1.acquire();
             println!("{}",1);
-            println!("num:{}",b1.cur());
+            println!("num:{}",b1.permit());
         });
         sleep(Duration::from_secs(1));
         let b2 = b.clone();
         go!(move ||{
             b2.acquire();
             println!("{}",2);
-            println!("num:{}",b2.cur());
+            println!("num:{}",b2.permit());
         });
         sleep(Duration::from_secs(1));
         let b3 = b.clone();
         go!(move ||{
             println!("req b3");
-            println!("num:{}",b3.cur());
+            println!("num:{}",b3.permit());
             b3.acquire();
             println!("{}",3);
         });
@@ -125,7 +128,7 @@ mod test {
         go!(move ||{
             println!("release");
             b4.release();
-            println!("num:{}",b4.cur());
+            println!("num:{}",b4.permit());
         });
         sleep(Duration::from_secs(2));
     }
