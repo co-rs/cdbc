@@ -1,6 +1,6 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
 
-use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
+use ipnetwork_::{IpNetwork, Ipv4Network, Ipv6Network};
 
 use cdbc::decode::Decode;
 use cdbc::encode::{Encode, IsNull};

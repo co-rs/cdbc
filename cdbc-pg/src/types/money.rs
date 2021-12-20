@@ -11,6 +11,7 @@ use std::{
     ops::{Add, AddAssign, Sub, SubAssign},
 };
 
+
 /// The PostgreSQL [`MONEY`] type stores a currency amount with a fixed fractional
 /// precision. The fractional precision is determined by the database's
 /// `lc_monetary` setting.
@@ -308,7 +309,7 @@ mod tests {
 
     #[test]
     #[cfg(feature = "bigdecimal")]
-    fn conversion_to_bigdecimal_works() {
+    fn conversion_to_bigdecimalworks() {
         let money = PgMoney(12345);
 
         assert_eq!(
@@ -352,8 +353,8 @@ mod tests {
 
     #[test]
     #[cfg(feature = "bigdecimal")]
-    fn conversion_from_bigdecimal_works() {
-        let dec = bigdecimal::BigDecimal::new(num_bigint::BigInt::from(12345), 2);
+    fn conversion_from_bigdecimalworks() {
+        let dec = crate::types::bigdecimal::BigDecimal::new(num_bigint::BigInt::from(12345), 2);
 
         assert_eq!(PgMoney(12345), PgMoney::from_bigdecimal(dec, 2).unwrap());
     }

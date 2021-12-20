@@ -1,10 +1,10 @@
-use crate::{
+use cdbc::{
     decode::Decode,
     encode::{Encode, IsNull},
     error::BoxDynError,
-    postgres::{PgArgumentBuffer, PgHasArrayType, PgTypeInfo, PgValueFormat, PgValueRef, Postgres},
     types::Type,
 };
+use crate::{PgArgumentBuffer, PgHasArrayType, PgTypeInfo, PgValueFormat, PgValueRef, Postgres};
 use bit_vec::BitVec;
 use bytes::Buf;
 use std::{io, mem};

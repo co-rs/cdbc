@@ -23,6 +23,8 @@ mod value;
 #[macro_use]
 pub extern crate cdbc;
 
+#[cfg(feature = "bigdecimal")]
+extern crate bigdecimal_ as bigdecimal;
 
 pub use arguments::{PgArgumentBuffer, PgArguments};
 pub use column::PgColumn;

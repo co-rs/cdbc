@@ -1,7 +1,8 @@
 use std::cmp;
 use std::convert::{TryFrom, TryInto};
-
 use bigdecimal::BigDecimal;
+
+
 use num_bigint::{BigInt, Sign};
 
 use cdbc::decode::Decode;
@@ -169,7 +170,7 @@ impl Decode<'_, Postgres> for BigDecimal {
 }
 
 #[cfg(test)]
-mod bigdecimal_to_pgnumeric {
+mod bigdecimalto_pgnumeric {
     use super::{BigDecimal, PgNumeric, PgNumericSign};
     use std::convert::TryFrom;
 

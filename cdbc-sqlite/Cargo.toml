@@ -13,7 +13,12 @@ _tls-native-tls = []
 json= ["serde","serde_json"]
 
 sqlite = ["libsqlite3-sys","json"]
-
+# types
+all-types = [
+    "chrono",
+    "json",
+    "uuid",
+]
 [dependencies]
 
 may = "0.3"
@@ -23,6 +28,9 @@ serde={version = "1.0.130" ,features = ["derive", "rc"],optional = true}
 serde_json = { version = "1.0.51", features = ["raw_value"], optional = true }
 log = { version = "0.4.8", default-features = false }
 url = { version = "2.1.1", default-features = false }
+
+chrono = { version = "0.4.11", default-features = false, features = ["clock"], optional = true }
+uuid = { version = "0.8.1", default-features = false, optional = true, features = ["std"] }
 percent-encoding = "2.1.0"
 bytes = "1.0.0"
 smallvec = "1.4.0"
