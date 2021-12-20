@@ -39,13 +39,22 @@ impl BizActivity {
         let row = conn.fetch_all("select * from biz_activity limit 1")?;
         cdbc::row_scan_structs!(row,BizActivity{id: None,name: None,delete_flag: None})
     }
+    pub fn count() -> cdbc::Result<i64> {
+        pub struct BizActivityCount {
+            pub count: i64,
+        }
+        let mut conn = POOL.acquire()?;
+        let row = conn.fetch_one("select count(1) as count from biz_activity")?;
+        let c=cdbc::row_scan_struct!(row,BizActivityCount{count: 0})?;
+        Ok(c.count)
+    }
 }
 
 impl HttpService for HelloWorld {
     fn call(&mut self, req: Request, resp: &mut Response) -> io::Result<()> {
         match BizActivity::fetch_one() {
             Ok(v) => {
-                resp.body_vec(serde_json::to_string(&v).unwrap().into_bytes());
+                resp.body_vec(format!("{}",serde_json::to_string(&v).unwrap()).into_bytes());
                 Ok(())
             }
             Err(e) => {
