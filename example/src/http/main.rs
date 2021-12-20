@@ -7,15 +7,12 @@ use cdbc::column::Column;
 use cdbc::decode::Decode;
 use cdbc::executor::Executor;
 use cdbc::row::Row;
-
 use cdbc::pool::Pool;
 use cdbc_mysql::{MySqlPool, MySql, MySqlRow};
 
+
 #[macro_use]
 extern crate lazy_static;
-
-
-
 lazy_static!(
     pub static ref POOL: Pool<MySql> = MySqlPool::connect("mysql://root:123456@localhost:3306/test").unwrap();
 );
@@ -24,31 +21,24 @@ lazy_static!(
 #[derive(Clone)]
 struct HelloWorld;
 
-
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct BizActivity {
     pub id: Option<String>,
     pub name: Option<String>,
     pub delete_flag: Option<i32>,
 }
-
-impl HelloWorld {
-    //query from database
-    pub fn query(&self) -> cdbc::Result<Vec<BizActivity>> {
-        let mut conn = POOL.acquire()?;
-        let mut data = conn.fetch_all("select * from biz_activity;")?;
-        let mut vec = vec![];
-        for x in data {
-            let item = cdbc::scan_row_struct!(x,BizActivity{id: None,name: None,delete_flag: None})?;
-            vec.push(item);
-        }
-        Ok(vec)
-    }
-}
-
 impl HttpService for HelloWorld {
     fn call(&mut self, req: Request, resp: &mut Response) -> io::Result<()> {
-        let r = self.query();
+        let r = {
+            let mut conn = POOL.acquire()?;
+            let mut data = conn.fetch_all("select * from biz_activity;")?;
+            let mut vec = vec![];
+            for x in data {
+                let item = cdbc::scan_row_struct!(x,BizActivity{id: None,name: None,delete_flag: None})?;
+                vec.push(item);
+            }
+            cdbc::Result::Ok(vec)
+        };
         if let Err(e) = r {
             return {
                 resp.body_vec(e.to_string().into_bytes());
