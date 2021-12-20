@@ -1,15 +1,8 @@
 #[macro_export]
 macro_rules! scan_struct {
     ($row:ident,$target:path{$($field_name:ident: $field_value:expr,)+}) => {
-        //Smart tips
-        Ok(
-            $target {
-               $(
-                    $field_name:$field_value,
-               )+
-            }
-        )
-        //logic code
+        {
+            //logic code
         let mut table = {
             $target {
                $(
@@ -25,6 +18,7 @@ macro_rules! scan_struct {
                    }
              )+
         });
-       return std::io::Result::<$target,cdbc::Error>::Ok(table);
+          cdbc::Result::Ok(table)
+        }
     }
 }
