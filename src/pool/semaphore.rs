@@ -185,7 +185,7 @@ mod test {
                 let permit = b1.acquire();
                 println!("acq{}", idx);
                 s1.send(1);
-                drop(permit);
+                b1.release();
             };
             go!(f1);
         }
