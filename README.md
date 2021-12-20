@@ -38,6 +38,21 @@ use example:
 cdbc = {path = "../"}
 cdbc-mysql = {path = "../cdbc-mysql"}
 ```
+* row_scan macro
+```rust
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+pub struct BizActivity {
+    pub id: Option<String>,
+    pub name: Option<String>,
+    pub delete_flag: Option<i32>,
+}
+let pool = MySqlPool::connect("mysql://root:123456@localhost:3306/test")?;
+let mut conn = pool.acquire()?;
+let row = conn.fetch_one("select * from biz_activity limit 1")?;
+let datas:Vec<BizActivity> = cdbc::row_scan_struct!(row,BizActivity{id: None,name: None,delete_flag: None})?;
+```
+
+* Processing read streams
 > main.rs
 ```rust
 use std::collections::{BTreeMap, HashMap};
