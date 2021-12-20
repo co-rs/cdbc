@@ -268,6 +268,12 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for Error {
     }
 }
 
+impl From<serde_json::Error> for Error {
+    fn from(arg: serde_json::Error) -> Self {
+        Self::Protocol(arg.to_string())
+    }
+}
+
 // Format an error message as a `Protocol` error
 #[macro_export]
 macro_rules! err_protocol {

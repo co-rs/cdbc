@@ -17,7 +17,9 @@ path = "src/main-pg.rs"
 name = "sqlite"
 path = "src/main-sqlite.rs"
 
-
+[[bin]]
+name = "scanrow"
+path = "src/scan_row.rs"
 
 [[bin]]
 name = "mayhttp"

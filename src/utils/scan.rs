@@ -24,11 +24,13 @@ macro_rules! row_scan_struct {
                )+
             }
         };
+        use cdbc::row::Row;
         $row.columns().iter().for_each(|column|{
+             use cdbc::row::Row;use cdbc::column::Column;
              $(
                   if stringify!($field_name).eq(column.name()){
                      let v = $row.try_get_raw(column.name()).unwrap();
-                     table.$field_name = Decode::decode(v).unwrap();
+                     table.$field_name = cdbc::decode::Decode::decode(v).unwrap();
                    }
              )+
         });
