@@ -23,7 +23,7 @@ path = "src/scan_row.rs"
 
 [[bin]]
 name = "mayhttp"
-path = "src/http/main.rs"
+path = "src/http-may/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
