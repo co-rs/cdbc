@@ -8,15 +8,11 @@ use std::convert::identity;
 ///
 /// The query macros (e.g., `query!`, `query_as!`, etc.) use the information here to validate
 /// output and parameter types; and, generate an anonymous record.
-#[derive(Debug)]
-#[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "offline",
-    serde(bound(
-        serialize = "DB::TypeInfo: serde::Serialize, DB::Column: serde::Serialize",
-        deserialize = "DB::TypeInfo: serde::de::DeserializeOwned, DB::Column: serde::de::DeserializeOwned",
-    ))
-)]
+#[derive(Debug,serde::Serialize, serde::Deserialize)]
+#[serde(bound(
+serialize = "DB::TypeInfo: serde::Serialize, DB::Column: serde::Serialize",
+deserialize = "DB::TypeInfo: serde::de::DeserializeOwned, DB::Column: serde::de::DeserializeOwned",
+))]
 #[doc(hidden)]
 pub struct Describe<DB: Database> {
     pub columns: Vec<DB::Column>,

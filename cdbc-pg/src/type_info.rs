@@ -9,7 +9,7 @@ use cdbc::type_info::TypeInfo;
 
 /// Type information for a PostgreSQL type.
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct PgTypeInfo(pub(crate) PgType);
 
 impl Deref for PgTypeInfo {
@@ -21,7 +21,7 @@ impl Deref for PgTypeInfo {
 }
 
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 #[repr(u32)]
 pub enum PgType {
     Bool,
@@ -132,16 +132,16 @@ pub enum PgType {
 }
 
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct PgCustomType {
-    #[cfg_attr(feature = "offline", serde(skip))]
+    #[serde(skip)]
     pub(crate) oid: u32,
     pub(crate) name: UStr,
     pub(crate) kind: PgTypeKind,
 }
 
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub enum PgTypeKind {
     Simple,
     Pseudo,

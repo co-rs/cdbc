@@ -8,9 +8,9 @@ repository = "https://github.com/rbatis/cdbc"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["postgres","cdbc/offline"]
+default = ["postgres",]
 _tls-native-tls = []
-json= ["serde","serde_json","cdbc/json"]
+json= ["serde","serde_json"]
 
 postgres = [
     "md-5",
@@ -23,7 +23,7 @@ postgres = [
     "dirs"
 ]
 [dependencies]
-cdbc = { path = "../",optional = true}
+cdbc = { path = "../"}
 
 atoi = "0.4.0"
 smallvec = "1.4.0"

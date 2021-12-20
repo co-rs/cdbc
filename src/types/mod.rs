@@ -20,17 +20,15 @@
 
 use crate::database::Database;
 
-#[cfg(feature = "bstr")]
-#[cfg_attr(docsrs, doc(cfg(feature = "bstr")))]
+mod json;
+
 pub mod bstr;
 
 #[cfg(feature = "git2")]
 #[cfg_attr(docsrs, doc(cfg(feature = "git2")))]
 pub mod git2;
 
-#[cfg(feature = "json")]
-#[cfg_attr(docsrs, doc(cfg(feature = "json")))]
-mod json;
+
 
 #[cfg(feature = "uuid")]
 #[cfg_attr(docsrs, doc(cfg(feature = "uuid")))]
@@ -82,7 +80,7 @@ pub mod mac_address {
     pub use mac_address::MacAddress;
 }
 
-#[cfg(feature = "json")]
+
 pub use json::Json;
 
 /// Indicates that a SQL type is supported for a database.

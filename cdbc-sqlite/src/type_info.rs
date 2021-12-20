@@ -8,7 +8,7 @@ use cdbc::error::BoxDynError;
 use cdbc::type_info::TypeInfo;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
-#[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub(crate) enum DataType {
     Null,
     Int,
@@ -30,7 +30,7 @@ pub(crate) enum DataType {
 
 /// Type information for a SQLite type.
 #[derive(Debug, Clone, Eq, PartialEq)]
-#[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct SqliteTypeInfo(pub(crate) DataType);
 
 impl Display for SqliteTypeInfo {

@@ -16,22 +16,30 @@ repository = "https://github.com/rbatis/cdbc"
 
 [features]
 default = []
-offline = ["serde", "either/serde"]
 _tls-native-tls = []
-json = ["offline","serde_json"]
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+git2 = []
+uuid = []
+chrono = []
+bit-vec = []
+time = []
+bigdecimal = []
+decimal = []
+ipnetwork = []
+mac_address = []
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 may = "0.3"
 hashlink = "0.7.0"
 thiserror = "1.0.30"
 bytes = '1.0.0'
 memchr = "2.3.4"
-serde={version = "1.0.130" ,optional = true}
+serde={version = "1.0.130"}
 log = { version = "0.4.8", default-features = false }
 crossbeam-queue = "0.3.1"
-either = "1.5.3"
+either = {version = "1.5.3",features = ["serde"]}
 bstr = { version = "0.2.14", default-features = false, features = ["std"] }
 native-tls = {version ="0.2"}
 ahash = "0.7.2"
-serde_json = { version = "1.0.51", features = ["raw_value"], optional = true }
+serde_json = { version = "1.0.51", features = ["raw_value"]}

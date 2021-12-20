@@ -5,14 +5,14 @@ use cdbc::type_info::TypeInfo;
 
 /// Type information for a MySql type.
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct MySqlTypeInfo {
     pub(crate) r#type: ColumnType,
     pub(crate) flags: ColumnFlags,
     pub(crate) char_set: u16,
 
     // [max_size] for integer types, this is (M) in BIT(M) or TINYINT(M)
-    #[cfg_attr(feature = "offline", serde(default))]
+    #[serde(default)]
     pub(crate) max_size: Option<u32>,
 }
 

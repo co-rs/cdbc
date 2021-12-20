@@ -3,7 +3,7 @@ use cdbc::utils::ustr::UStr;
 use crate::{Sqlite, SqliteTypeInfo};
 
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct SqliteColumn {
     pub(crate) name: UStr,
     pub(crate) ordinal: usize,

@@ -11,7 +11,7 @@ use crate::protocol::Capabilities;
 // https://dev.mysql.com/doc/dev/mysql-server/8.0.12/group__group__cs__column__definition__flags.html
 
 bitflags! {
-    #[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
+    #[derive(serde::Serialize, serde::Deserialize)]
     pub(crate) struct ColumnFlags: u16 {
         /// Field can't be `NULL`.
         const NOT_NULL = 1;
@@ -63,7 +63,7 @@ bitflags! {
 // https://dev.mysql.com/doc/internals/en/com-query-response.html#column-type
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-#[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 #[repr(u8)]
 pub enum ColumnType {
     Decimal = 0x00,

@@ -8,9 +8,9 @@ repository = "https://github.com/rbatis/cdbc"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
 default = ["sqlite","offline"]
-offline = ["cdbc/offline"]
+offline = []
 _tls-native-tls = []
-json= ["serde","serde_json","cdbc/json"]
+json= ["serde","serde_json"]
 
 sqlite = ["libsqlite3-sys","json"]
 
@@ -18,7 +18,7 @@ sqlite = ["libsqlite3-sys","json"]
 
 may = "0.3"
 crossbeam-channel = "0.5.0"
-cdbc = { path = "../",optional = true}
+cdbc = { path = "../"}
 serde={version = "1.0.130" ,features = ["derive", "rc"],optional = true}
 serde_json = { version = "1.0.51", features = ["raw_value"], optional = true }
 log = { version = "0.4.8", default-features = false }
