@@ -50,8 +50,11 @@ impl HelloWorld {
         let mut data = conn.fetch_all("select * from biz_activity;")?;
         let mut vec = vec![];
         for x in data {
-            let item= BizActivity::scan(x);
-            vec.push(item?);
+            vec.push(scan_struct!(x,BizActivity{
+            id: None,
+            name: None,
+            delete_flag: None,
+           })?);
         }
         Ok(vec)
     }

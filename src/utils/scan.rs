@@ -18,7 +18,7 @@ use crate::value::ValueRef;
 #[macro_export]
 macro_rules! scan_struct {
     ($row:ident,$target:path{$($field_name:ident: $field_value:expr,)+}) => {
-       {
+
         let mut table = {
             $target {
                $(
@@ -34,7 +34,7 @@ macro_rules! scan_struct {
                    }
              )+
         });
-        return cdbc::Result::<$target>::Ok(table);
-      }
+        return std::io::Result::<$target,cdbc::Error>::Ok(table);
+
     }
 }
