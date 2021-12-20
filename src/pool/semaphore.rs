@@ -76,16 +76,10 @@ impl BoxSemaphore {
             self.permit.fetch_sub(num as i64, Ordering::Relaxed);
             return num;
         } else {
-            let mut releases = 0;
             for _ in 0..num {
-                let w = self.waiters.pop();
-                if let Some(w) = w {
-                    w.unpark();
-                    releases += 1;
-                }
+                self.release();
             }
-            releases = self.permit.fetch_sub(releases, Ordering::Relaxed);
-            return releases as usize;
+            return num as usize;
         }
     }
 }
@@ -131,5 +125,49 @@ mod test {
             println!("num:{}",b4.permit());
         });
         sleep(Duration::from_secs(2));
+    }
+
+
+    #[test]
+    fn test_acq_release_num() {
+        let b = Arc::new(BoxSemaphore::new(3));
+        let b1 = b.clone();
+        go!(move ||{
+            b1.acquire();
+            println!("acq{}",1);
+        });
+        let b1 = b.clone();
+        go!(move ||{
+            b1.acquire();
+            println!("acq{}",2);
+        });
+        let b1 = b.clone();
+        go!(move ||{
+            b1.acquire();
+            println!("acq{}",3);
+        });
+
+        sleep(Duration::from_secs(1));
+        println!("num:{}",b.permit());
+
+        let b1 = b.clone();
+        go!(move ||{
+            b1.acquire();
+            println!("acq{}",4);
+        });
+        let b1 = b.clone();
+        go!(move ||{
+            b1.acquire();
+            println!("acq{}",5);
+        });
+        let b1 = b.clone();
+        go!(move ||{
+            b1.acquire();
+            println!("acq{}",6);
+        });
+        sleep(Duration::from_secs(1));
+        println!("num:{}",b.permit());
+        b.release_left(2);
+        sleep(Duration::from_secs(1));
     }
 }
