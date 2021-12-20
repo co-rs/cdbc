@@ -88,6 +88,7 @@ mod test {
     use std::time::Duration;
     use may::coroutine::sleep;
     use may::go;
+    use may::sync::mpsc::channel;
     use crate::pool::semaphore::{BoxSemaphore};
 
     #[test]
@@ -166,5 +167,31 @@ mod test {
         println!("num:{}",b.permit());
         b.release_left(2);
         sleep(Duration::from_secs(1));
+    }
+
+    #[test]
+    fn test_acq_mult() {
+        let total = 1000;
+        let (s,r)=channel();
+        let b = Arc::new(BoxSemaphore::new(10));
+        for idx in 0..total{
+            let s1 = s.clone();
+            let b1 = b.clone();
+            let f1=move ||{
+                b1.acquire();
+                println!("acq{}",idx);
+                s1.send(1);
+            };
+            go!(f1);
+        }
+        let mut recvs =0;
+        for idx in 0..total{
+            if let Ok(v)=r.recv(){
+                recvs+=1;
+            }
+            if recvs==total{
+                break;
+            }
+        }
     }
 }

@@ -111,7 +111,7 @@ mod test {
             go!(f);
         }
         let mut recvs =0;
-        loop{
+        for idx in 0..total{
             if let Ok(v)=r.recv(){
                 recvs+=1;
             }
