@@ -29,16 +29,21 @@ pub struct BizActivity {
 }
 
 impl BizActivity {
-    pub fn fetch_one() ->cdbc::Result<BizActivity>{
+    pub fn fetch_one() -> cdbc::Result<BizActivity> {
         let mut conn = POOL.acquire()?;
-        let row= conn.fetch_one("select * from biz_activity limit 1")?;
-        cdbc::scan_row_struct!(row,BizActivity{id: None,name: None,delete_flag: None})
+        let row = conn.fetch_one("select * from biz_activity limit 1")?;
+        cdbc::row_scan_struct!(row,BizActivity{id: None,name: None,delete_flag: None})
+    }
+    pub fn fetch_all() -> cdbc::Result<Vec<BizActivity>> {
+        let mut conn = POOL.acquire()?;
+        let row = conn.fetch_all("select * from biz_activity limit 1")?;
+        cdbc::row_scan_structs!(row,BizActivity{id: None,name: None,delete_flag: None})
     }
 }
 
 impl HttpService for HelloWorld {
     fn call(&mut self, req: Request, resp: &mut Response) -> io::Result<()> {
-        match BizActivity::fetch_one(){
+        match BizActivity::fetch_one() {
             Ok(v) => {
                 resp.body_vec(serde_json::to_string(&v).unwrap().into_bytes());
                 Ok(())

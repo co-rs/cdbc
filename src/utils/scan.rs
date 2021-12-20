@@ -10,10 +10,10 @@
 ///
 ///    let mut data = conn.fetch_all("select * from biz_activity;")?;
 ///    for row in data {
-///       let biz_activity = cdbc::scan_row_struct!(x,BizActivity{id: None,name: None,delete_flag: None})
+///       let biz_activity = cdbc::row_scan_struct!(x,BizActivity{id: None,name: None,delete_flag: None})
 ///    }
 #[macro_export]
-macro_rules! scan_row_struct {
+macro_rules! row_scan_struct {
     ($row:ident,$target:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
         {
             //logic code
@@ -35,4 +35,18 @@ macro_rules! scan_row_struct {
           cdbc::Result::Ok(table)
         }
     }
+}
+
+#[macro_export]
+macro_rules! row_scan_structs {
+   ($rows:ident,$target:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
+        {
+           let mut result_datas = vec![];
+           for r in $rows{
+             let table = cdbc::row_scan_struct!(r, $target { $($field_name:$field_value,)+})?;
+             result_datas.push(table);
+           }
+          cdbc::Result::Ok(result_datas)
+        }
+   }
 }
