@@ -25,15 +25,15 @@ macro_rules! row_scan_struct {
             }
         };
         use cdbc::row::Row;
-        $row.columns().iter().for_each(|column|{
+        for _column in $row.columns(){
              use cdbc::row::Row;use cdbc::column::Column;
              $(
-                  if stringify!($field_name).eq(column.name()){
-                     let v = $row.try_get_raw(column.name()).unwrap();
-                     table.$field_name = cdbc::decode::Decode::decode(v).unwrap();
+                  if stringify!($field_name).eq(_column.name()){
+                     let v = $row.try_get_raw(_column.name())?;
+                     table.$field_name = cdbc::decode::Decode::decode(v)?;
                    }
              )+
-        });
+        }
           cdbc::Result::Ok(table)
         }
     }
