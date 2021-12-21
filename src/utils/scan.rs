@@ -33,7 +33,7 @@ macro_rules! row_scan_struct {
         for _column in $row.columns(){
              use cdbc::row::Row;use cdbc::column::Column;
              $(
-                  if stringify!($field_name).eq(_column.name()){
+                  if stringify!($field_name).trim_start_matches("r#").eq(_column.name()){
                      let v = $row.try_get_raw(_column.name())?;
                      table.$field_name = cdbc::decode::Decode::decode(v)?;
                    }
