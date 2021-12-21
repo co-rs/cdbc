@@ -30,7 +30,7 @@ impl BizActivity {
     }
     pub fn fetch_all() -> cdbc::Result<Vec<BizActivity>> {
         let mut conn = POOL.acquire()?;
-        let row = conn.fetch_all("select * from biz_activity limit 1")?;
+        let row = conn.fetch_all("select * from biz_activity")?;
         cdbc::row_scan_structs!(row,BizActivity{id: None,name: None,delete_flag: None})
     }
     pub fn count() -> cdbc::Result<i64> {
