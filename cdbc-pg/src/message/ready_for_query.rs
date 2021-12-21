@@ -1,7 +1,7 @@
 use bytes::Bytes;
 
 use cdbc::error::Error;
-use cdbc::io::Decode;
+use cdbc::io::IoDecode;
 
 #[derive(Debug)]
 #[repr(u8)]
@@ -21,7 +21,7 @@ pub struct ReadyForQuery {
     pub transaction_status: TransactionStatus,
 }
 
-impl Decode<'_> for ReadyForQuery {
+impl IoDecode<'_> for ReadyForQuery {
     fn decode_with(buf: Bytes, _: ()) -> Result<Self, Error> {
         let status = match buf[0] {
             b'I' => TransactionStatus::Idle,

@@ -1,4 +1,4 @@
-use cdbc::io::Encode;
+use cdbc::io::IoEncode;
 use crate::protocol::text::ColumnFlags;
 use crate::protocol::Capabilities;
 use crate::MySqlArguments;
@@ -11,7 +11,7 @@ pub struct Execute<'q> {
     pub arguments: &'q MySqlArguments,
 }
 
-impl<'q> Encode<'_, Capabilities> for Execute<'q> {
+impl<'q> IoEncode<'_, Capabilities> for Execute<'q> {
     fn encode_with(&self, buf: &mut Vec<u8>, _: Capabilities) {
         buf.push(0x17); // COM_STMT_EXECUTE
         buf.extend(&self.statement.to_le_bytes());

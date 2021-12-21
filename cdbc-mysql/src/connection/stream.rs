@@ -5,7 +5,7 @@ use std::ops::{Deref, DerefMut};
 use bytes::{Buf, Bytes};
 
 use cdbc::error::Error;
-use cdbc::io::{BufStream, Decode, Encode};
+use cdbc::io::{BufStream, IoDecode, IoEncode};
 use crate::collation::{CharSet, Collation};
 use crate::io::MySqlBufExt;
 use crate::protocol::response::{EofPacket, ErrPacket, OkPacket, Status};
@@ -125,7 +125,7 @@ impl MySqlStream {
 
     pub(crate) fn send_packet<'en, T>(&mut self, payload: T) -> Result<(), Error>
     where
-        T: Encode<'en, Capabilities>,
+        T: IoEncode<'en, Capabilities>,
     {
         self.sequence_id = 0;
         self.write_packet(payload);
@@ -134,7 +134,7 @@ impl MySqlStream {
 
     pub(crate) fn write_packet<'en, T>(&mut self, payload: T)
     where
-        T: Encode<'en, Capabilities>,
+        T: IoEncode<'en, Capabilities>,
     {
         self.stream
             .write_with(Packet(payload), (self.capabilities, &mut self.sequence_id));
@@ -173,7 +173,7 @@ impl MySqlStream {
 
     pub(crate) fn recv<'de, T>(&mut self) -> Result<T, Error>
     where
-        T: Decode<'de, Capabilities>,
+        T: IoDecode<'de, Capabilities>,
     {
         self.recv_packet()?.decode_with(self.capabilities)
     }

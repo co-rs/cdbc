@@ -1,5 +1,5 @@
 use cdbc::error::Result;
-use cdbc::io::{BufExt, BufMutExt, Decode, Encode};
+use cdbc::io::{BufExt, BufMutExt, IoDecode, IoEncode};
 use bytes::{Buf, BufMut, Bytes};
 use std::ops::Deref;
 
@@ -18,7 +18,7 @@ pub struct CopyFail {
 
 pub struct CopyDone;
 
-impl Decode<'_> for CopyResponse {
+impl IoDecode<'_> for CopyResponse {
     fn decode_with(mut buf: Bytes, _: ()) -> Result<Self> {
         let format = buf.get_i8();
         let num_columns = buf.get_i16();
@@ -33,14 +33,14 @@ impl Decode<'_> for CopyResponse {
     }
 }
 
-impl Decode<'_> for CopyData<Bytes> {
+impl IoDecode<'_> for CopyData<Bytes> {
     fn decode_with(buf: Bytes, _: ()) -> Result<Self> {
         // well.. that was easy
         Ok(CopyData(buf))
     }
 }
 
-impl<B: Deref<Target = [u8]>> Encode<'_> for CopyData<B> {
+impl<B: Deref<Target = [u8]>> IoEncode<'_> for CopyData<B> {
     fn encode_with(&self, buf: &mut Vec<u8>, _context: ()) {
         buf.push(b'd');
         buf.put_u32(self.0.len() as u32 + 4);
@@ -48,7 +48,7 @@ impl<B: Deref<Target = [u8]>> Encode<'_> for CopyData<B> {
     }
 }
 
-impl Decode<'_> for CopyFail {
+impl IoDecode<'_> for CopyFail {
     fn decode_with(mut buf: Bytes, _: ()) -> Result<Self> {
         Ok(CopyFail {
             message: buf.get_str_nul()?,
@@ -56,7 +56,7 @@ impl Decode<'_> for CopyFail {
     }
 }
 
-impl Encode<'_> for CopyFail {
+impl IoEncode<'_> for CopyFail {
     fn encode_with(&self, buf: &mut Vec<u8>, _: ()) {
         let len = 4 + self.message.len() + 1;
 
@@ -74,7 +74,7 @@ impl CopyFail {
     }
 }
 
-impl Decode<'_> for CopyDone {
+impl IoDecode<'_> for CopyDone {
     fn decode_with(buf: Bytes, _: ()) -> Result<Self> {
         if buf.is_empty() {
             Ok(CopyDone)
@@ -87,7 +87,7 @@ impl Decode<'_> for CopyDone {
     }
 }
 
-impl Encode<'_> for CopyDone {
+impl IoEncode<'_> for CopyDone {
     fn encode_with(&self, buf: &mut Vec<u8>, _: ()) {
         buf.reserve(4);
         buf.push(b'c');

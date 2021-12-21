@@ -1,4 +1,4 @@
-use cdbc::io::{BufMutExt, Encode};
+use cdbc::io::{BufMutExt, IoEncode};
 use crate::io::PgBufMutExt;
 
 // To begin a session, a frontend opens a connection to the server and sends a startup message.
@@ -19,7 +19,7 @@ pub struct Startup<'a> {
     pub params: &'a [(&'a str, &'a str)],
 }
 
-impl Encode<'_> for Startup<'_> {
+impl IoEncode<'_> for Startup<'_> {
     fn encode_with(&self, buf: &mut Vec<u8>, _: ()) {
         buf.reserve(120);
 

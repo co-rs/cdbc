@@ -4,7 +4,7 @@ use bytes::Bytes;
 use memchr::memchr;
 
 use cdbc::error::Error;
-use cdbc::io::Decode;
+use cdbc::io::IoDecode;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 #[repr(u8)]
@@ -105,7 +105,7 @@ impl Notice {
     }
 }
 
-impl Decode<'_> for Notice {
+impl IoDecode<'_> for Notice {
     fn decode_with(buf: Bytes, _: ()) -> Result<Self, Error> {
         // In order to support PostgreSQL 9.5 and older we need to parse the localized S field.
         // Newer versions additionally come with the V field that is guaranteed to be in English.

@@ -1,9 +1,9 @@
-use cdbc::io::{BufMutExt, Encode};
+use cdbc::io::{BufMutExt, IoEncode};
 
 #[derive(Debug)]
 pub struct Query<'a>(pub &'a str);
 
-impl Encode<'_> for Query<'_> {
+impl IoEncode<'_> for Query<'_> {
     fn encode_with(&self, buf: &mut Vec<u8>, _: ()) {
         let len = 4 + self.0.len() + 1;
 

@@ -2,14 +2,14 @@ use bytes::{Buf, Bytes};
 use smallvec::SmallVec;
 
 use cdbc::error::Error;
-use cdbc::io::Decode;
+use cdbc::io::IoDecode;
 
 #[derive(Debug)]
 pub struct ParameterDescription {
     pub types: SmallVec<[u32; 6]>,
 }
 
-impl Decode<'_> for ParameterDescription {
+impl IoDecode<'_> for ParameterDescription {
     fn decode_with(mut buf: Bytes, _: ()) -> Result<Self, Error> {
         let cnt = buf.get_u16();
         let mut types = SmallVec::with_capacity(cnt as usize);

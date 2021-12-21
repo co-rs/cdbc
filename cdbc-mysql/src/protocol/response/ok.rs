@@ -1,7 +1,7 @@
 use bytes::{Buf, Bytes};
 
 use cdbc::error::Error;
-use cdbc::io::Decode;
+use cdbc::io::IoDecode;
 use crate::io::MySqlBufExt;
 use crate::protocol::response::Status;
 
@@ -14,7 +14,7 @@ pub struct OkPacket {
     pub warnings: u16,
 }
 
-impl Decode<'_> for OkPacket {
+impl IoDecode<'_> for OkPacket {
     fn decode_with(mut buf: Bytes, _: ()) -> Result<Self, Error> {
         let header = buf.get_u8();
         if header != 0 && header != 0xfe {

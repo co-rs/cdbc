@@ -1,8 +1,8 @@
 use bytes::{Buf, Bytes};
 
 use cdbc::error::Error;
-use cdbc::io::Encode;
-use cdbc::io::{BufExt, Decode};
+use cdbc::io::IoEncode;
+use cdbc::io::{BufExt, IoDecode};
 use crate::protocol::auth::AuthPlugin;
 use crate::protocol::Capabilities;
 
@@ -14,7 +14,7 @@ pub struct AuthSwitchRequest {
     pub data: Bytes,
 }
 
-impl Decode<'_> for AuthSwitchRequest {
+impl IoDecode<'_> for AuthSwitchRequest {
     fn decode_with(mut buf: Bytes, _: ()) -> Result<Self, Error> {
         let header = buf.get_u8();
         if header != 0xfe {
@@ -43,7 +43,7 @@ impl Decode<'_> for AuthSwitchRequest {
 #[derive(Debug)]
 pub struct AuthSwitchResponse(pub Vec<u8>);
 
-impl Encode<'_, Capabilities> for AuthSwitchResponse {
+impl IoEncode<'_, Capabilities> for AuthSwitchResponse {
     fn encode_with(&self, buf: &mut Vec<u8>, _: Capabilities) {
         buf.extend_from_slice(&self.0);
     }

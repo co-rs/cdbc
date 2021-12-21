@@ -4,7 +4,7 @@ use bytes::{Buf, Bytes};
 use memchr::memchr;
 
 use cdbc::error::Error;
-use cdbc::io::Decode;
+use cdbc::io::IoDecode;
 
 // On startup, the server sends an appropriate authentication request message,
 // to which the frontend must reply with an appropriate authentication
@@ -58,7 +58,7 @@ pub enum Authentication {
     SaslFinal(AuthenticationSaslFinal),
 }
 
-impl Decode<'_> for Authentication {
+impl IoDecode<'_> for Authentication {
     fn decode_with(mut buf: Bytes, _: ()) -> Result<Self, Error> {
         Ok(match buf.get_u32() {
             0 => Authentication::Ok,
@@ -127,7 +127,7 @@ pub struct AuthenticationSaslContinue {
     pub message: String,
 }
 
-impl Decode<'_> for AuthenticationSaslContinue {
+impl IoDecode<'_> for AuthenticationSaslContinue {
     fn decode_with(buf: Bytes, _: ()) -> Result<Self, Error> {
         let mut iterations: u32 = 4096;
         let mut salt = Vec::new();
@@ -171,7 +171,7 @@ pub struct AuthenticationSaslFinal {
     pub verifier: Vec<u8>,
 }
 
-impl Decode<'_> for AuthenticationSaslFinal {
+impl IoDecode<'_> for AuthenticationSaslFinal {
     fn decode_with(buf: Bytes, _: ()) -> Result<Self, Error> {
         let mut verifier = Vec::new();
 

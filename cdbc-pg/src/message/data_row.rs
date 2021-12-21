@@ -4,7 +4,7 @@ use byteorder::{BigEndian, ByteOrder};
 use bytes::Bytes;
 
 use cdbc::error::Error;
-use cdbc::io::Decode;
+use cdbc::io::IoDecode;
 
 /// A row of data from the database.
 #[derive(Debug)]
@@ -26,7 +26,7 @@ impl DataRow {
     }
 }
 
-impl Decode<'_> for DataRow {
+impl IoDecode<'_> for DataRow {
     fn decode_with(buf: Bytes, _: ()) -> Result<Self, Error> {
         let cnt = BigEndian::read_u16(&buf) as usize;
 

@@ -1,4 +1,4 @@
-use cdbc::io::Encode;
+use cdbc::io::IoEncode;
 use crate::protocol::Capabilities;
 
 // https://dev.mysql.com/doc/dev/mysql-server/8.0.12/page_protocol_connection_phase_packets_protocol_handshake_response.html
@@ -10,7 +10,7 @@ pub struct SslRequest {
     pub collation: u8,
 }
 
-impl Encode<'_, Capabilities> for SslRequest {
+impl IoEncode<'_, Capabilities> for SslRequest {
     fn encode_with(&self, buf: &mut Vec<u8>, capabilities: Capabilities) {
         buf.extend(&(capabilities.bits() as u32).to_le_bytes());
         buf.extend(&self.max_packet_size.to_le_bytes());

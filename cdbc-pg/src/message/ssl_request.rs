@@ -1,8 +1,8 @@
-use cdbc::io::Encode;
+use cdbc::io::IoEncode;
 
 pub struct SslRequest;
 
-impl Encode<'_> for SslRequest {
+impl IoEncode<'_> for SslRequest {
     #[inline]
     fn encode_with(&self, buf: &mut Vec<u8>, _: ()) {
         buf.extend(&8_u32.to_be_bytes());

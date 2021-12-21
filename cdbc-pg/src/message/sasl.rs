@@ -1,4 +1,4 @@
-use cdbc::io::{BufMutExt, Encode};
+use cdbc::io::{BufMutExt, IoEncode};
 use crate::io::PgBufMutExt;
 
 pub struct SaslInitialResponse<'a> {
@@ -6,7 +6,7 @@ pub struct SaslInitialResponse<'a> {
     pub plus: bool,
 }
 
-impl Encode<'_> for SaslInitialResponse<'_> {
+impl IoEncode<'_> for SaslInitialResponse<'_> {
     fn encode_with(&self, buf: &mut Vec<u8>, _: ()) {
         buf.push(b'p');
         buf.put_length_prefixed(|buf| {
@@ -25,7 +25,7 @@ impl Encode<'_> for SaslInitialResponse<'_> {
 
 pub struct SaslResponse<'a>(pub &'a str);
 
-impl Encode<'_> for SaslResponse<'_> {
+impl IoEncode<'_> for SaslResponse<'_> {
     fn encode_with(&self, buf: &mut Vec<u8>, _: ()) {
         buf.push(b'p');
         buf.put_length_prefixed(|buf| {

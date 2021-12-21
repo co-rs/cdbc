@@ -1,6 +1,6 @@
 use std::i16;
 
-use cdbc::io::{BufMutExt, Encode};
+use cdbc::io::{BufMutExt, IoEncode};
 use crate::io::PgBufMutExt;
 
 #[derive(Debug)]
@@ -17,7 +17,7 @@ pub struct Parse<'a> {
     pub param_types: &'a [u32],
 }
 
-impl Encode<'_> for Parse<'_> {
+impl IoEncode<'_> for Parse<'_> {
     fn encode_with(&self, buf: &mut Vec<u8>, _: ()) {
         buf.push(b'P');
 

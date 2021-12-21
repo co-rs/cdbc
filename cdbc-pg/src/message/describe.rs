@@ -1,4 +1,4 @@
-use cdbc::io::Encode;
+use cdbc::io::IoEncode;
 use crate::io::PgBufMutExt;
 
 const DESCRIBE_PORTAL: u8 = b'P';
@@ -16,7 +16,7 @@ pub enum Describe {
     Portal(u32),
 }
 
-impl Encode<'_> for Describe {
+impl IoEncode<'_> for Describe {
     fn encode_with(&self, buf: &mut Vec<u8>, _: ()) {
         // 15 bytes for 1-digit statement/portal IDs
         buf.reserve(20);

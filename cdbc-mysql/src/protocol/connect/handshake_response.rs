@@ -1,4 +1,4 @@
-use cdbc::io::{BufMutExt, Encode};
+use cdbc::io::{BufMutExt, IoEncode};
 use crate::io::MySqlBufMutExt;
 use crate::protocol::auth::AuthPlugin;
 use crate::protocol::connect::ssl_request::SslRequest;
@@ -27,7 +27,7 @@ pub struct HandshakeResponse<'a> {
     pub auth_response: Option<&'a [u8]>,
 }
 
-impl Encode<'_, Capabilities> for HandshakeResponse<'_> {
+impl IoEncode<'_, Capabilities> for HandshakeResponse<'_> {
     fn encode_with(&self, buf: &mut Vec<u8>, mut capabilities: Capabilities) {
         if self.auth_plugin.is_none() {
             // ensure PLUGIN_AUTH is set *only* if we have a defined plugin

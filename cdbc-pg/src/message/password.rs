@@ -2,7 +2,7 @@ use std::fmt::Write;
 
 use md5::{Digest, Md5};
 
-use cdbc::io::{BufMutExt, Encode};
+use cdbc::io::{BufMutExt, IoEncode};
 use crate::io::PgBufMutExt;
 
 #[derive(Debug)]
@@ -26,7 +26,7 @@ impl Password<'_> {
     }
 }
 
-impl Encode<'_> for Password<'_> {
+impl IoEncode<'_> for Password<'_> {
     fn encode_with(&self, buf: &mut Vec<u8>, _: ()) {
         buf.reserve(1 + 4 + self.len());
         buf.push(b'p');

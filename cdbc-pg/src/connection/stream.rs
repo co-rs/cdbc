@@ -6,7 +6,7 @@ use bytes::{Buf, Bytes};
 use may::sync::mpsc::Sender;
 
 use cdbc::error::Error;
-use cdbc::io::{BufStream, Decode, Encode};
+use cdbc::io::{BufStream, IoDecode, IoEncode};
 use cdbc::net::{MaybeTlsStream, Socket};
 use crate::message::{Message, MessageFormat, Notice, Notification, ParameterStatus};
 use crate::{PgConnectOptions, PgDatabaseError, PgSeverity};
@@ -49,14 +49,14 @@ impl PgStream {
 
     pub(crate) fn send<'en, T>(&mut self, message: T) -> Result<(), Error>
     where
-        T: Encode<'en>,
+        T: IoEncode<'en>,
     {
         self.write(message);
         self.flush()
     }
 
     // Expect a specific type and format
-    pub(crate) fn recv_expect<'de, T: Decode<'de>>(
+    pub(crate) fn recv_expect<'de, T: IoDecode<'de>>(
         &mut self,
         format: MessageFormat,
     ) -> Result<T, Error> {

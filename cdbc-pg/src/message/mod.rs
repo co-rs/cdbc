@@ -1,7 +1,7 @@
 use bytes::Bytes;
 
 use cdbc::error::Error;
-use cdbc::io::Decode;
+use cdbc::io::IoDecode;
 
 mod authentication;
 mod backend_key_data;
@@ -89,7 +89,7 @@ impl Message {
     #[inline]
     pub fn decode<'de, T>(self) -> Result<T, Error>
     where
-        T: Decode<'de>,
+        T: IoDecode<'de>,
     {
         T::decode(self.contents)
     }
