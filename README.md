@@ -16,7 +16,7 @@ Coroutine Database driver Connectivity.based on [may](https://github.com/Xudong-
 | cdbc   | CSP（may）        | lightweight | √              | only sqlite  | Don't need           | √    | may, may_future, may-mini http, native thread,tokio-spawn_blocking |
 | rbatis | Future（tokio）   | heavyweight | √              | only sqlite  | only py_sql,html_sql | x    | tokio, async_std, smol                                             |
 | sqlx   | Future（tokio）   | lightweight | x              | only sqlite  | only derive(StructOpt) | x    | tokio, async_std, smol                                             |
-| diesel | Native Thread   | lightweight | x              | all use libc | derive(Queryable)  | x    | native thread                                                      |
+| diesel | Native Thread   | heavyweight | x              | all use libc | derive(Queryable)  | x    | native thread                                                      |
 
 
 ## Database Support:
