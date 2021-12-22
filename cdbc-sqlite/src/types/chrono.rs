@@ -1,14 +1,13 @@
-use crate::types::chrono::FixedOffset;
+use std::fmt::Display;
 use cdbc::value::ValueRef;
-use crate::{
+use cdbc::{
     decode::Decode,
     encode::{Encode, IsNull},
     error::BoxDynError,
-    sqlite::{type_info::DataType, Sqlite, SqliteArgumentValue, SqliteTypeInfo, SqliteValueRef},
     types::Type,
 };
-use bitflags::_core::fmt::Display;
-use chrono::{DateTime, Local, NaiveDate, NaiveDateTime, NaiveTime, Offset, TimeZone, Utc};
+use crate::{type_info::DataType, Sqlite, SqliteArgumentValue, SqliteTypeInfo, SqliteValueRef};
+use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Offset, TimeZone, Utc};
 
 impl<Tz: TimeZone> Type<Sqlite> for DateTime<Tz> {
     fn type_info() -> SqliteTypeInfo {

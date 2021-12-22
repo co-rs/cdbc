@@ -10,7 +10,7 @@ fn main() -> cdbc::Result<()> {
     }
     let pool = PgPool::connect("postgres://postgres:123456@localhost:5432/postgres")?;
     let data = cdbc::row_scans!(
-        cdbc::query("select * from biz_activity where id = ?")
+        cdbc::query("select * from biz_activity where id = $1")
         .bind("1")
         .fetch_all(pool)?,
         BizActivity{id:None,name:None,delete_flag:None})?;

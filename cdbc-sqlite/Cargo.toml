@@ -1,6 +1,6 @@
 [package]
 name = "cdbc-sqlite"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["zhuxiujia@qq.com"]
 description = "Rust Coroutine Database Driver Connectivity"
@@ -32,6 +32,7 @@ url = { version = "2.1.1", default-features = false }
 
 chrono = { version = "0.4.11", default-features = false, features = ["clock"], optional = true }
 uuid = { version = "0.8.1", default-features = false, optional = true, features = ["std"] }
+bitflags = { version = "1.2.1", default-features = false }
 percent-encoding = "2.1.0"
 bytes = "1.0.0"
 smallvec = "1.4.0"
