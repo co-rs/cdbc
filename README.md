@@ -42,11 +42,11 @@ use example:
 > cargo.toml
 ```toml
 #must dep
-cdbc = {version = "*"}
+cdbc = {version = "0.1"}
 #optional dep
-cdbc-mysql = {version = "*"}
-cdbc-pg = {version = "*"}
-cdbc-sqlite = {version = "*"}
+cdbc-mysql = {version = "0.1"}
+cdbc-pg = {version = "0.1"}
+cdbc-sqlite = {version = "0.1"}
 ```
 * row_scan macro
 ```rust
