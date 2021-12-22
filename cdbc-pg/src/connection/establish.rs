@@ -2,7 +2,7 @@ use cdbc::HashMap;
 
 use cdbc::utils::statement_cache::StatementCache;
 use cdbc::error::Error;
-use cdbc::io::IoDecode;
+use cdbc::io::Decode;
 use crate::connection::{sasl, stream::PgStream, tls};
 use crate::message::{
     Authentication, BackendKeyData, MessageFormat, Password, ReadyForQuery, Startup,

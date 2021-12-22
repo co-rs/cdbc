@@ -2,7 +2,7 @@ use byteorder::{BigEndian, ByteOrder};
 use bytes::Bytes;
 
 use cdbc::error::Error;
-use cdbc::io::IoDecode;
+use cdbc::io::Decode;
 
 /// Contains cancellation key data. The frontend must save these values if it
 /// wishes to be able to issue `CancelRequest` messages later.
@@ -15,7 +15,7 @@ pub struct BackendKeyData {
     pub secret_key: u32,
 }
 
-impl IoDecode<'_> for BackendKeyData {
+impl Decode<'_> for BackendKeyData {
     fn decode_with(buf: Bytes, _: ()) -> Result<Self, Error> {
         let process_id = BigEndian::read_u32(&buf);
         let secret_key = BigEndian::read_u32(&buf[4..]);

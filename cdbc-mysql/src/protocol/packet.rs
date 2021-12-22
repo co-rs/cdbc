@@ -3,16 +3,16 @@ use std::ops::{Deref, DerefMut};
 use bytes::Bytes;
 
 use cdbc::error::Error;
-use cdbc::io::{IoDecode, IoEncode};
+use cdbc::io::{Decode, Encode};
 use crate::protocol::response::{EofPacket, OkPacket};
 use crate::protocol::Capabilities;
 
 #[derive(Debug)]
 pub struct Packet<T>(pub(crate) T);
 
-impl<'en, 'stream, T> IoEncode<'stream, (Capabilities, &'stream mut u8)> for Packet<T>
+impl<'en, 'stream, T> Encode<'stream, (Capabilities, &'stream mut u8)> for Packet<T>
 where
-    T: IoEncode<'en, Capabilities>,
+    T: Encode<'en, Capabilities>,
 {
     fn encode_with(
         &self,
@@ -44,14 +44,14 @@ where
 impl Packet<Bytes> {
     pub(crate) fn decode<'de, T>(self) -> Result<T, Error>
     where
-        T: IoDecode<'de, ()>,
+        T: Decode<'de, ()>,
     {
         self.decode_with(())
     }
 
     pub(crate) fn decode_with<'de, T, C>(self, context: C) -> Result<T, Error>
     where
-        T: IoDecode<'de, C>,
+        T: Decode<'de, C>,
     {
         T::decode_with(self.0, context)
     }

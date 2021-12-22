@@ -7,7 +7,7 @@ use cdbc::connection::{Connection};
 use cdbc::error::Error;
 use cdbc::executor::Executor;
 use cdbc::utils::ustr::UStr;
-use cdbc::io::IoDecode;
+use cdbc::io::Decode;
 use crate::message::{
     Close, Message, MessageFormat, ReadyForQuery, Terminate, TransactionStatus,
 };

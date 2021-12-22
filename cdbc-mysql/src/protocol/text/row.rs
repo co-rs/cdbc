@@ -1,7 +1,7 @@
 use bytes::{Buf, Bytes};
 
 use cdbc::error::Error;
-use cdbc::io::IoDecode;
+use cdbc::io::Decode;
 use crate::io::MySqlBufExt;
 use crate::protocol::Row;
 use crate::MySqlColumn;
@@ -9,7 +9,7 @@ use crate::MySqlColumn;
 #[derive(Debug)]
 pub(crate) struct TextRow(pub(crate) Row);
 
-impl<'de> IoDecode<'de, &'de [MySqlColumn]> for TextRow {
+impl<'de> Decode<'de, &'de [MySqlColumn]> for TextRow {
     fn decode_with(mut buf: Bytes, columns: &'de [MySqlColumn]) -> Result<Self, Error> {
         let storage = buf.clone();
         let offset = buf.len();

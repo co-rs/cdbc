@@ -2,8 +2,8 @@ use bytes::BytesMut;
 use std::io::{Cursor, Read, Write};
 use may::net::TcpStream;
 use crate::Error;
-use crate::io::IoDecode;
-use crate::io::encode::IoEncode;
+use crate::io::Decode;
+use crate::io::encode::Encode;
 use crate::io::write_and_flush::WriteAndFlush;
 use std::io;
 use std::ops::{Deref, DerefMut};
@@ -31,27 +31,27 @@ impl<T> BufStream<T> where T: Write + Read
     }
     pub fn write<'en,A>(&mut self, value: A)
         where
-            A: IoEncode<'en, ()>,
+            A: Encode<'en, ()>,
     {
         self.write_with(value, ())
     }
 
     pub fn write_with<'en, C,A>(&mut self, value: A, context: C)
         where
-            A: IoEncode<'en, C>,
+            A: Encode<'en, C>,
     {
         value.encode_with(&mut self.wbuf, context);
     }
     pub fn read<'de,A>(&mut self, cnt: usize) -> Result<A, Error>
         where
-            A: IoDecode<'de, ()>,
+            A: Decode<'de, ()>,
     {
         self.read_with(cnt, ())
     }
 
     pub fn read_with<'de, C,A>(&mut self, cnt: usize, context: C) -> Result<A, Error>
         where
-            A: IoDecode<'de, C>,
+            A: Decode<'de, C>,
     {
         A::decode_with(self.read_raw(cnt)?.freeze(), context)
     }

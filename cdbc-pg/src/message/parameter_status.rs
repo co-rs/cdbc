@@ -1,7 +1,7 @@
 use bytes::Bytes;
 
 use cdbc::error::Error;
-use cdbc::io::{BufExt, IoDecode};
+use cdbc::io::{BufExt, Decode};
 
 #[derive(Debug)]
 pub struct ParameterStatus {
@@ -9,7 +9,7 @@ pub struct ParameterStatus {
     pub value: String,
 }
 
-impl IoDecode<'_> for ParameterStatus {
+impl Decode<'_> for ParameterStatus {
     fn decode_with(mut buf: Bytes, _: ()) -> Result<Self, Error> {
         let name = buf.get_str_nul()?;
         let value = buf.get_str_nul()?;

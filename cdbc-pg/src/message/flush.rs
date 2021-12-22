@@ -1,4 +1,4 @@
-use cdbc::io::IoEncode;
+use cdbc::io::Encode;
 
 // The Flush message does not cause any specific output to be generated,
 // but forces the backend to deliver any data pending in its output buffers.
@@ -9,7 +9,7 @@ use cdbc::io::IoEncode;
 #[derive(Debug)]
 pub struct Flush;
 
-impl IoEncode<'_> for Flush {
+impl Encode<'_> for Flush {
     fn encode_with(&self, buf: &mut Vec<u8>, _: ()) {
         buf.push(b'H');
         buf.extend(&4_i32.to_be_bytes());

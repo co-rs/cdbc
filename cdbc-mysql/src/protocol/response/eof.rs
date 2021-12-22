@@ -1,7 +1,7 @@
 use bytes::{Buf, Bytes};
 
 use cdbc::error::Error;
-use cdbc::io::IoDecode;
+use cdbc::io::Decode;
 use crate::protocol::response::Status;
 use crate::protocol::Capabilities;
 
@@ -17,7 +17,7 @@ pub struct EofPacket {
     pub status: Status,
 }
 
-impl IoDecode<'_, Capabilities> for EofPacket {
+impl Decode<'_, Capabilities> for EofPacket {
     fn decode_with(mut buf: Bytes, _: Capabilities) -> Result<Self, Error> {
         let header = buf.get_u8();
         if header != 0xfe {

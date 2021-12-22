@@ -1,7 +1,7 @@
 use bytes::{Buf, Bytes};
 
 use cdbc::error::Error;
-use cdbc::io::{BufExt, IoDecode};
+use cdbc::io::{BufExt, Decode};
 
 #[derive(Debug)]
 pub struct Notification {
@@ -10,7 +10,7 @@ pub struct Notification {
     pub(crate) payload: Bytes,
 }
 
-impl IoDecode<'_> for Notification {
+impl Decode<'_> for Notification {
     #[inline]
     fn decode_with(mut buf: Bytes, _: ()) -> Result<Self, Error> {
         let process_id = buf.get_u32();

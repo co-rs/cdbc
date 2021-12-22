@@ -11,5 +11,5 @@ pub use buf_stream::*;
 pub use buf::BufExt;
 pub use buf_mut::BufMutExt;
 pub use buf_stream::BufStream;
-pub use decode::IoDecode;
-pub use encode::IoEncode;
+pub use decode::Decode;
+pub use encode::Encode;

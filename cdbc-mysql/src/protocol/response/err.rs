@@ -1,7 +1,7 @@
 use bytes::{Buf, Bytes};
 
 use cdbc::error::Error;
-use cdbc::io::{BufExt, IoDecode};
+use cdbc::io::{BufExt, Decode};
 use crate::protocol::Capabilities;
 
 // https://dev.mysql.com/doc/dev/mysql-server/8.0.12/page_protocol_basic_err_packet.html
@@ -15,7 +15,7 @@ pub struct ErrPacket {
     pub error_message: String,
 }
 
-impl IoDecode<'_, Capabilities> for ErrPacket {
+impl Decode<'_, Capabilities> for ErrPacket {
     fn decode_with(mut buf: Bytes, capabilities: Capabilities) -> Result<Self, Error> {
         let header = buf.get_u8();
         if header != 0xff {

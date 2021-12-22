@@ -2,7 +2,7 @@ use bytes::buf::Chain;
 use bytes::{Buf, Bytes};
 
 use cdbc::error::Error;
-use cdbc::io::{BufExt, IoDecode};
+use cdbc::io::{BufExt, Decode};
 use crate::protocol::auth::AuthPlugin;
 use crate::protocol::response::Status;
 use crate::protocol::Capabilities;
@@ -22,7 +22,7 @@ pub(crate) struct Handshake {
     pub(crate) auth_plugin_data: Chain<Bytes, Bytes>,
 }
 
-impl IoDecode<'_> for Handshake {
+impl Decode<'_> for Handshake {
     fn decode_with(mut buf: Bytes, _: ()) -> Result<Self, Error> {
         let protocol_version = buf.get_u8(); // int<1>
         let server_version = buf.get_str_nul()?; // string<NUL>

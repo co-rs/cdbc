@@ -4,7 +4,7 @@ use bitflags::bitflags;
 use bytes::{Buf, Bytes};
 
 use cdbc::error::Error;
-use cdbc::io::IoDecode;
+use cdbc::io::Decode;
 use crate::io::MySqlBufExt;
 use crate::protocol::Capabilities;
 
@@ -127,7 +127,7 @@ impl ColumnDefinition {
     }
 }
 
-impl IoDecode<'_, Capabilities> for ColumnDefinition {
+impl Decode<'_, Capabilities> for ColumnDefinition {
     fn decode_with(mut buf: Bytes, _: Capabilities) -> Result<Self, Error> {
         let catalog = buf.get_bytes_lenenc();
         let schema = buf.get_bytes_lenenc();

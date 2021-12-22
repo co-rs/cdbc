@@ -1,7 +1,7 @@
 use bytes::{Buf, Bytes};
 
 use cdbc::error::Error;
-use cdbc::io::{BufExt, IoDecode};
+use cdbc::io::{BufExt, Decode};
 
 #[derive(Debug)]
 pub struct RowDescription {
@@ -36,7 +36,7 @@ pub struct Field {
     pub format: i16,
 }
 
-impl IoDecode<'_> for RowDescription {
+impl Decode<'_> for RowDescription {
     fn decode_with(mut buf: Bytes, _: ()) -> Result<Self, Error> {
         let cnt = buf.get_u16();
         let mut fields = Vec::with_capacity(cnt as usize);

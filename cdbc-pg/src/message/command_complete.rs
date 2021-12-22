@@ -3,7 +3,7 @@ use bytes::Bytes;
 use memchr::memrchr;
 
 use cdbc::error::Error;
-use cdbc::io::IoDecode;
+use cdbc::io::Decode;
 
 #[derive(Debug)]
 pub struct CommandComplete {
@@ -12,7 +12,7 @@ pub struct CommandComplete {
     tag: Bytes,
 }
 
-impl IoDecode<'_> for CommandComplete {
+impl Decode<'_> for CommandComplete {
     #[inline]
     fn decode_with(buf: Bytes, _: ()) -> Result<Self, Error> {
         Ok(CommandComplete { tag: buf })

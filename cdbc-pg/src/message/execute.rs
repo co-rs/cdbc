@@ -1,4 +1,4 @@
-use cdbc::io::IoEncode;
+use cdbc::io::Encode;
 use crate::io::PgBufMutExt;
 
 pub struct Execute {
@@ -10,7 +10,7 @@ pub struct Execute {
     pub limit: u32,
 }
 
-impl IoEncode<'_> for Execute {
+impl Encode<'_> for Execute {
     fn encode_with(&self, buf: &mut Vec<u8>, _: ()) {
         buf.reserve(20);
         buf.push(b'E');

@@ -1,4 +1,4 @@
-use cdbc::io::IoEncode;
+use cdbc::io::Encode;
 use crate::io::PgBufMutExt;
 use crate::PgValueFormat;
 
@@ -32,7 +32,7 @@ pub struct Bind<'a> {
     pub result_formats: &'a [PgValueFormat],
 }
 
-impl IoEncode<'_> for Bind<'_> {
+impl Encode<'_> for Bind<'_> {
     fn encode_with(&self, buf: &mut Vec<u8>, _: ()) {
         buf.push(b'B');
 
