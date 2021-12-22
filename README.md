@@ -11,12 +11,12 @@ Coroutine Database driver Connectivity.based on [may](https://github.com/Xudong-
 
 
 ##### Why cdbc ？
-| Framework | Concurrency     | feature level    | All Smart tips | libc dep     | have proc macro      |
-|-----------|-----------------|-------------|----------------|--------------|----------------------|
-| cdbc      | CSP（may）        | lightweight | √              | only sqlite  | Don't need           |
-| rbatis    | Future（tokio）   | heavyweight | √              | only sqlite  | only py_sql,html_sql |
-| sqlx      | Future（tokio）   | lightweight | x              | only sqlite  | only derive(StructOpt) |
-| diesel    | Native Thread   | lightweight | x              | all use libc | derive(Queryable)  |
+| Framework | Concurrency     | feature level    | All Smart tips | libc dep     | have proc macro      | separation  driver |
+|-----------|-----------------|-------------|----------------|--------------|----------------------|------|
+| cdbc      | CSP（may）        | lightweight | √              | only sqlite  | Don't need           | √    |
+| rbatis    | Future（tokio）   | heavyweight | √              | only sqlite  | only py_sql,html_sql | x    |
+| sqlx      | Future（tokio）   | lightweight | x              | only sqlite  | only derive(StructOpt) | x    |
+| diesel    | Native Thread   | lightweight | x              | all use libc | derive(Queryable)  | x    |
 
 
 ## Database Support:
