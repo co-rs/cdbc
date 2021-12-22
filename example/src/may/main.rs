@@ -6,15 +6,21 @@ use cdbc::Executor;
 use cdbc_sqlite::SqlitePool;
 
 fn main(){
+    let pool = make_sqlite().unwrap();
     //spawn coroutines
-    go!(||{
-      run_sqlite();
+    let copy_pool = pool.clone();
+    go!(move ||{
+      run_sqlite(copy_pool);
+    });
+    let copy_pool2 = pool.clone();
+    go!(move ||{
+      sleep(Duration::from_secs(1));
+      run_sqlite(copy_pool2);
     });
     sleep(Duration::from_secs(3));
 }
 
-fn run_sqlite() -> cdbc::Result<()> {
-    let pool = make_sqlite()?;
+fn run_sqlite(pool:SqlitePool) -> cdbc::Result<()> {
     #[derive(Debug)]
     pub struct BizActivity {
         pub id: Option<String>,
