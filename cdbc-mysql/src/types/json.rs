@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use crate::decode::Decode;
-use crate::encode::{Encode, IsNull};
-use crate::error::BoxDynError;
+use cdbc::decode::Decode;
+use cdbc::encode::{Encode, IsNull};
+use cdbc::error::BoxDynError;
 use crate::protocol::text::ColumnType;
 use crate::{MySql, MySqlTypeInfo, MySqlValueRef};
-use crate::types::{Json, Type};
+use cdbc::types::{Json, Type};
 
 impl<T> Type<MySql> for Json<T> {
     fn type_info() -> MySqlTypeInfo {

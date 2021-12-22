@@ -5,13 +5,13 @@ use byteorder::{ByteOrder, LittleEndian};
 use bytes::Buf;
 use time::{Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
-use crate::decode::Decode;
-use crate::encode::{Encode, IsNull};
-use crate::error::{BoxDynError, UnexpectedNullError};
+use cdbc::decode::Decode;
+use cdbc::encode::{Encode, IsNull};
+use cdbc::error::{BoxDynError, UnexpectedNullError};
 use crate::protocol::text::ColumnType;
 use crate::type_info::MySqlTypeInfo;
 use crate::{MySql, MySqlValueFormat, MySqlValueRef};
-use crate::types::Type;
+use cdbc::types::Type;
 
 impl Type<MySql> for OffsetDateTime {
     fn type_info() -> MySqlTypeInfo {

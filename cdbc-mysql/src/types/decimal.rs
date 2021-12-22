@@ -1,12 +1,12 @@
 use rust_decimal::Decimal;
 
-use crate::decode::Decode;
-use crate::encode::{Encode, IsNull};
-use crate::error::BoxDynError;
+use cdbc::decode::Decode;
+use cdbc::encode::{Encode, IsNull};
+use cdbc::error::BoxDynError;
 use crate::io::MySqlBufMutExt;
 use crate::protocol::text::ColumnType;
 use crate::{MySql, MySqlTypeInfo, MySqlValueRef};
-use crate::types::Type;
+use cdbc::types::Type;
 
 impl Type<MySql> for Decimal {
     fn type_info() -> MySqlTypeInfo {

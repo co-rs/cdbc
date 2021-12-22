@@ -3,6 +3,9 @@
 #[macro_use]
 pub extern crate cdbc;
 
+#[cfg(feature = "bigdecimal")]
+extern crate bigdecimal_ as bigdecimal;
+
 use either::Either;
 use cdbc::executor::{Execute, Executor};
 

@@ -3,13 +3,13 @@ use std::convert::TryFrom;
 use bytes::Buf;
 use chrono::{DateTime, Datelike, Local, NaiveDate, NaiveDateTime, NaiveTime, Timelike, Utc};
 
-use crate::decode::Decode;
-use crate::encode::{Encode, IsNull};
-use crate::error::{BoxDynError, UnexpectedNullError};
+use cdbc::decode::Decode;
+use cdbc::encode::{Encode, IsNull};
+use cdbc::error::{BoxDynError, UnexpectedNullError};
 use crate::protocol::text::ColumnType;
 use crate::type_info::MySqlTypeInfo;
 use crate::{MySql, MySqlValueFormat, MySqlValueRef};
-use crate::types::Type;
+use cdbc::types::Type;
 
 impl Type<MySql> for DateTime<Utc> {
     fn type_info() -> MySqlTypeInfo {
