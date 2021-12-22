@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "example",
+  "example/benchmark",
   "cdbc-mysql",
   "cdbc-pg",
   "cdbc-sqlite",
