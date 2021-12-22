@@ -8,10 +8,10 @@ use may_minihttp::{HttpServer, HttpService, Request, Response};
 use cdbc::executor::Executor;
 use cdbc::pool::Pool;
 use cdbc::PoolOptions;
-use cdbc_sqlite::{Sqlite, SqlitePool};
+use cdbc_mysql::{MySql, MySqlPool};
 
 lazy_static!(
-    pub static ref POOL: Pool<Sqlite> = make_sqlite_pool().unwrap();
+    pub static ref POOL: Pool<MySql> = make_pool().unwrap();
 );
 
 // implement the `HttpService` trait for your service
@@ -49,9 +49,9 @@ impl BizActivity {
 
 impl HttpService for HelloWorld {
     fn call(&mut self, req: Request, resp: &mut Response) -> io::Result<()> {
-        match BizActivity::fetch_one() {
+        match BizActivity::count() {
             Ok(v) => {
-                resp.body_vec(format!("{}",serde_json::to_string(&v).unwrap()).into_bytes());
+                resp.body_vec(v.to_string().into_bytes());
                 Ok(())
             }
             Err(e) => {
@@ -65,20 +65,14 @@ impl HttpService for HelloWorld {
 // start the server in main
 fn main() {
     ///if use ssl,or debug. Release mode doesn't require that much stack memory
-    may::config().set_stack_size(8 * 1024);//8kb
+    may::config().set_workers(32).set_stack_size(2*0x1000);//8kb
     let server = HttpServer(HelloWorld).start("0.0.0.0:8000").unwrap();
     println!("http start on http://127.0.0.1:8000");
     server.join().unwrap();
 }
 
-fn make_sqlite_pool() -> cdbc::Result<SqlitePool> {
-    //first. create sqlite dir/file
-    std::fs::create_dir_all("target/db/");
-    File::create("target/db/sqlite.db");
+fn make_pool() -> cdbc::Result<MySqlPool> {
     //Concurrent reads and writes to SQLite limit set connection number to 1
-    let pool = PoolOptions::<Sqlite>::new().max_connections(1).connect("sqlite://target/db/sqlite.db")?;
-    let mut conn = pool.acquire()?;
-    conn.execute("CREATE TABLE biz_activity(  id string, name string,age int, delete_flag int) ");
-    conn.execute("INSERT INTO biz_activity (id,name,age,delete_flag) values (\"1\",\"1\",1,0)");
+    let pool = MySqlPool::connect("mysql://root:123456@127.0.0.1:3306/test")?;
     Ok(pool)
 }
