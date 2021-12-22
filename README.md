@@ -28,7 +28,8 @@ Coroutine Database driver Connectivity.based on [may](https://github.com/Xudong-
 | sqlx-actix-async-std | 559.00       | 22MB | 2%     |                                                        
 | diesel               | *            |   *   |    *   |                                                             
 
-* see [benchmark](example/benchmark/wrk_result.md)
+* benchmark with wrk(docker run -it --net=host --rm williamyeh/wrk -t12 -c400 -d30s http://192.168.28.235:8000)
+* see detail [benchmark](example/benchmark/wrk_result.md)
 
 
 ## Database Support:
