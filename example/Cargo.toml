@@ -22,6 +22,10 @@ name = "scanrow"
 path = "src/macro_scan.rs"
 
 [[bin]]
+name = "may"
+path = "src/may/main.rs"
+
+[[bin]]
 name = "mayhttp"
 path = "src/http-may/main.rs"
 
