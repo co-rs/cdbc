@@ -21,12 +21,12 @@ Coroutine Database driver Connectivity.based on [may](https://github.com/Xudong-
 
 #### concurrency benchmark performance(Compare the SQLX/Tokio/Async-std)
 
-| crates               | Requests/sec | 
-|----------------------|--------------|
-| cdbc-may             | 4237.31      |
-| sqlx-axum-tokio      | 4104.39      |                                                           
-| sqlx-actix-async-std | 559.00       |                                                         
-| diesel               | *            |                                                              
+| crates               | Requests/sec | SQL             |
+|----------------------|--------------|-----------------|
+| cdbc-may             | 4237.31      | select count(1) |
+| sqlx-axum-tokio      | 4104.39      | select count(1) |                                                          
+| sqlx-actix-async-std | 559.00       | select count(1) |                                                        
+| diesel               | *            | select count(1) |                                                             
 
 * see [benchmark](example/benchmark/wrk_result.md)
 
