@@ -62,6 +62,11 @@ fn main() -> cdbc::Result<()> {
         pub name: Option<String>,
         pub delete_flag: Option<i32>,
     }
+
+    //execute
+    let data = pool.acquire()?.execute("update biz_activity set delete_flag where id = \"1\"")?;
+    println!("{:?}", data.rows_affected());
+    
     //fetch_all
     let query = cdbc::query("select * from biz_activity where id = ?")
         .bind("1");
