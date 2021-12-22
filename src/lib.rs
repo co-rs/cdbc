@@ -46,3 +46,4 @@ pub use encode::*;
 pub use column::*;
 pub use row::*;
 pub use executor::*;
+pub use pool::*;
