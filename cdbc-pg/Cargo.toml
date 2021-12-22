@@ -40,7 +40,7 @@ json = ["serde", "serde_json"]
 
 
 [dependencies]
-cdbc = { version = "0.1.0", path = "../"}
+cdbc = { version = "0.1.1", path = "../"}
 
 atoi = "0.4.0"
 smallvec = "1.4.0"

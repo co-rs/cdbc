@@ -26,7 +26,7 @@ decimal = ["rust_decimal", "num-bigint"]
 json = ["serde", "serde_json"]
 
 [dependencies]
-cdbc = { version = "0.1.0", path = "../"}
+cdbc = { version = "0.1.1", path = "../"}
 
 may = "0.3"
 hashlink = "0.7.0"
