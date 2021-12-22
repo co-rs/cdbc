@@ -10,15 +10,15 @@
 ///
 ///   // fetch one row
 ///    let mut row = conn.fetch_one("select * from biz_activity limit 1")?;
-///    let biz_activity = cdbc::row_scan_struct!(row,BizActivity{id: None,name: None,delete_flag: None})
+///    let biz_activity = cdbc::row_scan!(row,BizActivity{id: None,name: None,delete_flag: None})
 ///
 ///    //fetch row vec
 ///    let mut data = conn.fetch_all("select * from biz_activity;")?;
 ///    for row in data {
-///       let item = cdbc::row_scan_struct!(x,BizActivity{id: None,name: None,delete_flag: None})
+///       let item = cdbc::row_scan!(x,BizActivity{id: None,name: None,delete_flag: None})
 ///    }
 #[macro_export]
-macro_rules! row_scan_struct {
+macro_rules! row_scan {
     ($row:ident,$target:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
         {
             //logic code
@@ -54,14 +54,14 @@ macro_rules! row_scan_struct {
 ///   }
 ///
 ///    let mut rows = conn.fetch_all("select * from biz_activity;")?;
-///    let biz_activitys = cdbc::row_scan_structs!(rows,BizActivity{id: None,name: None,delete_flag: None})
+///    let biz_activitys = cdbc::row_scans!(rows,BizActivity{id: None,name: None,delete_flag: None})
 #[macro_export]
-macro_rules! row_scan_structs {
-   ($rows:ident,$target:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
+macro_rules! row_scans {
+   ($rows:expr,$target:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
         {
            let mut result_datas = vec![];
            for r in $rows{
-             let table = cdbc::row_scan_struct!(r, $target { $($field_name:$field_value,)+})?;
+             let table = cdbc::row_scan!(r, $target { $($field_name:$field_value,)+})?;
              result_datas.push(table);
            }
           cdbc::Result::Ok(result_datas)

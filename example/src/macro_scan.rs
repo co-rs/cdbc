@@ -15,14 +15,14 @@ fn main() -> cdbc::Result<()> {
     let record = {
         let mut conn = pool.acquire()?;
         let row = conn.fetch_one("select * from biz_activity limit 1")?;
-        cdbc::row_scan_struct!(row,BizActivity{id: None,name: None,delete_flag: None})
+        cdbc::row_scan!(row,BizActivity{id: None,name: None,delete_flag: None})
     }?;
     /// fetch  records vec
     println!("record: {}", serde_json::to_string(&record).unwrap());
     let records = {
         let mut conn = pool.acquire()?;
         let row = conn.fetch_all("select * from biz_activity limit 1")?;
-        cdbc::row_scan_structs!(row,BizActivity{id: None,name: None,delete_flag: None})
+        cdbc::row_scans!(row,BizActivity{id: None,name: None,delete_flag: None})
     }?;
     println!("records: {}", serde_json::to_string(&records).unwrap());
     Ok(())

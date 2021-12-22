@@ -62,14 +62,11 @@ fn main() -> cdbc::Result<()> {
         pub name: Option<String>,
         pub delete_flag: Option<i32>,
     }
-    let mut conn = pool.acquire()?;
-    let mut q = cdbc::query("select * from biz_activity where id = ?");
-    q = q.bind("1");
-    let r = conn.fetch_all(q)?;
-    let data = cdbc::row_scan_structs!(r,BizActivity{id:None,name:None,delete_flag:None})?;
+    let data = cdbc::row_scans!(cdbc::query("select * from biz_activity where id = ?")
+        .bind("1").fetch_all(pool)?,BizActivity{id:None,name:None,delete_flag:None})?;
     println!("{:?}", data);
-    let r = conn.fetch_one(q)?;
-    let data = cdbc::row_scan_struct!(r,BizActivity{id:None,name:None,delete_flag:None})?;
+    let data = cdbc::row_scans!(cdbc::query("select * from biz_activity where id = ?")
+        .bind("1").fetch_one(pool)?,BizActivity{id:None,name:None,delete_flag:None})?;
     println!("{:?}", data);
     Ok(())
 }

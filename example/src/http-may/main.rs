@@ -26,12 +26,12 @@ impl BizActivity {
     pub fn fetch_one() -> cdbc::Result<BizActivity> {
         let mut conn = POOL.acquire()?;
         let row = conn.fetch_one("select * from biz_activity limit 1")?;
-        cdbc::row_scan_struct!(row,BizActivity{id: None,name: None,delete_flag: None})
+        cdbc::row_scan!(row,BizActivity{id: None,name: None,delete_flag: None})
     }
     pub fn fetch_all() -> cdbc::Result<Vec<BizActivity>> {
         let mut conn = POOL.acquire()?;
         let row = conn.fetch_all("select * from biz_activity")?;
-        cdbc::row_scan_structs!(row,BizActivity{id: None,name: None,delete_flag: None})
+        cdbc::row_scans!(row,BizActivity{id: None,name: None,delete_flag: None})
     }
     pub fn count() -> cdbc::Result<i64> {
         pub struct BizActivityCount {
@@ -39,7 +39,7 @@ impl BizActivity {
         }
         let mut conn = POOL.acquire()?;
         let row = conn.fetch_one("select count(1) as count from biz_activity")?;
-        let c=cdbc::row_scan_struct!(row,BizActivityCount{count: 0})?;
+        let c=cdbc::row_scan!(row,BizActivityCount{count: 0})?;
         Ok(c.count)
     }
 }
