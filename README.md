@@ -50,51 +50,69 @@ cdbc-sqlite = {version = "*"}
 ```
 * row_scan macro
 ```rust
-pub struct BizActivity {
-    pub id: Option<String>,
-    pub name: Option<String>,
-    pub delete_flag: Option<i32>,
+use std::fs::File;
+use cdbc::Executor;
+use cdbc_sqlite::SqlitePool;
+
+fn main() -> cdbc::Result<()> {
+    let pool = make_sqlite()?;
+    #[derive(Debug)]
+    pub struct BizActivity {
+        pub id: Option<String>,
+        pub name: Option<String>,
+        pub delete_flag: Option<i32>,
+    }
+    let mut conn = pool.acquire()?;
+    let mut q = cdbc::query("select * from biz_activity where id = ?");
+    q = q.bind("1");
+    let r = conn.fetch_all(q)?;
+    let data = cdbc::row_scan_structs!(r,BizActivity{id:None,name:None,delete_flag:None})?;
+    println!("{:?}", data);
+    let r = conn.fetch_one(q)?;
+    let data = cdbc::row_scan_struct!(r,BizActivity{id:None,name:None,delete_flag:None})?;
+    println!("{:?}", data);
+    Ok(())
 }
-let pool = MySqlPool::connect("mysql://root:123456@localhost:3306/test")?;
-let mut conn = pool.acquire()?;
-//fetch one data
-let row = conn.fetch_one("select * from biz_activity limit 1")?;
-let data: BizActivity = cdbc::row_scan_struct!(row,BizActivity{id: None,name: None,delete_flag: None})?;
-//fetch data array
-let rows = conn.fetch_all("select * from biz_activity")?;
-let datas:Vec<BizActivity> = cdbc::row_scan_structs!(rows,BizActivity{id: None,name: None,delete_flag: None})?;
+
+fn make_sqlite() -> cdbc::Result<SqlitePool> {
+    //first. create sqlite dir/file
+    std::fs::create_dir_all("target/db/");
+    File::create("../../../target/db/sqlite.db");
+    //next create table and query result
+    let pool = SqlitePool::connect("sqlite://target/db/sqlite.db")?;
+    let mut conn = pool.acquire()?;
+    conn.execute("CREATE TABLE biz_activity(  id string, name string,age int, delete_flag int) ");
+    conn.execute("INSERT INTO biz_activity (id,name,age,delete_flag) values (\"1\",\"1\",1,0)");
+    Ok(pool)
+}
 ```
 
 * Processing read streams
 > main.rs
 ```rust
-use std::collections::{BTreeMap, HashMap};
-use cdbc::database::Database;
-use cdbc_mysql::{MySql, MySqlPool, MySqlRow};
-use cdbc::column::Column;
-use cdbc::decode::Decode;
-use cdbc::executor::Executor;
-use cdbc::io::chan_stream::{ChanStream, Stream, TryStream};
-use cdbc::query::Query;
-use cdbc::row::Row;
-
-fn main() -> cdbc::Result<()> {
-    let pool = MySqlPool::connect("mysql://root:123456@localhost:3306/test")?;
+use std::collections::BTreeMap;
+use cdbc::{Column, Decode, Executor, Row};
+use cdbc::io::chan_stream::{ChanStream, TryStream};
+use cdbc_sqlite::{Sqlite, SqliteRow};
+use crate::make_sqlite;
+#[test]
+fn test_stream_sqlite() -> cdbc::Result<()> {
+    //first. create sqlite dir/file
+    let pool = make_sqlite().unwrap();
+    //next create table and query result
     let mut conn = pool.acquire()?;
-    loop {
-        let mut data: ChanStream<MySqlRow> = conn.fetch("select * from biz_activity;");
-        data.try_for_each(|item| {
-            let mut m = BTreeMap::new();
-            for column in item.columns() {
-                let v = item.try_get_raw(column.name())?;
-                let r: Option<String> = Decode::<'_, MySql>::decode(v)?;
-                m.insert(column.name().to_string(), r);
-            }
-            println!("{:?}", m);
-            drop(m);
-            Ok(())
-        })?;
-    }
+    let mut data: ChanStream<SqliteRow> = conn.fetch("select * from biz_activity;");
+    data.try_for_each(|item| {
+        let mut m = BTreeMap::new();
+        for column in item.columns() {
+            let v = item.try_get_raw(column.name())?;
+            let r: Option<String> = Decode::<'_, Sqlite>::decode(v)?;
+            m.insert(column.name().to_string(), r);
+        }
+        println!("{:?}", m);
+        drop(m);
+        Ok(())
+    })?;
+    Ok(())
 }
-
 ```

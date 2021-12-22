@@ -41,3 +41,8 @@ pub use error::*;
 pub use query::*;
 pub use query_as::*;
 pub use query_scalar::*;
+pub use decode::*;
+pub use encode::*;
+pub use column::*;
+pub use row::*;
+pub use executor::*;

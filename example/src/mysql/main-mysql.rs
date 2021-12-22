@@ -1,17 +1,35 @@
-use std::collections::{BTreeMap, HashMap};
-use cdbc::database::Database;
-use cdbc_mysql::{MySql, MySqlPool, MySqlRow};
-use cdbc::column::Column;
-use cdbc::decode::Decode;
-use cdbc::executor::Executor;
-use cdbc::io::chan_stream::{ChanStream, Stream, TryStream};
-use cdbc::query::Query;
-use cdbc::row::Row;
+use cdbc::Executor;
+use cdbc_mysql::MySqlPool;
 
 fn main() -> cdbc::Result<()> {
+    #[derive(Debug)]
+    pub struct BizActivity {
+        pub id: Option<String>,
+        pub name: Option<String>,
+        pub delete_flag: Option<i32>,
+    }
     let pool = MySqlPool::connect("mysql://root:123456@localhost:3306/test")?;
     let mut conn = pool.acquire()?;
-    loop {
+    let mut q = cdbc::query::query("select * from biz_activity where id = ?");
+    q = q.bind(1);
+    let r = conn.fetch_one(q)?;
+    let data = cdbc::row_scan_struct!(r,BizActivity{id:None,name:None,delete_flag:None})?;
+    println!("{:?}", data);
+    Ok(())
+}
+
+
+#[cfg(test)]
+mod test {
+    use std::collections::BTreeMap;
+    use cdbc::{Column, Decode, Executor, Row};
+    use cdbc::io::chan_stream::{ChanStream, TryStream};
+    use cdbc_mysql::{MySql, MySqlPool, MySqlRow};
+
+    #[test]
+    fn test_stream_mysql() -> cdbc::Result<()> {
+        let pool = MySqlPool::connect("mysql://root:123456@localhost:3306/test")?;
+        let mut conn = pool.acquire()?;
         let mut data: ChanStream<MySqlRow> = conn.fetch("select * from biz_activity;");
         data.try_for_each(|item| {
             let mut m = BTreeMap::new();
@@ -24,30 +42,6 @@ fn main() -> cdbc::Result<()> {
             drop(m);
             Ok(())
         })?;
-    }
-}
-
-
-#[cfg(test)]
-mod test {
-    use cdbc::executor::Executor;
-    use cdbc_mysql::MySqlPool;
-
-    #[test]
-    fn test_prepare_sql() -> cdbc::Result<()> {
-        #[derive(Debug)]
-        pub struct BizActivity {
-            pub id: Option<String>,
-            pub name: Option<String>,
-            pub delete_flag: Option<i32>,
-        }
-        let pool = MySqlPool::connect("mysql://root:123456@localhost:3306/test")?;
-        let mut conn = pool.acquire()?;
-        let mut q = cdbc::query::query("select * from biz_activity where id = ?");
-        q = q.bind(1);
-        let r = conn.fetch_one(q)?;
-        let data = cdbc::row_scan_struct!(r,BizActivity{id:None,name:None,delete_flag:None})?;
-        println!("{:?}", data);
         Ok(())
     }
 }
