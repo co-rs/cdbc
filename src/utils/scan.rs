@@ -19,7 +19,7 @@
 ///    }
 #[macro_export]
 macro_rules! row_scan {
-    ($row:ident,$target:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
+    ($row:expr,$target:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
         {
             //logic code
         let mut table = {
@@ -29,12 +29,13 @@ macro_rules! row_scan {
                )+
             }
         };
+        let row = $row;
         use cdbc::row::Row;
-        for _column in $row.columns(){
+        for _column in row.columns(){
              use cdbc::row::Row;use cdbc::column::Column;
              $(
                   if stringify!($field_name).trim_start_matches("r#").eq(_column.name()){
-                     let v = $row.try_get_raw(_column.name())?;
+                     let v = row.try_get_raw(_column.name())?;
                      table.$field_name = cdbc::decode::Decode::decode(v)?;
                    }
              )+
