@@ -36,11 +36,7 @@ Coroutine Database driver Connectivity.based on [may](https://github.com/Xudong-
 * fetch_optional： Execute the query and returns at most one row.
 * prepare： Prepare the SQL query to inspect the type information of its parameters and results
 * prepare_with: Prepare the SQL query, with parameter type information, to inspect the type information about its parameters and results.
-```rust
-//prepare
-let mut q = cdbc::query::query("select * from biz_activity where id = ?");
-q = q.bind(1);
-```
+
 ### Supported transaction
 * Pool:       begin(),commit(),rollback()
 * Connection: begin(),commit(),rollback()
