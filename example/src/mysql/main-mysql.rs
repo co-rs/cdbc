@@ -9,8 +9,11 @@ fn main() -> cdbc::Result<()> {
         pub delete_flag: Option<i32>,
     }
     let pool = MySqlPool::connect("mysql://root:123456@localhost:3306/test")?;
-    let data = cdbc::row_scans!(cdbc::query("select * from biz_activity where id = ?")
-        .bind("1").fetch_all(pool)?,BizActivity{id:None,name:None,delete_flag:None})?;
+    let data = cdbc::row_scans!(
+        cdbc::query("select * from biz_activity where id = ?")
+        .bind("1")
+        .fetch_all(pool)?,
+        BizActivity{id:None,name:None,delete_flag:None})?;
     println!("{:?}", data);
     Ok(())
 }
