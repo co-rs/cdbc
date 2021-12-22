@@ -23,7 +23,7 @@ Coroutine Database driver Connectivity.based on [may](https://github.com/Xudong-
 
 | crates               | Requests/sec | Mem  | CpuLoad |
 |----------------------|--------------|------|--------|
-| cdbc-may             | 4237.31      | 28MB | 6%     |
+| cdbc-may-minihttp             | 4237.31      | 28MB | 6%     |
 | sqlx-axum-tokio      | 4104.39      | 17MB | 8%     |                                                          
 | sqlx-actix-async-std | 559.00       | 22MB | 2%     |                                                        
 | diesel               | *            |   *   |    *   |                                                             
