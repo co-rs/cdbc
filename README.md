@@ -19,7 +19,7 @@ Coroutine Database driver Connectivity.based on [may](https://github.com/Xudong-
 | diesel | Native Thread   | lower         | x              | all-libc   | derive(Queryable)  | x    | native thread                                                                               |
 
 
-#### concurrency benchmark(Compare the SQLX)
+#### concurrency benchmark performance(Compare the SQLX)
 
 * see [benchmark](example/benchmark/wrk_result.md)
 
