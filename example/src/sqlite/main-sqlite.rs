@@ -35,7 +35,7 @@ fn main() -> cdbc::Result<()> {
 fn make_sqlite() -> cdbc::Result<SqlitePool> {
     //first. create sqlite dir/file
     std::fs::create_dir_all("target/db/");
-    File::create("target/db/sqlite.db");
+    File::create("../../../target/db/sqlite.db");
     //next create table and query result
     let pool = SqlitePool::connect("sqlite://target/db/sqlite.db")?;
     let mut conn = pool.acquire()?;

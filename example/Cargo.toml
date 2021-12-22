@@ -7,19 +7,19 @@ publish = false
 
 [[bin]]
 name = "mysql"
-path = "src/main-mysql.rs"
+path = "src/mysql/main-mysql.rs"
 
 [[bin]]
 name = "pg"
-path = "src/main-pg.rs"
+path = "src/postgres/main-pg.rs"
 
 [[bin]]
 name = "sqlite"
-path = "src/main-sqlite.rs"
+path = "src/sqlite/main-sqlite.rs"
 
 [[bin]]
 name = "scanrow"
-path = "src/scan_row.rs"
+path = "src/macro_scan.rs"
 
 [[bin]]
 name = "mayhttp"
