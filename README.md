@@ -11,7 +11,7 @@ Coroutine Database driver Connectivity.based on [may](https://github.com/Xudong-
 
 
 ##### Why cdbc ？
-| crates | Concurrency     | feature level | All Smart tips | libc  | have proc macro      | separation  driver | support env/crates                                                                          |
+| crates | Concurrency     | feature level | All Smart tips | ```libc```  | have proc macro      | separation  driver | support env/crates                                                                          |
 |--------|-----------------|---------------|----------------|-----------|----------------------|----------------------|---------------------------------------------------------------------------------------------|
 | cdbc   | CSP（may）        | lower         | √              | only sqlite | Don't need           | √    | ```may```, ```may_future```, ```may-http```, ```native-thread```,```tokio-spawn_blocking``` |
 | rbatis | Future（tokio）   | heavy-weight  | √              | only sqlite | only py_sql,html_sql | x    | tokio, async_std, smol                                                                      |
