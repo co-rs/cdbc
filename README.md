@@ -63,11 +63,10 @@ fn main() -> cdbc::Result<()> {
         pub delete_flag: Option<i32>,
     }
     //fetch_all
-    let data = cdbc::row_scans!(
-        cdbc::query("select * from biz_activity where id = ?")
-        .bind("1")
-        .fetch_all(pool.clone())?,
-        BizActivity{id:None,name:None,delete_flag:None})?;
+    let query = cdbc::query("select * from biz_activity where id = ?")
+        .bind("1");
+    let row = pool.acquire()?.fetch_all(query)?;
+    let data = cdbc::row_scans!(row,BizActivity{id:None,name:None,delete_flag:None})?;
     println!("{:?}", data);
     
     //fetch_one
