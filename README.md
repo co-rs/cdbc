@@ -6,8 +6,18 @@ Coroutine Database driver Connectivity.based on [may](https://github.com/Xudong-
 * Optimize the trait system so that it has intelligent hints of the base method
 * NativeTls and TCP connections are supported
 * Low coupling，The database driver and the abstraction layer are designed separately
-* Lightweight, no over-design, macro with intelligent tips
+* Lightweight, no over-design, only have macro with intelligent tips
 * Inspired by golang, [may](https://github.com/Xudong-Huang/may), sqlx
+
+
+##### Why cdbc ？
+| Framework | Concurrency     | feature level    | All Smart tips | libc dep     | have proc macro      |
+|-----------|-----------------|-------------|----------------|--------------|----------------------|
+| cdbc      | CSP（may）        | lightweight | √              | only sqlite  | Don't need           |
+| rbatis    | Future（tokio）   | heavyweight | √              | only sqlite  | only py_sql,html_sql |
+| sqlx      | Future（tokio）   | lightweight | x              | only sqlite  | only derive(StructOpt) |
+| diesel    | Native Thread   | lightweight | x              | all use libc | derive(Queryable)  |
+
 
 ## Database Support:
 * ```cdbc```         The driver abstraction lib.
