@@ -81,6 +81,12 @@ fn main() -> cdbc::Result<()> {
         .fetch_one(pool)?,
         BizActivity{id:None,name:None,delete_flag:None})?;
     println!("{:?}", data);
+
+    //transaction
+    let mut tx = pool.acquire()?.begin()?;
+    let data=tx.execute("update biz_activity set delete_flag where id = \"1\"")?;
+    println!("{:?}", data.rows_affected());
+    tx.commit()?;
     Ok(())
 }
 
