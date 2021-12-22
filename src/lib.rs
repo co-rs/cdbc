@@ -47,3 +47,4 @@ pub use column::*;
 pub use row::*;
 pub use executor::*;
 pub use pool::*;
+pub use utils::*;
