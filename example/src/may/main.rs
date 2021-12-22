@@ -4,6 +4,7 @@ use std::time::Duration;
 use may::go;
 use cdbc::Executor;
 use cdbc_sqlite::SqlitePool;
+use may::coroutine::Builder;
 
 fn main(){
     let pool = make_sqlite().unwrap();
@@ -13,7 +14,7 @@ fn main(){
       run_sqlite(copy_pool);
     });
     let copy_pool2 = pool.clone();
-    go!(move ||{
+    go!(Builder::new().name("co1".to_string()),move ||{
       sleep(Duration::from_secs(1));
       run_sqlite(copy_pool2);
     });
@@ -21,6 +22,7 @@ fn main(){
 }
 
 fn run_sqlite(pool:SqlitePool) -> cdbc::Result<()> {
+    println!("run on coroutine:{:?}",may::coroutine::current().name());
     #[derive(Debug)]
     pub struct BizActivity {
         pub id: Option<String>,
