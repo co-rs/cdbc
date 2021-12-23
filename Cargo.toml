@@ -13,7 +13,7 @@ version = "0.1.1"
 edition = "2021"
 authors = ["zhuxiujia@qq.com"]
 description = "Rust Coroutine Database Driver Connectivity"
-repository = "https://github.com/rbatis/cdbc"
+repository = "https://github.com/co-rs/cdbc"
 license = "Apache-2.0"
 
 [features]
