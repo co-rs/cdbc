@@ -4,11 +4,12 @@ use crate::statement::StatementHandle;
 use either::Either;
 use std::sync::{Arc, Weak};
 use std::thread;
+use crossbeam_channel::{Sender, Receiver, unbounded};
 
 use crate::connection::ConnectionHandleRef;
 
 use libsqlite3_sys::{sqlite3_reset, sqlite3_step, SQLITE_DONE, SQLITE_ROW};
-use may::sync::mpsc::channel;
+
 
 
 // Each SQLite connection has a dedicated thread.
@@ -18,26 +19,26 @@ use may::sync::mpsc::channel;
 //       unlikely.
 
 pub(crate) struct StatementWorker {
-    tx: may::sync::mpsc::Sender<StatementWorkerCommand>,
+    tx: Sender<StatementWorkerCommand>,
 }
 
 enum StatementWorkerCommand {
     Step {
         statement: Weak<StatementHandle>,
-        tx: may::sync::mpsc::Sender<Result<Either<u64, ()>, Error>>,
+        tx: Sender<Result<Either<u64, ()>, Error>>,
     },
     Reset {
         statement: Weak<StatementHandle>,
-        tx: may::sync::mpsc::Sender<()>,
+        tx: Sender<()>,
     },
     Shutdown {
-        tx: may::sync::mpsc::Sender<()>,
+        tx: Sender<()>,
     },
 }
 
 impl StatementWorker {
     pub(crate) fn new(conn: ConnectionHandleRef) -> Self {
-        let (tx, rx) = channel::<StatementWorkerCommand>();
+        let (tx, rx) = unbounded();
         thread::spawn(move || {
             for cmd in rx {
                 match cmd {
@@ -95,7 +96,7 @@ impl StatementWorker {
         &mut self,
         statement: &Arc<StatementHandle>,
     ) -> Result<Either<u64, ()>, Error> {
-        let (tx, rx) = channel();
+        let (tx, rx) = unbounded();
 
         self.tx
             .send(StatementWorkerCommand::Step {
@@ -123,7 +124,7 @@ impl StatementWorker {
         statement: &Arc<StatementHandle>,
     ) ->  Result<(), Error> {
         // execute the sending eagerly so we don't need to spawn the future
-        let (tx, rx) = channel();
+        let (tx, rx) = unbounded();
 
         let send_res = self
             .tx
@@ -151,7 +152,7 @@ impl StatementWorker {
     /// Subsequent calls to `step()`, `reset()`, or this method will fail with
     /// `WorkerCrashed`. Ensure that any associated statements are dropped first.
     pub(crate) fn shutdown(&mut self) ->  Result<(), Error> {
-        let (tx, rx) = channel();
+        let (tx, rx) = unbounded();
 
         let send_res = self
             .tx
