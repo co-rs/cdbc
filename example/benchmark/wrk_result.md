@@ -27,15 +27,15 @@ Transfer/sec:     41.49KB
 
 # axum-sqlx
 ```
-docker run -it --net=host --rm williamyeh/wrk -t12 -c400 -d30s http://192.168.28.235:8000
+docker run -it --network host --rm williamyeh/wrk -t12 -c400 -d30s http://192.168.28.235:8000
 Running 30s test @ http://192.168.28.235:8000
   12 threads and 400 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    95.96ms    2.89ms 105.49ms   92.63%
-    Req/Sec   344.23     23.56   464.00     81.91%
-  123265 requests in 30.03s, 13.75MB read
-Requests/sec:   4104.39
-Transfer/sec:    468.96KB
+    Latency    97.85ms    3.36ms 110.02ms   88.77%
+    Req/Sec   337.56     20.69   545.00     83.58%
+  120854 requests in 30.03s, 13.48MB read
+Requests/sec:   4024.23
+Transfer/sec:    459.80KB
 ```
 
 
