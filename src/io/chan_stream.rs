@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Display};
 
 use std::sync::mpsc::RecvError;
-use may::sync::mpsc::{Receiver, Sender};
+use cogo::std::channel::{Receiver, Sender};
 use crate::Error;
 use crate::error::Result;
 
@@ -99,14 +99,16 @@ macro_rules! chan_stream {
         ChanStream::new(move |sender| {
             macro_rules! r#yield {
                 ($v:expr) => {{
-                    may::sync::mpsc::Sender::send(&sender,Some(Ok($v)));
+                    //cogo::std::sync::mpsc::Sender::send(&sender,Some(Ok($v)));
+                    sender.send(Some(Ok($v)));
                 }}
             }
 
             ///end loop
             macro_rules! end {
                 () => {{
-                    may::sync::mpsc::Sender::send(&sender,None);
+                   //cogo::std::sync::mpsc::Sender::send(&sender,None);
+                     sender.send(None);
                 }}
             }
 
@@ -118,7 +120,7 @@ macro_rules! chan_stream {
 
 impl<T> ChanStream<T> {
     pub fn new<F>(f: F) -> Self where F: FnOnce(Sender<Option<Result<T>>>)-> Result<()> {
-        let (s, r) = may::sync::mpsc::channel();
+        let (s, r) = cogo::std::sync::mpsc::channel();
         let result=f(s.clone());
         //send none, make sure work is done
         if let Err(e)=result{
@@ -177,7 +179,7 @@ impl<T> ChanStream<T> {
 mod test {
     use std::thread::sleep;
     use std::time::Duration;
-    use may::go;
+    use cogo::go;
     use crate::io::chan_stream::{ChanStream, Stream, TryStream};
 
     #[test]

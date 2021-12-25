@@ -274,6 +274,12 @@ impl From<serde_json::Error> for Error {
     }
 }
 
+impl From<cogo::std::channel::RecvError> for Error{
+    fn from(arg: cogo::std::channel::RecvError) -> Self {
+        Self::Protocol(arg.to_string())
+    }
+}
+
 // Format an error message as a `Protocol` error
 #[macro_export]
 macro_rules! err_protocol {

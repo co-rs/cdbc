@@ -6,7 +6,7 @@ use std::net::Shutdown;
 use std::path::Path;
 
 use std::task::{Context, Poll};
-use may::net::TcpStream;
+use cogo::net::TcpStream;
 
 
 #[derive(Debug)]

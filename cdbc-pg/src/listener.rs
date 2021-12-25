@@ -9,8 +9,9 @@ use either::Either;
 use std::fmt::{self, Debug};
 use std::io;
 use std::str::from_utf8;
-use may::go;
-use may::sync::mpsc;
+use cogo::go;
+use cogo::std::channel::{Receiver, Sender};
+use cogo::std::sync::mpsc;
 use cdbc::io::chan_stream::ChanStream;
 
 /// A stream of asynchronous notifications from Postgres.
@@ -22,8 +23,8 @@ use cdbc::io::chan_stream::ChanStream;
 pub struct PgListener {
     pool: Pool<Postgres>,
     connection: Option<PoolConnection<Postgres>>,
-    buffer_rx: mpsc::Receiver<Notification>,
-    buffer_tx: Option<mpsc::Sender<Notification>>,
+    buffer_rx: Receiver<Notification>,
+    buffer_tx: Option<Sender<Notification>>,
     channels: Vec<String>,
 }
 

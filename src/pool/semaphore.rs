@@ -1,13 +1,13 @@
 use std::sync::Arc;
 use std::sync::atomic::{AtomicI64, AtomicUsize, Ordering};
-use may::sync::{Blocker, Semphore};
+use cogo::std::sync::{Blocker, Semphore};
 use crate::Error;
 use crate::error::Result;
 
 /// permit guard
 pub struct PermitGuard<'a> {
     inner: &'a BoxSemaphore,
-    blocker: Arc<may::sync::Blocker>,
+    blocker: Arc<cogo::std::sync::Blocker>,
 }
 
 impl <'a>PermitGuard<'a>{
@@ -22,7 +22,7 @@ pub struct BoxSemaphore {
     ///permit
     permit: AtomicI64,
     ///wait queue
-    waiters: crossbeam_queue::SegQueue<Arc<may::sync::Blocker>>,
+    waiters: crossbeam_queue::SegQueue<Arc<cogo::std::sync::Blocker>>,
 }
 
 impl BoxSemaphore {
@@ -100,9 +100,9 @@ impl BoxSemaphore {
 mod test {
     use std::sync::Arc;
     use std::time::Duration;
-    use may::coroutine::sleep;
-    use may::go;
-    use may::sync::mpsc::channel;
+    use cogo::coroutine::sleep;
+    use cogo::go;
+    use cogo::std::sync::mpsc::channel;
     use crate::pool::semaphore::{BoxSemaphore};
 
     #[test]
