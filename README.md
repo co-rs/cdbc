@@ -1,5 +1,5 @@
 # cdbc
-Coroutine Database driver Connectivity.based on [may](https://github.com/Xudong-Huang/may)
+Coroutine Database driver Connectivity.based on [cogo](https://github.com/co-rs/cogo)
 
 * High concurrency，based on coroutine
 * No ``` Future<'q,Output=*> ```，No ``` async fn ```, No ```.await ```, no Poll* func，No ```Pin``` 
@@ -7,26 +7,26 @@ Coroutine Database driver Connectivity.based on [may](https://github.com/Xudong-
 * NativeTls and TCP connections are supported
 * Low coupling，The database driver and the abstraction layer are designed separately
 * Lightweight, no over-design, only have macro with intelligent tips
-* Inspired by golang, [may](https://github.com/Xudong-Huang/may), sqlx
+* Inspired by golang, [cogo](https://github.com/co-rs/cogo), sqlx
 
 
 ##### Why cdbc ？
-| crates | Concurrency     | feature level | All Smart tips | ```Libc``` | have proc macro      | separation  driver | support env/crates                                                                          |
-|--------|-----------------|---------------|----------------|------------|----------------------|----------------------|---------------------------------------------------------------------------------------------|
-| cdbc   | CSP（may）        | lower         | √              | only sqlite | Don't need           | √    | ```may```, ```may_future```, ```may-http```, ```native-thread```,```tokio-spawn_blocking``` |
-| rbatis | Future（tokio）   | heavy-weight  | √              | only sqlite | only py_sql,html_sql | x    | tokio, async_std, smol                                                                      |
-| sqlx   | Future（tokio）   | lower         | x              | only sqlite | only derive(StructOpt) | x    | tokio, async_std, smol                                                                      |
-| diesel | Native Thread   | lower         | x              | all-libc   | derive(Queryable)  | x    | native thread                                                                               |
+| crates | Concurrency   | feature level | All Smart tips | ```Libc``` | have proc macro      | separation  driver | support env/crates                                                               |
+|--------|---------------|---------------|----------------|------------|----------------------|----------------------|----------------------------------------------------------------------------------|
+| cdbc   | CSP（cogo）     | lower         | √              | only sqlite | Don't need           | √    | ```cogo```,  ```cogo/std/http```, ```native-thread```,```tokio-spawn_blocking``` |
+| rbatis | Future（tokio） | heavy-weight  | √              | only sqlite | only py_sql,html_sql | x    | tokio, async_std, smol                                                           |
+| sqlx   | Future（tokio） | lower         | x              | only sqlite | only derive(StructOpt) | x    | tokio, async_std, smol                                                           |
+| diesel | Native Thread | lower         | x              | all-libc   | derive(Queryable)  | x    | native thread                                                                    |
 
 
 #### concurrency benchmark performance(Compare the SQLX/Tokio/Async-std)
 
-| crates               | Requests/sec | Mem  | CpuLoad |
-|----------------------|--------------|------|--------|
-| cdbc-may-minihttp             | 4237.31      | 28MB | 6%     |
-| sqlx-axum-tokio      | 4104.39      | 17MB | 8%     |                                                          
+| crates           | Requests/sec | Mem  | CpuLoad |
+|------------------|--------------|------|--------|
+| cdbc-cogo-http   | 4237.31      | 28MB | 6%     |
+| sqlx-axum-tokio  | 4104.39      | 17MB | 8%     |                                                          
 | sqlx-actix-async-std | 559.00       | 22MB | 2%     |                                                        
-| diesel               | *            |   *   |    *   |                                                             
+| diesel           | *            |   *   |    *   |                                                             
 
 * benchmark with wrk(docker run -it --net=host --rm williamyeh/wrk -t12 -c400 -d30s http://192.168.28.235:8000)
 * see detail [benchmark](example/benchmark/wrk_result.md)

@@ -1,10 +1,8 @@
-extern crate may_minihttp;
 #[macro_use]
 extern crate lazy_static;
-
 use std::fs::File;
 use std::io;
-use may_minihttp::{HttpServer, HttpService, Request, Response};
+use cogo::std::http::server::{HttpServer, HttpService, Request, Response};
 use cdbc::executor::Executor;
 use cdbc::pool::Pool;
 use cdbc::PoolOptions;
@@ -65,7 +63,7 @@ impl HttpService for HelloWorld {
 // start the server in main
 fn main() {
     ///if use ssl,or debug. Release mode doesn't require that much stack memory
-    may::config().set_workers(32).set_stack_size(2*0x1000);//8kb
+    may::config().set_stack_size(2*0x1000);//8kb
     //check and init pool
     POOL.acquire().unwrap();
     let server = HttpServer(HelloWorld).start("0.0.0.0:8000").unwrap();

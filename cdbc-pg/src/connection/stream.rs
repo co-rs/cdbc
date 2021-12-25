@@ -3,8 +3,7 @@ use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
 
 use bytes::{Buf, Bytes};
-use may::sync::mpsc::Sender;
-
+use cogo::std::channel::Sender;
 use cdbc::error::Error;
 use cdbc::io::{BufStream, Decode, Encode};
 use cdbc::net::{MaybeTlsStream, Socket};

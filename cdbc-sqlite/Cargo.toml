@@ -22,7 +22,7 @@ all-types = [
 ]
 [dependencies]
 
-may = "0.3"
+cogo = "0.1.0"
 cdbc = { version = "0.1.1", path = "../"}
 serde={version = "1.0.130" ,features = ["derive", "rc"],optional = true}
 serde_json = { version = "1.0.51", features = ["raw_value"], optional = true }

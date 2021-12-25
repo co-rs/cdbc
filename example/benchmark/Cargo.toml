@@ -7,8 +7,8 @@ edition = "2021"
 
 
 [[bin]]
-name = "mayhttp"
-path = "src/may-cdbc.rs"
+name = "cogo-cdbc"
+path = "src/cogo-cdbc.rs"
 [[bin]]
 name = "actix"
 path = "src/actix-web-sqlx.rs"
@@ -17,12 +17,11 @@ name = "axum"
 path = "src/axum-sqlx.rs"
 
 [dependencies]
-may = "0.3"
+cogo = "0.1.0"
 cdbc = {path = "../../"}
 cdbc-mysql = {path = "../../cdbc-mysql"}
 log = "0.4"
 fast_log = "1.4"
-may_minihttp = { git = "https://github.com/Xudong-Huang/may_minihttp.git" }
 lazy_static = "1.4"
 serde = "1.0"
 serde_json = "1.0"

@@ -22,18 +22,18 @@ name = "scanrow"
 path = "src/macro_scan.rs"
 
 [[bin]]
-name = "may"
-path = "src/may/main.rs"
+name = "cogo"
+path = "src/cogo/main.rs"
 
 [[bin]]
-name = "mayhttp"
-path = "src/may-http/main.rs"
+name = "cogohttp"
+path = "src/cogo-http/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 
-may = "0.3"
+cogo = "0.1.0"
 
 cdbc = {path = "../"}
 cdbc-mysql = {path = "../cdbc-mysql"}
@@ -42,8 +42,6 @@ cdbc-sqlite = {path = "../cdbc-sqlite"}
 
 log = "0.4"
 fast_log = "1.4"
-
-may_minihttp = { git = "https://github.com/Xudong-Huang/may_minihttp.git" }
 lazy_static = "1.4"
 serde = "1.0"
 serde_json = "1.0"

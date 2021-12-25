@@ -1,10 +1,10 @@
 use std::fs::File;
-use may::coroutine::sleep;
+use cogo::coroutine::sleep;
 use std::time::Duration;
-use may::go;
+use cogo::go;
 use cdbc::Executor;
 use cdbc_sqlite::{Sqlite, SqlitePool};
-use may::coroutine::Builder;
+use cogo::coroutine::Builder;
 use cdbc::pool::PoolOptions;
 
 fn main(){
@@ -22,7 +22,7 @@ fn main(){
 }
 
 fn run_sqlite(pool:SqlitePool) -> cdbc::Result<()> {
-    println!("run on coroutine:{:?}",may::coroutine::current().name());
+    println!("run on coroutine:{:?}",cogo::coroutine::current().name());
     #[derive(Debug)]
     pub struct BizActivity {
         pub id: Option<String>,

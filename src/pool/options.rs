@@ -7,7 +7,7 @@ use std::cmp;
 use std::fmt::{self, Debug, Formatter};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use may::go;
+use cogo::go;
 
 pub struct PoolOptions<DB: Database> {
     pub test_before_acquire: bool,
