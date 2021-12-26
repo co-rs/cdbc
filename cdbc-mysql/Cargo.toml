@@ -1,6 +1,6 @@
 [package]
 name = "cdbc-mysql"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 authors = ["zhuxiujia@qq.com"]
 description = "Rust Coroutine Database Driver Connectivity"
