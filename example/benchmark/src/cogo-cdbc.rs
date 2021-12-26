@@ -62,9 +62,9 @@ impl HttpService for HelloWorld {
 
 // start the server in main
 fn main() {
-    ///if use ssl,or debug. Release mode doesn't require that much stack memory
-    cogo::config().set_stack_size(2*0x1000);//8kb
-    //check and init pool
+    //if use ssl,or debug. Release mode doesn't require that much stack memory
+    //cogo::config().set_stack_size(2*0x1000);//8kb
+    ///check and init pool
     POOL.acquire().unwrap();
     let server = HttpServer(HelloWorld).start("0.0.0.0:8000").unwrap();
     println!("http start on http://127.0.0.1:8000");
