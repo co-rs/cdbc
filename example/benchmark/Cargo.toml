@@ -17,7 +17,7 @@ name = "axum"
 path = "src/axum-sqlx.rs"
 
 [dependencies]
-cogo = "0.1.0"
+cogo = "0.1.1"
 cdbc = {path = "../../"}
 cdbc-mysql = {path = "../../cdbc-mysql"}
 log = "0.4"

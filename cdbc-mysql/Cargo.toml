@@ -28,7 +28,7 @@ json = ["serde", "serde_json"]
 [dependencies]
 cdbc = { version = "0.1.4", path = "../"}
 
-cogo = "0.1.0"
+cogo = "0.1.1"
 hashlink = "0.7.0"
 thiserror = "1.0.30"
 bytes = '1.0.0'
