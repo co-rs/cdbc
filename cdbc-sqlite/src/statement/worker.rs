@@ -4,7 +4,7 @@ use crate::statement::StatementHandle;
 use either::Either;
 use std::sync::{Arc, Weak};
 use std::thread;
-use crossbeam_channel::{Sender, Receiver, unbounded};
+use cogo::std::channel::{Sender, Receiver, unbounded};
 
 use crate::connection::ConnectionHandleRef;
 
