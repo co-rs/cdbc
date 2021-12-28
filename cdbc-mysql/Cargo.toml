@@ -1,6 +1,6 @@
 [package]
 name = "cdbc-mysql"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 authors = ["zhuxiujia@qq.com"]
 description = "Rust Coroutine Database Driver Connectivity"
@@ -26,7 +26,7 @@ decimal = ["rust_decimal", "num-bigint"]
 json = ["serde", "serde_json"]
 
 [dependencies]
-cdbc = { version = "0.1.4", path = "../"}
+cdbc = { version = "0.1.6", path = "../"}
 
 cogo = "0.1.2"
 hashlink = "0.7.0"
