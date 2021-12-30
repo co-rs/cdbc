@@ -36,6 +36,7 @@ async fn make_pool() -> MySqlPool{
 #[tokio::main]
 async fn main() {
     let pool = Arc::new(make_pool().await);
+    pool.acquire().await;
     // build our application with a route
     let app = Router::new().route("/", get(handler))
         .layer(AddExtensionLayer::new(pool));
