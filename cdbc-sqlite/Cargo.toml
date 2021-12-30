@@ -22,8 +22,8 @@ all-types = [
 ]
 [dependencies]
 
-cogo = "0.1.2"
-cdbc = { version = "0.1.6", path = "../"}
+cogo = "0.1.3"
+cdbc = { version = "0.1.7", path = "../"}
 serde={version = "1.0.130" ,features = ["derive", "rc"],optional = true}
 serde_json = { version = "1.0.51", features = ["raw_value"], optional = true }
 log = { version = "0.4.8", default-features = false }

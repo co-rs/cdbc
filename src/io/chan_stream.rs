@@ -1,7 +1,8 @@
 use std::fmt::{Debug, Display};
 
 use std::sync::mpsc::RecvError;
-use cogo::std::channel::{Receiver, Sender};
+use cogo::std::sync::mpsc::{Receiver, Sender};
+
 use crate::Error;
 use crate::error::Result;
 

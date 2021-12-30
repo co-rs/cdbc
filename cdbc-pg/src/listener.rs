@@ -10,7 +10,7 @@ use std::fmt::{self, Debug};
 use std::io;
 use std::str::from_utf8;
 use cogo::go;
-use cogo::std::channel::{Receiver, Sender};
+use cogo::std::sync::mpsc::{Receiver, Sender};
 use cogo::std::sync::mpsc;
 use cdbc::io::chan_stream::ChanStream;
 

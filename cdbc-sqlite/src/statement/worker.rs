@@ -4,7 +4,7 @@ use crate::statement::StatementHandle;
 use either::Either;
 use std::sync::{Arc, Weak};
 use std::thread;
-use cogo::std::channel::{Sender, Receiver, unbounded};
+use cogo::std::sync::mpsc::{channel, Receiver, Sender};
 
 use crate::connection::ConnectionHandleRef;
 
@@ -38,7 +38,7 @@ enum StatementWorkerCommand {
 
 impl StatementWorker {
     pub(crate) fn new(conn: ConnectionHandleRef) -> Self {
-        let (tx, rx) = unbounded();
+        let (tx, rx) = channel();
         thread::spawn(move || {
             for cmd in rx {
                 match cmd {
@@ -96,7 +96,7 @@ impl StatementWorker {
         &mut self,
         statement: &Arc<StatementHandle>,
     ) -> Result<Either<u64, ()>, Error> {
-        let (tx, rx) = unbounded();
+        let (tx, rx) = channel();
 
         self.tx
             .send(StatementWorkerCommand::Step {
@@ -124,7 +124,7 @@ impl StatementWorker {
         statement: &Arc<StatementHandle>,
     ) ->  Result<(), Error> {
         // execute the sending eagerly so we don't need to spawn the future
-        let (tx, rx) = unbounded();
+        let (tx, rx) = channel();
 
         let send_res = self
             .tx
@@ -152,7 +152,7 @@ impl StatementWorker {
     /// Subsequent calls to `step()`, `reset()`, or this method will fail with
     /// `WorkerCrashed`. Ensure that any associated statements are dropped first.
     pub(crate) fn shutdown(&mut self) ->  Result<(), Error> {
-        let (tx, rx) = unbounded();
+        let (tx, rx) = channel();
 
         let send_res = self
             .tx

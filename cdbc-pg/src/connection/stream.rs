@@ -3,12 +3,12 @@ use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
 
 use bytes::{Buf, Bytes};
-use cogo::std::channel::Sender;
 use cdbc::error::Error;
 use cdbc::io::{BufStream, Decode, Encode};
 use cdbc::net::{MaybeTlsStream, Socket};
 use crate::message::{Message, MessageFormat, Notice, Notification, ParameterStatus};
 use crate::{PgConnectOptions, PgDatabaseError, PgSeverity};
+use cogo::std::sync::mpsc::{Receiver, Sender};
 
 // the stream is a separate type from the connection to uphold the invariant where an instantiated
 // [PgConnection] is a **valid** connection to postgres
