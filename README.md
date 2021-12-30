@@ -23,10 +23,10 @@ Coroutine Database driver Connectivity.based on [cogo](https://github.com/co-rs/
 
 | crates           | Requests/sec | Mem  | CpuLoad |
 |------------------|--------------|------|--------|
-| cdbc-cogo-http   | 4237.31      | 28MB | 6%     |
-| sqlx-axum-tokio  | 4024.23      | 17MB | 8%     |                                                          
+| cdbc-cogo-http   | 4606      | 30MB | 6%     |
+| sqlx-axum-tokio  | 4560      | 17MB | 8%     |                                                          
 | sqlx-actix-async-std | 559.00       | 22MB | 2%     |                                                        
-| diesel           | *            |   *   |    *   |                                                             
+| diesel           | *            | *    |    *   |                                                             
 
 * benchmark with wrk(docker run -it --net=host --rm williamyeh/wrk -t12 -c400 -d30s http://192.168.28.235:8000)
 * see detail [benchmark](example/benchmark/wrk_result.md)

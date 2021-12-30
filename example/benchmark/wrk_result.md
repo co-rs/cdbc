@@ -5,11 +5,11 @@ docker run -it --net=host --rm williamyeh/wrk -t12 -c400 -d30s http://192.168.28
 Running 30s test @ http://192.168.28.235:8000
   12 threads and 400 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   100.56ms   73.30ms 809.01ms   78.81%
-    Req/Sec   355.39     45.43   515.00     71.38%
-  127240 requests in 30.03s, 10.80MB read
-Requests/sec:   4237.31
-Transfer/sec:    368.28KB
+    Latency    92.21ms   66.06ms 708.65ms   80.61%
+    Req/Sec   386.64     48.25   570.00     72.07%
+  138365 requests in 30.03s, 7.92MB read
+Requests/sec:   4606.98
+Transfer/sec:    269.94KB
 ```
 
 # actix-web-sqlx-async-std
@@ -18,11 +18,11 @@ docker run -it --net=host --rm williamyeh/wrk -t12 -c400 -d30s http://192.168.28
 Running 30s test @ http://192.168.28.235:8000
   12 threads and 400 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   694.86ms  117.63ms 946.45ms   79.52%
-    Req/Sec    74.56     60.21   320.00     64.56%
-  16792 requests in 30.04s, 1.22MB read
-Requests/sec:    559.00
-Transfer/sec:     41.49KB
+    Latency    86.35ms    2.30ms  95.54ms   89.08%
+    Req/Sec   382.66     59.97   666.00     78.68%
+  136953 requests in 30.03s, 15.28MB read
+Requests/sec:   4560.69
+Transfer/sec:    521.09KB
 ```
 
 # axum-sqlx
