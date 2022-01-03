@@ -19,7 +19,8 @@ postgres = [
     "rand",
     "hmac",
     "json",
-    "dirs"
+    "dirs",
+    "whoami",
 ]
 # types
 all-types = [
@@ -69,7 +70,7 @@ percent-encoding = "2.1.0"
 url = { version = "2.1.1", default-features = false }
 bitflags = { version = "1.2.1", default-features = false }
 itoa = "0.4.5"
-whoami = "1.0.1"
+whoami = { version = "1.0.1", optional = true }
 hex = "0.4.2"
 chrono = { version = "0.4.11", default-features = false, features = ["clock"], optional = true }
 time = { version = "0.2.16", optional = true }
