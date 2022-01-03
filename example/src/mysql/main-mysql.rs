@@ -10,8 +10,7 @@ fn main() -> cdbc::Result<()> {
     }
     let pool = MySqlPool::connect("mysql://root:123456@localhost:3306/test")?;
     let data = cdbc::row_scans!(
-        cdbc::query("select * from biz_activity where id = ?")
-        .bind("1")
+        cdbc::query("select * from biz_activity limit 1")
         .fetch_all(pool)?,
         BizActivity{id:None,name:None,delete_flag:None})?;
     println!("{:?}", data);

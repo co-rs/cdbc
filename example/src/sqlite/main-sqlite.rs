@@ -11,8 +11,7 @@ fn main() -> cdbc::Result<()> {
         pub delete_flag: Option<i32>,
     }
     let data = cdbc::row_scans!(
-        cdbc::query("select * from biz_activity where id = ?")
-        .bind("1")
+        cdbc::query("select * from biz_activity limit 1")
         .fetch_all(pool.clone())?,
         BizActivity{id:None,name:None,delete_flag:None})?;
     println!("{:?}", data);
