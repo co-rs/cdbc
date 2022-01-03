@@ -88,7 +88,7 @@ pub struct PgConnectOptions {
 
 impl Default for PgConnectOptions {
     fn default() -> Self {
-        Self::new()
+        Self::new_without_pgpass().apply_pgpass()
     }
 }
 
@@ -114,6 +114,10 @@ impl PgConnectOptions {
     /// let options = PgConnectOptions::new();
     /// ```
     pub fn new() -> Self {
+        Self::new_without_pgpass().apply_pgpass()
+    }
+
+    pub fn new_without_pgpass() -> Self {
         let port = var("PGPORT")
             .ok()
             .and_then(|v| v.parse().ok())
@@ -125,16 +129,12 @@ impl PgConnectOptions {
 
         let database = var("PGDATABASE").ok();
 
-        let password = var("PGPASSWORD")
-            .ok()
-            .or_else(|| pgpass::load_password(&host, port, &username, database.as_deref()));
-
         PgConnectOptions {
             port,
             host,
             socket: None,
             username,
-            password,
+            password: var("PGPASSWORD").ok(),
             database,
             ssl_root_cert: var("PGSSLROOTCERT").ok().map(CertificateInput::from),
             ssl_mode: var("PGSSLMODE")
@@ -144,6 +144,19 @@ impl PgConnectOptions {
             statement_cache_capacity: 100,
             application_name: var("PGAPPNAME").ok(),
         }
+    }
+
+    pub(crate) fn apply_pgpass(mut self) -> Self {
+        if self.password.is_none() {
+            self.password = pgpass::load_password(
+                &self.host,
+                self.port,
+                &self.username,
+                self.database.as_deref(),
+            );
+        }
+
+        self
     }
 
     /// Sets the name of the host to connect to.
