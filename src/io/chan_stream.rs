@@ -104,7 +104,12 @@ macro_rules! chan_stream {
                     sender.send(Some(Ok($v)));
                 }}
             }
-
+            macro_rules! err_end {
+                ($v:expr) => {{
+                    sender.send(Some(Err($v)));
+                    sender.send(None);
+                }}
+            }
             ///end loop
             macro_rules! end {
                 () => {{

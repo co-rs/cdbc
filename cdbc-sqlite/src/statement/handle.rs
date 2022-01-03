@@ -14,44 +14,29 @@ use libsqlite3_sys::{
     sqlite3_column_bytes, sqlite3_column_count, sqlite3_column_database_name,
     sqlite3_column_decltype, sqlite3_column_double, sqlite3_column_int, sqlite3_column_int64,
     sqlite3_column_name, sqlite3_column_origin_name, sqlite3_column_table_name,
-    sqlite3_column_type, sqlite3_column_value, sqlite3_db_handle, sqlite3_finalize, sqlite3_sql,
-    sqlite3_stmt, sqlite3_stmt_readonly, sqlite3_table_column_metadata, sqlite3_value,
-    SQLITE_MISUSE, SQLITE_OK, SQLITE_TRANSIENT, SQLITE_UTF8,
+    sqlite3_column_type, sqlite3_column_value, sqlite3_db_handle, sqlite3_finalize, sqlite3_reset,
+    sqlite3_sql, sqlite3_step, sqlite3_stmt, sqlite3_stmt_readonly, sqlite3_table_column_metadata,
+    sqlite3_value, SQLITE_DONE, SQLITE_MISUSE, SQLITE_OK, SQLITE_ROW, SQLITE_TRANSIENT,
+    SQLITE_UTF8,
 };
 
 use cdbc::error::{BoxDynError, Error};
-use crate::connection::ConnectionHandleRef;
 use crate::type_info::DataType;
 use crate::{SqliteError, SqliteTypeInfo};
-use std::ops::Deref;
-use std::sync::Arc;
 
 #[derive(Debug)]
-pub(crate) struct StatementHandle(NonNull<sqlite3_stmt>);
-
-// wrapper for `Arc<StatementHandle>` which also holds a reference to the `ConnectionHandle`
-#[derive(Clone, Debug)]
-pub(crate) struct StatementHandleRef {
-    // NOTE: the ordering of fields here determines the drop order:
-    // https://doc.rust-lang.org/reference/destructors.html#destructors
-    // the statement *must* be dropped before the connection
-    statement: Arc<StatementHandle>,
-    connection: ConnectionHandleRef,
-}
+pub struct StatementHandle(NonNull<sqlite3_stmt>);
 
 // access to SQLite3 statement handles are safe to send and share between threads
 // as long as the `sqlite3_step` call is serialized.
 
 unsafe impl Send for StatementHandle {}
-unsafe impl Sync for StatementHandle {}
 
+// might use some of this later
+#[allow(dead_code)]
 impl StatementHandle {
     pub(super) fn new(ptr: NonNull<sqlite3_stmt>) -> Self {
         Self(ptr)
-    }
-
-    pub(crate) fn as_ptr(&self) -> *mut sqlite3_stmt {
-        self.0.as_ptr()
     }
 
     #[inline]
@@ -61,12 +46,12 @@ impl StatementHandle {
         sqlite3_db_handle(self.0.as_ptr())
     }
 
-    pub(crate) fn read_only(&self) -> bool {
+    pub fn read_only(&self) -> bool {
         // https://sqlite.org/c3ref/stmt_readonly.html
         unsafe { sqlite3_stmt_readonly(self.0.as_ptr()) != 0 }
     }
 
-    pub(crate) fn sql(&self) -> &str {
+    pub fn sql(&self) -> &str {
         // https://sqlite.org/c3ref/expanded_sql.html
         unsafe {
             let raw = sqlite3_sql(self.0.as_ptr());
@@ -77,18 +62,18 @@ impl StatementHandle {
     }
 
     #[inline]
-    pub(crate) fn last_error(&self) -> SqliteError {
+    pub fn last_error(&self) -> SqliteError {
         SqliteError::new(unsafe { self.db_handle() })
     }
 
     #[inline]
-    pub(crate) fn column_count(&self) -> usize {
+    pub fn column_count(&self) -> usize {
         // https://sqlite.org/c3ref/column_count.html
         unsafe { sqlite3_column_count(self.0.as_ptr()) as usize }
     }
 
     #[inline]
-    pub(crate) fn changes(&self) -> u64 {
+    pub fn changes(&self) -> u64 {
         // returns the number of changes of the *last* statement; not
         // necessarily this statement.
         // https://sqlite.org/c3ref/changes.html
@@ -96,7 +81,7 @@ impl StatementHandle {
     }
 
     #[inline]
-    pub(crate) fn column_name(&self, index: usize) -> &str {
+    pub fn column_name(&self, index: usize) -> &str {
         // https://sqlite.org/c3ref/column_name.html
         unsafe {
             let name = sqlite3_column_name(self.0.as_ptr(), index as c_int);
@@ -106,11 +91,11 @@ impl StatementHandle {
         }
     }
 
-    pub(crate) fn column_type_info(&self, index: usize) -> SqliteTypeInfo {
+    pub fn column_type_info(&self, index: usize) -> SqliteTypeInfo {
         SqliteTypeInfo(DataType::from_code(self.column_type(index)))
     }
 
-    pub(crate) fn column_type_info_opt(&self, index: usize) -> Option<SqliteTypeInfo> {
+    pub fn column_type_info_opt(&self, index: usize) -> Option<SqliteTypeInfo> {
         match DataType::from_code(self.column_type(index)) {
             DataType::Null => None,
             dt => Some(SqliteTypeInfo(dt)),
@@ -118,7 +103,7 @@ impl StatementHandle {
     }
 
     #[inline]
-    pub(crate) fn column_decltype(&self, index: usize) -> Option<SqliteTypeInfo> {
+    pub fn column_decltype(&self, index: usize) -> Option<SqliteTypeInfo> {
         unsafe {
             let decl = sqlite3_column_decltype(self.0.as_ptr(), index as c_int);
             if decl.is_null() {
@@ -134,7 +119,7 @@ impl StatementHandle {
         }
     }
 
-    pub(crate) fn column_nullable(&self, index: usize) -> Result<Option<bool>, Error> {
+    pub fn column_nullable(&self, index: usize) -> Result<Option<bool>, Error> {
         unsafe {
             // https://sqlite.org/c3ref/column_database_name.html
             //
@@ -185,7 +170,7 @@ impl StatementHandle {
 
     // Number Of SQL Parameters
     #[inline]
-    pub(crate) fn bind_parameter_count(&self) -> usize {
+    pub fn bind_parameter_count(&self) -> usize {
         // https://www.sqlite.org/c3ref/bind_parameter_count.html
         unsafe { sqlite3_bind_parameter_count(self.0.as_ptr()) as usize }
     }
@@ -193,7 +178,7 @@ impl StatementHandle {
     // Name Of A Host Parameter
     // NOTE: The first host parameter has an index of 1, not 0.
     #[inline]
-    pub(crate) fn bind_parameter_name(&self, index: usize) -> Option<&str> {
+    pub fn bind_parameter_name(&self, index: usize) -> Option<&str> {
         unsafe {
             // https://www.sqlite.org/c3ref/bind_parameter_name.html
             let name = sqlite3_bind_parameter_name(self.0.as_ptr(), index as c_int);
@@ -209,7 +194,7 @@ impl StatementHandle {
     // https://www.sqlite.org/c3ref/bind_blob.html
 
     #[inline]
-    pub(crate) fn bind_blob(&self, index: usize, v: &[u8]) -> c_int {
+    pub fn bind_blob(&self, index: usize, v: &[u8]) -> c_int {
         unsafe {
             sqlite3_bind_blob64(
                 self.0.as_ptr(),
@@ -222,7 +207,7 @@ impl StatementHandle {
     }
 
     #[inline]
-    pub(crate) fn bind_text(&self, index: usize, v: &str) -> c_int {
+    pub fn bind_text(&self, index: usize, v: &str) -> c_int {
         unsafe {
             sqlite3_bind_text64(
                 self.0.as_ptr(),
@@ -236,22 +221,22 @@ impl StatementHandle {
     }
 
     #[inline]
-    pub(crate) fn bind_int(&self, index: usize, v: i32) -> c_int {
+    pub fn bind_int(&self, index: usize, v: i32) -> c_int {
         unsafe { sqlite3_bind_int(self.0.as_ptr(), index as c_int, v as c_int) }
     }
 
     #[inline]
-    pub(crate) fn bind_int64(&self, index: usize, v: i64) -> c_int {
+    pub fn bind_int64(&self, index: usize, v: i64) -> c_int {
         unsafe { sqlite3_bind_int64(self.0.as_ptr(), index as c_int, v) }
     }
 
     #[inline]
-    pub(crate) fn bind_double(&self, index: usize, v: f64) -> c_int {
+    pub fn bind_double(&self, index: usize, v: f64) -> c_int {
         unsafe { sqlite3_bind_double(self.0.as_ptr(), index as c_int, v) }
     }
 
     #[inline]
-    pub(crate) fn bind_null(&self, index: usize) -> c_int {
+    pub fn bind_null(&self, index: usize) -> c_int {
         unsafe { sqlite3_bind_null(self.0.as_ptr(), index as c_int) }
     }
 
@@ -259,31 +244,31 @@ impl StatementHandle {
     // https://www.sqlite.org/c3ref/column_blob.html
 
     #[inline]
-    pub(crate) fn column_type(&self, index: usize) -> c_int {
+    pub fn column_type(&self, index: usize) -> c_int {
         unsafe { sqlite3_column_type(self.0.as_ptr(), index as c_int) }
     }
 
     #[inline]
-    pub(crate) fn column_int(&self, index: usize) -> i32 {
+    pub fn column_int(&self, index: usize) -> i32 {
         unsafe { sqlite3_column_int(self.0.as_ptr(), index as c_int) as i32 }
     }
 
     #[inline]
-    pub(crate) fn column_int64(&self, index: usize) -> i64 {
+    pub fn column_int64(&self, index: usize) -> i64 {
         unsafe { sqlite3_column_int64(self.0.as_ptr(), index as c_int) as i64 }
     }
 
     #[inline]
-    pub(crate) fn column_double(&self, index: usize) -> f64 {
+    pub fn column_double(&self, index: usize) -> f64 {
         unsafe { sqlite3_column_double(self.0.as_ptr(), index as c_int) }
     }
 
     #[inline]
-    pub(crate) fn column_value(&self, index: usize) -> *mut sqlite3_value {
+    pub fn column_value(&self, index: usize) -> *mut sqlite3_value {
         unsafe { sqlite3_column_value(self.0.as_ptr(), index as c_int) }
     }
 
-    pub(crate) fn column_blob(&self, index: usize) -> &[u8] {
+    pub fn column_blob(&self, index: usize) -> &[u8] {
         let index = index as c_int;
         let len = unsafe { sqlite3_column_bytes(self.0.as_ptr(), index) } as usize;
 
@@ -298,21 +283,34 @@ impl StatementHandle {
         unsafe { from_raw_parts(ptr, len) }
     }
 
-    pub(crate) fn column_text(&self, index: usize) -> Result<&str, BoxDynError> {
+    pub fn column_text(&self, index: usize) -> Result<&str, BoxDynError> {
         Ok(from_utf8(self.column_blob(index))?)
     }
 
-    pub(crate) fn clear_bindings(&self) {
+    pub fn clear_bindings(&self) {
         unsafe { sqlite3_clear_bindings(self.0.as_ptr()) };
     }
 
-    pub(crate) fn to_ref(
-        self: &Arc<StatementHandle>,
-        conn: ConnectionHandleRef,
-    ) -> StatementHandleRef {
-        StatementHandleRef {
-            statement: Arc::clone(self),
-            connection: conn,
+    pub fn reset(&mut self) -> Result<(), SqliteError> {
+        // SAFETY: we have exclusive access to the handle
+        unsafe {
+            if sqlite3_reset(self.0.as_ptr()) != SQLITE_OK {
+                return Err(SqliteError::new(self.db_handle()));
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn step(&mut self) -> Result<bool, SqliteError> {
+        // SAFETY: we have exclusive access to the handle
+        unsafe {
+            match sqlite3_step(self.0.as_ptr()) {
+                SQLITE_ROW => Ok(true),
+                SQLITE_DONE => Ok(false),
+                SQLITE_MISUSE => panic!("misuse!"),
+                _ => Err(SqliteError::new(self.db_handle())),
+            }
         }
     }
 }
@@ -333,13 +331,5 @@ impl Drop for StatementHandle {
                 panic!("Detected sqlite3_finalize misuse.");
             }
         }
-    }
-}
-
-impl Deref for StatementHandleRef {
-    type Target = StatementHandle;
-
-    fn deref(&self) -> &Self::Target {
-        &self.statement
     }
 }

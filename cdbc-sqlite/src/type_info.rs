@@ -9,7 +9,7 @@ use cdbc::type_info::TypeInfo;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 #[derive(serde::Serialize, serde::Deserialize)]
-pub(crate) enum DataType {
+pub enum DataType {
     Null,
     Int,
     Float,
@@ -31,7 +31,7 @@ pub(crate) enum DataType {
 /// Type information for a SQLite type.
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[derive(serde::Serialize, serde::Deserialize)]
-pub struct SqliteTypeInfo(pub(crate) DataType);
+pub struct SqliteTypeInfo(pub DataType);
 
 impl Display for SqliteTypeInfo {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -63,7 +63,7 @@ impl TypeInfo for SqliteTypeInfo {
 }
 
 impl DataType {
-    pub(crate) fn from_code(code: c_int) -> Self {
+    pub fn from_code(code: c_int) -> Self {
         match code {
             SQLITE_INTEGER => DataType::Int,
             SQLITE_FLOAT => DataType::Float,

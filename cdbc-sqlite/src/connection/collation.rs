@@ -13,6 +13,7 @@ use cdbc::error::Error;
 use crate::connection::handle::ConnectionHandle;
 use crate::SqliteError;
 
+
 #[derive(Clone)]
 pub struct Collation {
     name: Arc<str>,
@@ -46,7 +47,7 @@ impl Collation {
         }
     }
 
-    pub(crate) fn create(&self, handle: &mut ConnectionHandle) -> Result<(), Error> {
+    pub fn create(&self, handle: &mut ConnectionHandle) -> Result<(), Error> {
         let raw_f = Arc::into_raw(Arc::clone(&self.collate));
         let c_name = CString::new(&*self.name)
             .map_err(|_| err_protocol!("invalid collation name: {:?}", self.name))?;
@@ -80,7 +81,7 @@ impl Debug for Collation {
     }
 }
 
-pub(crate) fn create_collation<F>(
+pub fn create_collation<F>(
     handle: &mut ConnectionHandle,
     name: &str,
     compare: F,

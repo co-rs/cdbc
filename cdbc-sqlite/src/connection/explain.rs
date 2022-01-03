@@ -1,9 +1,11 @@
 use cdbc::error::Error;
-use cdbc::query_as::query_as;
+use cdbc::from_row::FromRow;
+use crate::connection::{execute, ConnectionState};
 use crate::type_info::DataType;
 use crate::{SqliteConnection, SqliteTypeInfo};
 use cdbc::HashMap;
 use std::str::from_utf8;
+
 
 // affinity
 const SQLITE_AFF_NONE: u8 = 0x40; /* '@' */
@@ -98,7 +100,7 @@ fn opcode_to_type(op: &str) -> DataType {
 
 // Opcode Reference: https://sqlite.org/opcode.html
 pub(super) fn explain(
-    conn: &mut SqliteConnection,
+    conn: &mut ConnectionState,
     query: &str,
 ) -> Result<(Vec<SqliteTypeInfo>, Vec<Option<bool>>), Error> {
     // Registers
@@ -111,10 +113,11 @@ pub(super) fn explain(
     // Nullable columns
     let mut n = HashMap::<i64, bool>::with_capacity(6);
 
-    let program =
-        query_as::<_, (i64, String, i64, i64, i64, Vec<u8>)>(&*format!("EXPLAIN {}", query))
-            .fetch_all(&mut *conn)
-            ?;
+    let program: Vec<(i64, String, i64, i64, i64, Vec<u8>)> =
+        execute::iter(conn, &format!("EXPLAIN {}", query), None, false)?
+            .filter_map(|res| res.map(|either| either.right()).transpose())
+            .map(|row| FromRow::from_row(&row?))
+            .collect::<Result<Vec<_>, Error>>()?;
 
     let mut program_i = 0;
     let program_size = program.len();

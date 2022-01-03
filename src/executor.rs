@@ -3,7 +3,7 @@ use crate::describe::Describe;
 use crate::error::Error;
 use either::Either;
 use std::fmt::Debug;
-use crate::{chan_stream};
+use crate::{chan_stream, Pool};
 use crate::io::chan_stream::{ChanStream, Stream, TryStream};
 
 /// A type that contains or can provide a database
@@ -152,6 +152,7 @@ pub trait Executor: Send + Debug + Sized {
         sql: &str,
     ) -> Result<Describe<Self::Database>, Error>;
 }
+
 
 /// A type that may be executed against a database connection.
 ///

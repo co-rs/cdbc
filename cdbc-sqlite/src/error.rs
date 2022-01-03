@@ -18,7 +18,7 @@ pub struct SqliteError {
 }
 
 impl SqliteError {
-    pub(crate) fn new(handle: *mut sqlite3) -> Self {
+    pub fn new(handle: *mut sqlite3) -> Self {
         // returns the extended result code even when extended result codes are disabled
         let code: c_int = unsafe { sqlite3_extended_errcode(handle) };
 

@@ -1,27 +1,29 @@
-use cdbc::describe::Describe;
-use cdbc::error::Error;
-use cdbc::executor::{Execute, Executor};
-use crate::connection::describe::describe;
-use crate::statement::{StatementHandle, VirtualStatement};
-use crate::{
-    Sqlite, SqliteArguments, SqliteConnection, SqliteQueryResult, SqliteRow, SqliteStatement,
-    SqliteTypeInfo,
-};
-use either::Either;
-use libsqlite3_sys::sqlite3_last_insert_rowid;
-use std::borrow::Cow;
-use std::sync::Arc;
-use std::sync::mpsc::RecvError;
-use cogo::std::io::TryStream;
-use cogo::std::sync::mpmc;
 use cogo::std::sync::mpmc::Receiver;
+use either::Either;
 use cdbc::database::{Database, HasStatement};
+use cdbc::{Error, Execute, Executor};
+use cdbc::describe::Describe;
 use cdbc::io::chan_stream::ChanStream;
-use cdbc::utils::statement_cache::StatementCache;
-use crate::connection::executor_mut;
+use crate::{Sqlite, SqliteConnection, SqliteQueryResult, SqliteRow, SqliteStatement, SqliteTypeInfo};
+
+pub(crate) fn sender_to_stream(arg: Receiver<Result<Either<SqliteQueryResult, SqliteRow>, Error>>) -> ChanStream<Either<SqliteQueryResult, SqliteRow>> {
+    ChanStream::new(|s|{
+        loop{
+            match arg.recv(){
+                Ok(v) => {
+                    s.send(Some(v));
+                }
+                Err(e) => {
+                    return Err(Error::from(e.to_string()));
+                }
+            }
+        }
+    })
+}
 
 
-impl Executor for &mut SqliteConnection {
+
+impl Executor for SqliteConnection {
     type Database = Sqlite;
 
     fn fetch_many<'q, E: 'q>(&mut self,
@@ -42,7 +44,7 @@ impl Executor for &mut SqliteConnection {
             return c;
         }
         let s = s.unwrap();
-        executor_mut::sender_to_stream(s)
+        sender_to_stream(s)
     }
 
     fn fetch_optional<'q, E: 'q>(
@@ -58,7 +60,7 @@ impl Executor for &mut SqliteConnection {
         let mut stream = self
             .worker
             .execute(sql, arguments, self.row_channel_size, persistent)?;
-        let mut stream = executor_mut::sender_to_stream(stream);
+        let mut stream = sender_to_stream(stream);
         use crate::cdbc::io::chan_stream::TryStream;
         while let Some(res) = stream.try_next()? {
             if let Either::Right(row) = res {

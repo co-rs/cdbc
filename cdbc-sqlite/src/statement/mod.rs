@@ -1,28 +1,26 @@
 use cdbc::column::ColumnIndex;
 use cdbc::error::Error;
-use cdbc::utils::ustr::UStr;
 use crate::{Sqlite, SqliteArguments, SqliteColumn, SqliteTypeInfo};
 use cdbc::statement::Statement;
 use cdbc::HashMap;
 use either::Either;
 use std::borrow::Cow;
 use std::sync::Arc;
+use cdbc::ustr::UStr;
 
 mod handle;
 mod r#virtual;
-mod worker;
 
-pub(crate) use handle::{StatementHandle, StatementHandleRef};
-pub(crate) use r#virtual::VirtualStatement;
-pub(crate) use worker::StatementWorker;
+pub use handle::StatementHandle;
+pub use r#virtual::VirtualStatement;
 
 #[derive(Debug, Clone)]
 #[allow(clippy::rc_buffer)]
 pub struct SqliteStatement<'q> {
-    pub(crate) sql: Cow<'q, str>,
-    pub(crate) parameters: usize,
-    pub(crate) columns: Arc<Vec<SqliteColumn>>,
-    pub(crate) column_names: Arc<HashMap<UStr, usize>>,
+    pub sql: Cow<'q, str>,
+    pub parameters: usize,
+    pub columns: Arc<Vec<SqliteColumn>>,
+    pub column_names: Arc<HashMap<UStr, usize>>,
 }
 
 impl<'q> Statement<'q> for SqliteStatement<'q> {
@@ -59,5 +57,22 @@ impl ColumnIndex<SqliteStatement<'_>> for &'_ str {
             .get(*self)
             .ok_or_else(|| Error::ColumnNotFound((*self).into()))
             .map(|v| *v)
+    }
+}
+
+#[cfg(feature = "any")]
+impl<'q> From<SqliteStatement<'q>> for crate::any::AnyStatement<'q> {
+    #[inline]
+    fn from(statement: SqliteStatement<'q>) -> Self {
+        crate::any::AnyStatement::<'q> {
+            columns: statement
+                .columns
+                .iter()
+                .map(|col| col.clone().into())
+                .collect(),
+            column_names: statement.column_names,
+            parameters: Some(Either::Right(statement.parameters)),
+            sql: statement.sql,
+        }
     }
 }

@@ -7,7 +7,9 @@ use std::fmt::Display;
 use std::io;
 use std::io::ErrorKind;
 use std::result::Result as StdResult;
-use std::sync::mpsc::RecvError;
+use std::sync::mpsc::{RecvError, SendError};
+use std::sync::PoisonError;
+use cogo::std::sync::mpmc;
 use native_tls::HandshakeError;
 use crate::database::Database;
 use crate::type_info::TypeInfo;
@@ -274,7 +276,17 @@ impl From<serde_json::Error> for Error {
     }
 }
 
+impl <T>From<SendError<T>> for Error{
+    fn from(arg: SendError<T>) -> Self {
+        Self::Protocol(arg.to_string())
+    }
+}
 
+impl <T>From<PoisonError<T>> for Error{
+    fn from(arg: PoisonError<T>) -> Self {
+        Self::Protocol(arg.to_string())
+    }
+}
 
 // Format an error message as a `Protocol` error
 #[macro_export]

@@ -5,9 +5,9 @@ use crate::{Sqlite, SqliteTypeInfo};
 #[derive(Debug, Clone)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct SqliteColumn {
-    pub(crate) name: UStr,
-    pub(crate) ordinal: usize,
-    pub(crate) type_info: SqliteTypeInfo,
+    pub name: UStr,
+    pub ordinal: usize,
+    pub type_info: SqliteTypeInfo,
 }
 
 impl Column for SqliteColumn {
