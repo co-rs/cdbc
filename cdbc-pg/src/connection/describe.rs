@@ -413,7 +413,7 @@ SELECT oid FROM pg_catalog.pg_type WHERE typname ILIKE $1
         stmt_id: u32,
         params_len: usize,
     ) -> Result<Vec<Option<bool>>, Error> {
-        let mut explain = format!("EXPLAIN (VERBOSE, FORMAT JSON) EXECUTE sqlx_s_{}", stmt_id);
+        let mut explain = format!("EXPLAIN (VERBOSE, FORMAT JSON) EXECUTE cdbc_s_{}", stmt_id);
         let mut comma = false;
 
         if params_len > 0 {

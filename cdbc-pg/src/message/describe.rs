@@ -75,7 +75,7 @@ fn test_encode_describe_unnamed_portal() {
 
 #[test]
 fn test_encode_describe_statement() {
-    const EXPECTED: &[u8] = b"D\0\0\0\x0ESsqlx_s_5\0";
+    const EXPECTED: &[u8] = b"D\0\0\0\x0EScdbc_s_5\0";
 
     let mut buf = Vec::new();
     let m = Describe::Statement(5);
