@@ -15,6 +15,7 @@ use std::sync::Arc;
 /// Describes the type of the `pg_type.typtype` column
 ///
 /// See <https://www.postgresql.org/docs/13/catalog-pg-type.html>
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum TypType {
     Base,
     Composite,

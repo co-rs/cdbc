@@ -12,6 +12,7 @@ license = "Apache-2.0"
 default = ["postgres"]
 _tls-native-tls = []
 postgres = [
+    "offline",
     "md-5",
     "sha2",
     "base64",
@@ -38,7 +39,7 @@ ipnetwork = ["libc","ipnetwork_"]
 bigdecimal = ["bigdecimal_", "num-bigint"]
 decimal = ["rust_decimal", "num-bigint"]
 json = ["serde", "serde_json"]
-
+offline = ["json"]
 
 [dependencies]
 cdbc = { version = "0.1.8", path = "../"}
