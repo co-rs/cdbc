@@ -44,7 +44,7 @@ impl SqliteConnection {
         name: &str,
         compare: impl Fn(&str, &str) -> Ordering + Send + Sync + 'static,
     ) -> Result<(), Error> {
-        collation::create_collation(&self.handle, name, compare)
+        collation::create_collation(&mut self.handle, name, compare)
     }
 }
 
