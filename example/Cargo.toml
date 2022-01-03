@@ -33,7 +33,7 @@ path = "src/cogo-http/main.rs"
 
 [dependencies]
 
-cogo = "0.1.3"
+cogo = "0.1"
 
 cdbc = {path = "../"}
 cdbc-mysql = {path = "../cdbc-mysql"}
