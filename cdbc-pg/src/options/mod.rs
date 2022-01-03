@@ -1,4 +1,5 @@
 use std::env::var;
+use std::fmt::Display;
 use std::path::{Path, PathBuf};
 
 mod connect;
@@ -33,6 +34,7 @@ pub use ssl_mode::PgSslMode;
 /// | `password` | `None` | Password to be used if the server demands password authentication. |
 /// | `port` | `5432` | Port number to connect to at the server host, or socket file name extension for Unix-domain connections. |
 /// | `dbname` | `None` | The database name. |
+/// | `options` | `None` | The runtime parameters to send to the server at connection start. |
 ///
 /// The URI scheme designator can be either `postgresql://` or `postgres://`.
 /// Each of the URI parts is optional.
@@ -58,7 +60,7 @@ pub use ssl_mode::PgSslMode;
 /// # #[cfg(feature = "_rt-async-std")]
 /// # sqlx_rt::async_std::task::block_on::<_, Result<(), Error>>(async move {
 /// // URI connection string
-/// let conn = PgConnection::connect("postgres://localhost/mydb")?;
+/// let conn = PgConnection::connect("postgres://localhost/mydb").await?;
 ///
 /// // Manually-constructed options
 /// let conn = PgConnectOptions::new()
@@ -67,23 +69,24 @@ pub use ssl_mode::PgSslMode;
 ///     .username("secret-user")
 ///     .password("secret-password")
 ///     .ssl_mode(PgSslMode::Require)
-///     .connect()?;
+///     .connect().await?;
 /// # Ok(())
 /// # }).unwrap();
 /// # }
 /// ```
 #[derive(Debug, Clone)]
 pub struct PgConnectOptions {
-    pub host: String,
-    pub port: u16,
-    pub socket: Option<PathBuf>,
-    pub username: String,
-    pub password: Option<String>,
-    pub database: Option<String>,
-    pub ssl_mode: PgSslMode,
-    pub ssl_root_cert: Option<CertificateInput>,
-    pub statement_cache_capacity: usize,
-    pub application_name: Option<String>,
+    pub(crate) host: String,
+    pub(crate) port: u16,
+    pub(crate) socket: Option<PathBuf>,
+    pub(crate) username: String,
+    pub(crate) password: Option<String>,
+    pub(crate) database: Option<String>,
+    pub(crate) ssl_mode: PgSslMode,
+    pub(crate) ssl_root_cert: Option<CertificateInput>,
+    pub(crate) statement_cache_capacity: usize,
+    pub(crate) application_name: Option<String>,
+    pub(crate) options: Option<String>,
 }
 
 impl Default for PgConnectOptions {
@@ -143,6 +146,7 @@ impl PgConnectOptions {
                 .unwrap_or_default(),
             statement_cache_capacity: 100,
             application_name: var("PGAPPNAME").ok(),
+            options: var("PGOPTIONS").ok(),
         }
     }
 
@@ -330,9 +334,37 @@ impl PgConnectOptions {
         self
     }
 
+    /// Set additional startup options for the connection as a list of key-value pairs.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use sqlx_core::postgres::PgConnectOptions;
+    /// let options = PgConnectOptions::new()
+    ///     .options([("geqo", "off"), ("statement_timeout", "5min")]);
+    /// ```
+    pub fn options<K, V, I>(mut self, options: I) -> Self
+        where
+            K: Display,
+            V: Display,
+            I: IntoIterator<Item = (K, V)>,
+    {
+        let mut options_str = String::new();
+        for (k, v) in options {
+            options_str += &format!("-c {}={}", k, v);
+        }
+        if let Some(ref mut v) = self.options {
+            v.push(' ');
+            v.push_str(&options_str);
+        } else {
+            self.options = Some(options_str);
+        }
+        self
+    }
+
     /// We try using a socket if hostname starts with `/` or if socket parameter
     /// is specified.
-    pub fn fetch_socket(&self) -> Option<String> {
+    pub(crate) fn fetch_socket(&self) -> Option<String> {
         match self.socket {
             Some(ref socket) => {
                 let full_path = format!("{}/.s.PGSQL.{}", socket.display(), self.port);

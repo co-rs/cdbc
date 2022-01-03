@@ -85,6 +85,21 @@ impl FromStr for PgConnectOptions {
 
                 "application_name" => options = options.application_name(&*value),
 
+                "options" => {
+                    if let Some(options) = options.options.as_mut() {
+                        options.push(' ');
+                        options.push_str(&*value);
+                    } else {
+                        options.options = Some(value.to_string());
+                    }
+                }
+
+                k if k.starts_with("options[") => {
+                    if let Some(key) = k.strip_prefix("options[").unwrap().strip_suffix(']') {
+                        options = options.options([(key, &*value)]);
+                    }
+                }
+
                 _ => log::warn!("ignoring unrecognized connect parameter: {}={}", key, value),
             }
         }
