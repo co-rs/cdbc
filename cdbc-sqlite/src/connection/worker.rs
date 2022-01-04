@@ -3,8 +3,8 @@ use std::future::Future;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::thread;
+use cogo::chan;
 use cogo::std::sync::mpmc::Sender;
-use cogo::std::sync::mpsc::channel;
 use cogo::std::sync::{mpmc, Mutex, MutexGuard};
 
 use either::Either;
@@ -82,12 +82,12 @@ enum Command {
 
 impl ConnectionWorker {
     pub fn establish(params: EstablishParams) -> Result<Self, Error> {
-        let (establish_tx, establish_rx) = channel();
+        let (establish_tx, establish_rx) = chan!();
 
         thread::Builder::new()
             .name(params.thread_name.clone())
             .spawn(move || {
-                let (command_tx, command_rx) = cogo::std::sync::mpmc::bounded(params.command_channel_size);
+                let (command_tx, command_rx) = chan!(params.command_channel_size);
 
                 let conn = match params.establish() {
                     Ok(conn) => conn,
@@ -257,7 +257,7 @@ impl ConnectionWorker {
         chan_size: usize,
         persistent: bool,
     ) -> Result<mpmc::Receiver<Result<Either<SqliteQueryResult, SqliteRow>, Error>>, Error> {
-        let (tx, rx) = mpmc::bounded(chan_size);
+        let (tx, rx) = chan!(chan_size);
         self.command_tx
             .send(Command::Execute {
                 query: query.into(),
@@ -296,7 +296,7 @@ impl ConnectionWorker {
         where
             F: FnOnce(Sender<T>) -> Command,
     {
-        let (tx, rx) = mpmc::channel::<T>();
+        let (tx, rx) = chan!();
 
         self.command_tx
             .send(command(tx))
@@ -337,7 +337,7 @@ impl ConnectionWorker {
     ///
     /// A `WorkerCrashed` error may be returned if the thread has already stopped.
     pub fn shutdown(&mut self) -> Result<(), Error> {
-        let (tx, rx) = mpmc::channel();
+        let (tx, rx) = chan!();
 
         let send_res = self
             .command_tx

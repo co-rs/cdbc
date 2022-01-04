@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Display};
 
 use std::sync::mpsc::RecvError;
+use cogo::chan;
 use cogo::std::sync::mpsc::{Receiver, Sender};
 
 use crate::Error;
@@ -126,7 +127,7 @@ macro_rules! chan_stream {
 
 impl<T> ChanStream<T> {
     pub fn new<F>(f: F) -> Self where F: FnOnce(Sender<Option<Result<T>>>)-> Result<()> {
-        let (s, r) = cogo::std::sync::mpsc::channel();
+        let (s, r) = chan!();
         let result=f(s.clone());
         //send none, make sure work is done
         if let Err(e)=result{

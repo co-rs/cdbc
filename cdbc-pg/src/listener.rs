@@ -9,7 +9,7 @@ use either::Either;
 use std::fmt::{self, Debug};
 use std::io;
 use std::str::from_utf8;
-use cogo::go;
+use cogo::{chan, go};
 use cogo::std::sync::mpsc::{Receiver, Sender};
 use cogo::std::sync::mpsc;
 use cdbc::io::chan_stream::ChanStream;
@@ -50,7 +50,7 @@ impl PgListener {
         let mut connection = pool.acquire()?;
 
         // Setup a notification buffer
-        let (sender, receiver) = mpsc::channel();
+        let (sender, receiver) = chan!();
         connection.stream.notifications = Some(sender);
 
         Ok(Self {

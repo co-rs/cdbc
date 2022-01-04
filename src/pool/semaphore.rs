@@ -101,8 +101,7 @@ mod test {
     use std::sync::Arc;
     use std::time::Duration;
     use cogo::coroutine::sleep;
-    use cogo::go;
-    use cogo::std::sync::mpsc::channel;
+    use cogo::{chan, go};
     use crate::pool::semaphore::{BoxSemaphore};
 
     #[test]
@@ -175,7 +174,7 @@ mod test {
     #[test]
     fn test_acq_mult() {
         let total = 1000;
-        let (s, r) = channel();
+        let (s, r) = chan!();
         let b = Arc::new(BoxSemaphore::new(10));
         for idx in 0..total {
             let s1 = s.clone();
