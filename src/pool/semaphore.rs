@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use std::sync::atomic::{AtomicI64, AtomicUsize, Ordering};
+use cogo::std::queue::seg_queue::SegQueue;
 use cogo::std::sync::{Blocker, Semphore};
 use crate::Error;
 use crate::error::Result;
@@ -22,7 +23,7 @@ pub struct BoxSemaphore {
     ///permit
     permit: AtomicI64,
     ///wait queue
-    waiters: crossbeam_queue::SegQueue<Arc<cogo::std::sync::Blocker>>,
+    waiters: SegQueue<Arc<cogo::std::sync::Blocker>>,
 }
 
 impl BoxSemaphore {
@@ -30,7 +31,7 @@ impl BoxSemaphore {
         Self {
             total: size as i64,
             permit: AtomicI64::new(size as i64),
-            waiters: crossbeam_queue::SegQueue::new(),
+            waiters: SegQueue::new(),
         }
     }
 
