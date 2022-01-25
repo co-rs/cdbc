@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io;
+use std::ops::Deref;
 use cogo::std::http::server::{HttpServer, HttpService, Request, Response};
 use cogo::std::lazy::sync::Lazy;
 use cdbc::executor::Executor;
@@ -63,8 +64,10 @@ impl HttpService for HelloWorld {
 // start the server in main
 fn main() {
     //if use ssl,or debug. Release mode doesn't require that much stack memory
-    cogo::config().set_stack_size(2*0x1000);//8kb
+    //cogo::config().set_stack_size(2*0x1000);//8kb
+
     //check and init pool
+    POOL.deref();
     let server = HttpServer(HelloWorld).start("0.0.0.0:8000").unwrap();
     println!("http start on http://127.0.0.1:8000");
     server.join().unwrap();
