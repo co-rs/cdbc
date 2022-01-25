@@ -7,12 +7,12 @@ use std::time::Duration;
 impl ConnectOptions for MySqlConnectOptions {
     type Connection = MySqlConnection;
 
-    fn connect(&self) -> Result<Self::Connection, Error>
+    fn connect(&self,d:Duration) -> Result<Self::Connection, Error>
     where
         Self::Connection: Sized,
     {
 
-            let mut conn = MySqlConnection::establish(self)?;
+            let mut conn = MySqlConnection::establish(self,d)?;
 
             // After the connection is established, we initialize by configuring a few
             // connection parameters

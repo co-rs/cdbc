@@ -13,8 +13,8 @@ use crate::{PgConnectOptions, PgConnection};
 // https://www.postgresql.org/docs/current/protocol-flow.html#id-1.10.5.7.11
 
 impl PgConnection {
-    pub(crate) fn establish(options: &PgConnectOptions) -> Result<Self, Error> {
-        let mut stream = PgStream::connect(options)?;
+    pub(crate) fn establish(options: &PgConnectOptions, d: std::time::Duration) -> Result<Self, Error> {
+        let mut stream = PgStream::connect(options, d)?;
 
         // Upgrade to TLS if we were asked to and the server supports it
         tls::maybe_upgrade(&mut stream, options)?;
@@ -130,7 +130,7 @@ impl PgConnection {
                     return Err(err_protocol!(
                         "establish: unexpected message: {:?}",
                         message.format
-                    ))
+                    ));
                 }
             }
         }

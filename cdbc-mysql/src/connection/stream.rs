@@ -3,6 +3,7 @@ use std::io;
 use std::ops::{Deref, DerefMut};
 
 use bytes::{Buf, Bytes};
+use std::time::Duration;
 
 use cdbc::error::Error;
 use cdbc::io::{BufStream, Decode, Encode};
@@ -33,15 +34,15 @@ pub(crate) enum Waiting {
 }
 
 
-impl IsTLS for MySqlStream{
+impl IsTLS for MySqlStream {
     #[inline]
-    fn is_tls(&self) -> bool{
+    fn is_tls(&self) -> bool {
         self.stream.is_tls()
     }
 }
 
 impl MySqlStream {
-    pub(super) fn connect(options: &MySqlConnectOptions) -> Result<Self, Error> {
+    pub(super) fn connect(options: &MySqlConnectOptions, d: Duration) -> Result<Self, Error> {
         let charset: CharSet = options.charset.parse()?;
         let collation: Collation = options
             .collation
@@ -54,7 +55,7 @@ impl MySqlStream {
         //     Some(ref path) => Socket::connect_uds(path)?,
         //     None => Socket::connect_tcp(&options.host, options.port)?,
         // };
-        let socket = Socket::connect_tcp(&options.host, options.port)?;
+        let socket = Socket::connect_tcp_timeout(&options.host, options.port, d)?;
 
         let mut capabilities = Capabilities::PROTOCOL_41
             | Capabilities::IGNORE_SPACE
@@ -124,8 +125,8 @@ impl MySqlStream {
     }
 
     pub(crate) fn send_packet<'en, T>(&mut self, payload: T) -> Result<(), Error>
-    where
-        T: Encode<'en, Capabilities>,
+        where
+            T: Encode<'en, Capabilities>,
     {
         self.sequence_id = 0;
         self.write_packet(payload);
@@ -133,8 +134,8 @@ impl MySqlStream {
     }
 
     pub(crate) fn write_packet<'en, T>(&mut self, payload: T)
-    where
-        T: Encode<'en, Capabilities>,
+        where
+            T: Encode<'en, Capabilities>,
     {
         self.stream
             .write_with(Packet(payload), (self.capabilities, &mut self.sequence_id));
@@ -172,8 +173,8 @@ impl MySqlStream {
     }
 
     pub(crate) fn recv<'de, T>(&mut self) -> Result<T, Error>
-    where
-        T: Decode<'de, Capabilities>,
+        where
+            T: Decode<'de, Capabilities>,
     {
         self.recv_packet()?.decode_with(self.capabilities)
     }
@@ -202,7 +203,7 @@ impl MySqlStream {
         Ok(())
     }
 
-    pub fn shutdown(&mut self) ->io::Result<()>{
+    pub fn shutdown(&mut self) -> io::Result<()> {
         self.stream.shutdown()
     }
 }

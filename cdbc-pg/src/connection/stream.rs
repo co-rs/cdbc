@@ -33,8 +33,8 @@ pub struct PgStream {
 }
 
 impl PgStream {
-    pub fn connect(options: &PgConnectOptions) -> Result<Self, Error> {
-        let socket = Socket::connect_tcp(&options.host, options.port)?;
+    pub fn connect(options: &PgConnectOptions, d: std::time::Duration) -> Result<Self, Error> {
+        let socket = Socket::connect_tcp_timeout(&options.host, options.port, d)?;
 
         let inner = BufStream::new(MaybeTlsStream::Raw(socket));
 
@@ -47,8 +47,8 @@ impl PgStream {
     }
 
     pub(crate) fn send<'en, T>(&mut self, message: T) -> Result<(), Error>
-    where
-        T: Encode<'en>,
+        where
+            T: Encode<'en>,
     {
         self.write(message);
         self.flush()

@@ -8,7 +8,7 @@ use std::fmt::Write;
 impl ConnectOptions for SqliteConnectOptions {
     type Connection = SqliteConnection;
 
-    fn connect(&self) -> Result<Self::Connection, Error>
+    fn connect(&self,d:Duration) -> Result<Self::Connection, Error>
         where
             Self::Connection: Sized,
     {

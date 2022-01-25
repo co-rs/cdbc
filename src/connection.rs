@@ -114,7 +114,7 @@ pub trait Connection: Send+Executor {
         where
             Self: Sized,
     {
-        options.connect()
+        options.connect(Duration::from_secs(10 * 60))
     }
 }
 
@@ -122,7 +122,7 @@ pub trait ConnectOptions: 'static + Send + Sync + FromStr<Err = Error> + Debug {
     type Connection: Connection + ?Sized;
 
     /// Establish a new database connection with the options specified by `self`.
-    fn connect(&self) -> Result<Self::Connection, Error>
+    fn connect(&self,d:Duration) -> Result<Self::Connection, Error>
         where
             Self::Connection: Sized;
 }

@@ -1,3 +1,4 @@
+use std::time::Duration;
 use bytes::buf::Buf;
 use bytes::Bytes;
 
@@ -11,8 +12,8 @@ use crate::protocol::Capabilities;
 use crate::{MySqlConnectOptions, MySqlConnection, MySqlSslMode};
 
 impl MySqlConnection {
-    pub(crate) fn establish(options: &MySqlConnectOptions) -> Result<Self, Error> {
-        let mut stream: MySqlStream = MySqlStream::connect(options)?;
+    pub(crate) fn establish(options: &MySqlConnectOptions, d: Duration) -> Result<Self, Error> {
+        let mut stream: MySqlStream = MySqlStream::connect(options, d)?;
 
         // https://dev.mysql.com/doc/dev/mysql-server/8.0.12/page_protocol_connection_phase.html
         // https://mariadb.com/kb/en/connection/
@@ -114,7 +115,7 @@ impl MySqlConnection {
                             break;
                         }
 
-                    // plugin signaled to continue authentication
+                        // plugin signaled to continue authentication
                     } else {
                         return Err(err_protocol!(
                             "unexpected packet 0x{:02x} during authentication",

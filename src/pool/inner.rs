@@ -225,7 +225,7 @@ impl<DB: Database> SharedPool<DB> {
 
             // result here is `Result<Result<C, Error>, TimeoutError>`
             // if this block does not return, sleep for the backoff timeout and try again
-            match self.connect_options.connect() {
+            match self.connect_options.connect(timeout) {
                 // successfully established connection
                 Ok(mut raw) => {
                     if let Some(callback) = &self.options.after_connect {
