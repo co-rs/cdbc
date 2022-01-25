@@ -1,17 +1,16 @@
-#[macro_use]
-extern crate lazy_static;
-
 use std::fs::File;
 use std::io;
 use cogo::std::http::server::{HttpServer, HttpService, Request, Response};
+use cogo::std::lazy::sync::Lazy;
 use cdbc::executor::Executor;
 use cdbc::pool::Pool;
 use cdbc::PoolOptions;
 use cdbc_mysql::{MySql, MySqlPool};
 
-lazy_static!(
-    pub static ref POOL: Pool<MySql> = make_pool().unwrap();
-);
+pub static  POOL:Lazy<Pool<MySql>>= Lazy::new(||{
+     make_pool().unwrap()
+});
+
 
 // implement the `HttpService` trait for your service
 #[derive(Clone)]
@@ -64,10 +63,10 @@ impl HttpService for HelloWorld {
 // start the server in main
 fn main() {
     //if use ssl,or debug. Release mode doesn't require that much stack memory
-    //cogo::config().set_stack_size(2*0x1000);//8kb
+    cogo::config().set_stack_size(2*0x1000);//8kb
     //check and init pool
-    POOL.acquire().unwrap();
     let server = HttpServer(HelloWorld).start("0.0.0.0:8000").unwrap();
+    POOL.acquire().unwrap();
     println!("http start on http://127.0.0.1:8000");
     server.join().unwrap();
 }
