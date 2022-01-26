@@ -2,7 +2,7 @@ use std::fmt::{Debug, Display};
 
 use std::sync::mpsc::RecvError;
 use cogo::chan;
-use cogo::std::sync::mpsc::{Receiver, Sender};
+use cogo::std::sync::channel::{Receiver, Sender};
 
 use crate::Error;
 use crate::error::Result;
@@ -101,7 +101,7 @@ macro_rules! chan_stream {
         ChanStream::new(move |sender| {
             macro_rules! r#yield {
                 ($v:expr) => {{
-                    //cogo::std::sync::mpsc::Sender::send(&sender,Some(Ok($v)));
+                    //cogo::std::sync::channel::Sender::send(&sender,Some(Ok($v)));
                     sender.send(Some(Ok($v)));
                 }}
             }
@@ -114,7 +114,7 @@ macro_rules! chan_stream {
             ///end loop
             macro_rules! end {
                 () => {{
-                   //cogo::std::sync::mpsc::Sender::send(&sender,None);
+                   //cogo::std::sync::channel::Sender::send(&sender,None);
                      sender.send(None);
                 }}
             }

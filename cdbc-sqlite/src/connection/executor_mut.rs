@@ -1,4 +1,4 @@
-use cogo::std::sync::mpmc::Receiver;
+use cogo::std::sync::channel::Receiver;
 use either::Either;
 use cdbc::database::{Database, HasStatement};
 use cdbc::{Error, Execute, Executor};

@@ -10,8 +10,8 @@ use std::fmt::{self, Debug};
 use std::io;
 use std::str::from_utf8;
 use cogo::{chan, go};
-use cogo::std::sync::mpsc::{Receiver, Sender};
-use cogo::std::sync::mpsc;
+use cogo::std::sync::channel::{Receiver, Sender};
+use cogo::std::sync::channel;
 use cdbc::io::chan_stream::ChanStream;
 
 /// A stream of asynchronous notifications from Postgres.

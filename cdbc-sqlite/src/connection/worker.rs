@@ -4,8 +4,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::thread;
 use cogo::chan;
-use cogo::std::sync::mpmc::Sender;
-use cogo::std::sync::{mpmc, Mutex, MutexGuard};
+use cogo::std::sync::channel::Sender;
+use cogo::std::sync::{channel, Mutex, MutexGuard};
 
 use either::Either;
 use cdbc::describe::Describe;
@@ -256,7 +256,7 @@ impl ConnectionWorker {
         args: Option<SqliteArguments<'_>>,
         chan_size: usize,
         persistent: bool,
-    ) -> Result<mpmc::Receiver<Result<Either<SqliteQueryResult, SqliteRow>, Error>>, Error> {
+    ) -> Result<channel::Receiver<Result<Either<SqliteQueryResult, SqliteRow>, Error>>, Error> {
         let (tx, rx) = chan!(chan_size);
         self.command_tx
             .send(Command::Execute {
