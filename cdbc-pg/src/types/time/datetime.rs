@@ -8,7 +8,9 @@ use crate::{
 use cdbc::types::Type;
 use std::borrow::Cow;
 use std::mem;
-use time::{offset, Duration, OffsetDateTime, PrimitiveDateTime};
+
+use time::{Duration, OffsetDateTime, PrimitiveDateTime, UtcOffset};
+
 
 impl Type<Postgres> for PrimitiveDateTime {
     fn type_info() -> PgTypeInfo {
@@ -83,8 +85,8 @@ impl<'r> Decode<'r, Postgres> for PrimitiveDateTime {
                 } else {
                     Cow::Borrowed(s)
                 };
-
-                PrimitiveDateTime::parse(&*s, "%Y-%m-%d %H:%M:%S.%N")?
+                let format = time::format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second].[subsecond]")?;
+                PrimitiveDateTime::parse(&*s, &format)?
             }
         })
     }
@@ -92,7 +94,7 @@ impl<'r> Decode<'r, Postgres> for PrimitiveDateTime {
 
 impl Encode<'_, Postgres> for OffsetDateTime {
     fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> IsNull {
-        let utc = self.to_offset(offset!(UTC));
+        let utc = self.to_offset(UtcOffset::UTC);
         let primitive = PrimitiveDateTime::new(utc.date(), utc.time());
 
         Encode::<Postgres>::encode(&primitive, buf)
@@ -106,5 +108,24 @@ impl Encode<'_, Postgres> for OffsetDateTime {
 impl<'r> Decode<'r, Postgres> for OffsetDateTime {
     fn decode(value: PgValueRef<'r>) -> Result<Self, BoxDynError> {
         Ok(<PrimitiveDateTime as Decode<Postgres>>::decode(value)?.assume_utc())
+    }
+}
+
+
+impl Type<Postgres> for cogo::std::time::time::Time{
+    fn type_info() -> PgTypeInfo {
+        PgTypeInfo::TIMESTAMPTZ
+    }
+}
+
+impl Encode<'_, Postgres> for cogo::std::time::time::Time {
+    fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> IsNull {
+        self.inner.encode_by_ref(buf)
+    }
+}
+
+impl<'r> Decode<'r, Postgres> for cogo::std::time::time::Time {
+    fn decode(value: PgValueRef<'r>) -> Result<Self, BoxDynError> {
+        Ok(cogo::std::time::time::Time{ inner: OffsetDateTime::decode(value)? })
     }
 }

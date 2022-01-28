@@ -288,6 +288,12 @@ impl <T>From<PoisonError<T>> for Error{
     }
 }
 
+impl From<cogo::std::errors::Error> for Error {
+    fn from(arg: cogo::std::errors::Error) -> Self {
+        Self::Protocol(arg.to_string())
+    }
+}
+
 // Format an error message as a `Protocol` error
 #[macro_export]
 macro_rules! err_protocol {

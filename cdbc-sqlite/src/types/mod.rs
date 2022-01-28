@@ -55,3 +55,5 @@ mod str;
 mod uint;
 #[cfg(feature = "uuid")]
 mod uuid;
+
+mod time;

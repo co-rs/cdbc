@@ -87,7 +87,7 @@ impl<'r> Decode<'r, MySql> for Time {
                 // are 0 then the length is 0 and no further data is send
                 // https://dev.mysql.com/doc/internals/en/binary-protocol-value.html
                 if len == 0 {
-                    return Ok(Time::try_from_hms_micro(0, 0, 0, 0).unwrap());
+                    return Ok(Time::from_hms(0,0,0).unwrap());
                 }
 
                 // is negative : int<1>
@@ -113,8 +113,8 @@ impl<'r> Decode<'r, MySql> for Time {
                 } else {
                     Cow::Borrowed(s)
                 };
-
-                Time::parse(&*s, "%H:%M:%S.%N").map_err(Into::into)
+                let format = time::format_description::parse("[hour]:[minute]:[second]")?;
+                Time::parse(&*s as &str, &format).map_err(Into::into)
             }
         }
     }
@@ -148,7 +148,8 @@ impl<'r> Decode<'r, MySql> for Date {
             }
             MySqlValueFormat::Text => {
                 let s = value.as_str()?;
-                Date::parse(s, "%Y-%m-%d").map_err(Into::into)
+                let format = time::format_description::parse("[year]-[month]-[day]")?;
+                Date::parse(s, &format).map_err(Into::into)
             }
         }
     }
@@ -224,8 +225,8 @@ impl<'r> Decode<'r, MySql> for PrimitiveDateTime {
                 } else {
                     Cow::Borrowed(s)
                 };
-
-                PrimitiveDateTime::parse(&*s, "%Y-%m-%d %H:%M:%S.%N").map_err(Into::into)
+                let format = time::format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second].[subsecond]")?;
+                PrimitiveDateTime::parse(&*s, &format).map_err(Into::into)
             }
         }
     }
@@ -237,7 +238,7 @@ fn encode_date(date: &Date, buf: &mut Vec<u8>) {
         .unwrap_or_else(|_| panic!("Date out of range for Mysql: {}", date));
 
     buf.extend_from_slice(&year.to_le_bytes());
-    buf.push(date.month());
+    buf.push(date.month() as i32 as u8);
     buf.push(date.day());
 }
 
@@ -247,9 +248,9 @@ fn decode_date(buf: &[u8]) -> Result<Option<Date>, BoxDynError> {
         return Ok(None);
     }
 
-    Date::try_from_ymd(
+    Date::from_calendar_date(
         LittleEndian::read_u16(buf) as i32,
-        buf[2] as u8,
+         time::Month::try_from(buf[2] as u8).unwrap(),
         buf[3] as u8,
     )
     .map_err(Into::into)
@@ -278,6 +279,29 @@ fn decode_time(len: u8, mut buf: &[u8]) -> Result<Time, BoxDynError> {
         0
     };
 
-    Time::try_from_hms_micro(hour, minute, seconds, micros as u32)
+    Time::from_hms_micro(hour, minute, seconds, micros as u32)
         .map_err(|e| format!("Time out of range for MySQL: {}", e).into())
+}
+
+
+impl Type<MySql> for cogo::std::time::time::Time{
+    fn type_info() -> MySqlTypeInfo {
+        MySqlTypeInfo::binary(ColumnType::Timestamp)
+    }
+
+    fn compatible(ty: &MySqlTypeInfo) -> bool {
+        matches!(ty.r#type, ColumnType::Datetime | ColumnType::Timestamp)
+    }
+}
+
+impl Encode<'_, MySql> for cogo::std::time::time::Time {
+    fn encode_by_ref(&self, buf: &mut Vec<u8>) -> IsNull {
+        self.inner.encode_by_ref(buf)
+    }
+}
+
+impl<'r> Decode<'r, MySql> for cogo::std::time::time::Time {
+    fn decode(value: MySqlValueRef<'r>) -> Result<Self, BoxDynError> {
+        Ok(cogo::std::time::time::Time{ inner: OffsetDateTime::decode(value)? })
+    }
 }

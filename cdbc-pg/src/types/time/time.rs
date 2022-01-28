@@ -24,7 +24,7 @@ impl PgHasArrayType for Time {
 impl Encode<'_, Postgres> for Time {
     fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> IsNull {
         // TIME is encoded as the microseconds since midnight
-        let us = (*self - Time::midnight()).whole_microseconds() as i64;
+        let us = (*self - Time::from_hms(0,0,0).unwrap()).whole_microseconds() as i64;
         Encode::<Postgres>::encode(&us, buf)
     }
 
@@ -39,7 +39,7 @@ impl<'r> Decode<'r, Postgres> for Time {
             PgValueFormat::Binary => {
                 // TIME is encoded as the microseconds since midnight
                 let us = Decode::<Postgres>::decode(value)?;
-                Time::midnight() + Duration::microseconds(us)
+                Time::from_hms(0,0,0).unwrap() + Duration::microseconds(us)
             }
 
             PgValueFormat::Text => {
@@ -55,8 +55,8 @@ impl<'r> Decode<'r, Postgres> for Time {
                 } else {
                     Cow::Borrowed(s)
                 };
-
-                Time::parse(&*s, "%H:%M:%S.%N")?
+                let format = time::format_description::parse("[hour]:[minute]:[second].[subsecond]")?;
+                Time::parse(&*s as &str, &format)?
             }
         })
     }
