@@ -42,7 +42,7 @@ json = ["serde", "serde_json"]
 offline = ["json"]
 
 [dependencies]
-cdbc = { version = "0.1.9", path = "../"}
+cdbc = { version = "0.1.11", path = "../"}
 
 atoi = "0.4.0"
 smallvec = "1.4.0"
