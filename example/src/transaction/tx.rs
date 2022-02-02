@@ -7,7 +7,7 @@ use cdbc_sqlite::SqlitePool;
 fn main() -> cdbc::Result<()> {
     let pool = make_sqlite()?;
     let mut tx = pool.begin()?;
-    let r = tx.execute("select count(1) from biz_activity limit 1")?;
+    let r = tx.execute("update biz_activity set name = '2'")?;
     println!("rows_affected: {}", r.rows_affected());
     tx.commit()?;
     Ok(())

@@ -14,7 +14,7 @@ pub(crate) fn sender_to_stream(arg: Receiver<Result<Either<SqliteQueryResult, Sq
                     s.send(Some(v));
                 }
                 Err(e) => {
-                    return Err(Error::from(e.to_string()));
+                    return Ok(());
                 }
             }
         }

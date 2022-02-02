@@ -233,7 +233,9 @@ impl ConnectionWorker {
                 }
             })?;
 
-        establish_rx.recv().map_err(|e| Error::WorkerCrashed(e.to_string()))?
+        establish_rx.recv().map_err(|e| {
+            Error::WorkerCrashed(e.to_string())
+        })?
     }
 
     pub fn prepare(&mut self, query: &str) -> Result<SqliteStatement<'static>, Error> {
@@ -302,7 +304,9 @@ impl ConnectionWorker {
             .send(command(tx))
             .map_err(|e| Error::WorkerCrashed(e.to_string()))?;
 
-        rx.recv().map_err(|e| Error::WorkerCrashed(e.to_string()))
+        rx.recv().map_err(|e| {
+            Error::WorkerCrashed(e.to_string())
+        })
     }
 
     pub fn create_collation(
@@ -345,7 +349,9 @@ impl ConnectionWorker {
             .map_err(|e| Error::WorkerCrashed(e.to_string()))?;
 
         // wait for the response
-        rx.recv().map_err(|e| Error::WorkerCrashed(e.to_string()))
+        rx.recv().map_err(|e| {
+            Error::WorkerCrashed(e.to_string())
+        })
     }
 }
 
