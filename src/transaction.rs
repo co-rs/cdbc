@@ -75,7 +75,7 @@ where
     }
 
     /// Commits this transaction or savepoint.
-    pub fn commit(mut self) -> Result<(), Error> {
+    pub fn commit(&mut self) -> Result<(), Error> {
         DB::TransactionManager::commit(&mut self.connection)?;
         self.open = false;
 
@@ -83,7 +83,7 @@ where
     }
 
     /// Aborts this transaction or savepoint.
-    pub fn rollback(mut self) -> Result<(), Error> {
+    pub fn rollback(&mut self) -> Result<(), Error> {
         DB::TransactionManager::rollback(&mut self.connection)?;
         self.open = false;
 
