@@ -16,7 +16,7 @@ fn main() -> cdbc::Result<()> {
     let mut tx = conn.begin()?;
     let r = tx.execute("select count(1) from biz_activity limit 1")?;
     println!("rows_affected: {}", r.rows_affected());
-    tx.commit();
+    tx.commit()?;
     Ok(())
 }
 
