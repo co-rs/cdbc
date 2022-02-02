@@ -95,6 +95,10 @@ impl<'c, DB> Transaction<'c, DB>
 
         Ok(())
     }
+
+    pub fn is_done(&self) -> bool{
+        !self.open
+    }
 }
 
 impl<'c, DB> Debug for Transaction<'c, DB>
