@@ -8,13 +8,20 @@ use cdbc_sqlite::SqlitePool;
 fn main() -> cdbc::Result<()> {
     let pool = make_sqlite()?;
     let mut tx = RefCell::new(pool.begin()?);
-    // Defer was able to guarantee that even the following code panic would commit
+
     defer!(||{
+       // Defer was able to guarantee that even the following code panic would commit
        if !tx.borrow().is_done(){
            tx.borrow_mut().commit();
-           println!("tx committed");
+           println!("----------tx committed-----------");
         }
     });
+
+    // //change this to true,also the tx will be committed
+    // if true{
+    //     panic!("oh it is panic!");
+    // }
+
     let r = tx.borrow_mut().execute("update biz_activity set name = '2'")?;
     println!("rows_affected: {}", r.rows_affected());
     Ok(())
