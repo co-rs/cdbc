@@ -6,12 +6,6 @@ use cdbc_sqlite::SqlitePool;
 
 fn main() -> cdbc::Result<()> {
     let pool = make_sqlite()?;
-    #[derive(Debug)]
-    pub struct BizActivity {
-        pub id: Option<String>,
-        pub name: Option<String>,
-        pub delete_flag: Option<i32>,
-    }
     let mut tx = pool.begin()?;
     let r = tx.execute("select count(1) from biz_activity limit 1")?;
     println!("rows_affected: {}", r.rows_affected());
