@@ -29,6 +29,9 @@ path = "src/cogo/main.rs"
 name = "cogohttp"
 path = "src/cogo-http/main.rs"
 
+[[bin]]
+name = "tx"
+path = "src/transaction/tx.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
