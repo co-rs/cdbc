@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::fs::File;
 use cogo::defer;
 use cdbc::connection::Connection;
@@ -6,10 +7,16 @@ use cdbc_sqlite::SqlitePool;
 
 fn main() -> cdbc::Result<()> {
     let pool = make_sqlite()?;
-    let mut tx = pool.begin()?;
-    let r = tx.execute("update biz_activity set name = '2'")?;
+    let mut tx = RefCell::new(pool.begin()?);
+    // Defer was able to guarantee that even the following code panic would commit
+    defer!(||{
+       if !tx.borrow().is_done(){
+           tx.borrow_mut().commit();
+           println!("tx committed");
+        }
+    });
+    let r = tx.borrow_mut().execute("update biz_activity set name = '2'")?;
     println!("rows_affected: {}", r.rows_affected());
-    tx.commit()?;
     Ok(())
 }
 
