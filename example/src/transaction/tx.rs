@@ -12,8 +12,7 @@ fn main() -> cdbc::Result<()> {
         pub name: Option<String>,
         pub delete_flag: Option<i32>,
     }
-    let mut conn = pool.acquire()?;
-    let mut tx = conn.begin()?;
+    let mut tx = pool.begin()?;
     let r = tx.execute("select count(1) from biz_activity limit 1")?;
     println!("rows_affected: {}", r.rows_affected());
     tx.commit()?;
