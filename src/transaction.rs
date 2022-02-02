@@ -27,7 +27,7 @@ pub trait TransactionManager {
     /// Abort the active transaction or restore from the most recent savepoint.
     fn rollback(
         conn: &mut <Self::Database as Database>::Connection,
-    ) ->  Result<(), Error>;
+    ) -> Result<(), Error>;
 
     /// Starts to abort the active transaction or restore from the most recent snapshot.
     fn start_rollback(conn: &mut <Self::Database as Database>::Connection);
@@ -50,32 +50,35 @@ pub trait TransactionManager {
 /// [`commit`]: Self::commit()
 /// [`rollback`]: Self::rollback()
 pub struct Transaction<'c, DB>
-where
-    DB: Database,
+    where
+        DB: Database,
 {
     connection: MaybePoolConnection<'c, DB>,
     open: bool,
 }
 
 impl<'c, DB> Transaction<'c, DB>
-where
-    DB: Database,
+    where
+        DB: Database,
 {
     pub fn begin(
         conn: impl Into<MaybePoolConnection<'c, DB>>,
-    ) ->  Result<Self, Error> {
+    ) -> Result<Self, Error> {
         let mut conn = conn.into();
 
-            DB::TransactionManager::begin(&mut conn)?;
+        DB::TransactionManager::begin(&mut conn)?;
 
-            Ok(Self {
-                connection: conn,
-                open: true,
-            })
+        Ok(Self {
+            connection: conn,
+            open: true,
+        })
     }
 
     /// Commits this transaction or savepoint.
     pub fn commit(&mut self) -> Result<(), Error> {
+        if self.open == false {
+            return Ok(());
+        }
         DB::TransactionManager::commit(&mut self.connection)?;
         self.open = false;
 
@@ -84,6 +87,9 @@ where
 
     /// Aborts this transaction or savepoint.
     pub fn rollback(&mut self) -> Result<(), Error> {
+        if self.open == false {
+            return Ok(());
+        }
         DB::TransactionManager::rollback(&mut self.connection)?;
         self.open = false;
 
@@ -92,8 +98,8 @@ where
 }
 
 impl<'c, DB> Debug for Transaction<'c, DB>
-where
-    DB: Database,
+    where
+        DB: Database,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         // TODO: Show the full type <..<..<..
@@ -102,8 +108,8 @@ where
 }
 
 impl<'c, DB> Deref for Transaction<'c, DB>
-where
-    DB: Database,
+    where
+        DB: Database,
 {
     type Target = DB::Connection;
 
@@ -114,8 +120,8 @@ where
 }
 
 impl<'c, DB> DerefMut for Transaction<'c, DB>
-where
-    DB: Database,
+    where
+        DB: Database,
 {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -124,8 +130,8 @@ where
 }
 
 impl<'c, DB> Drop for Transaction<'c, DB>
-where
-    DB: Database,
+    where
+        DB: Database,
 {
     fn drop(&mut self) {
         if self.open {
