@@ -1,23 +1,14 @@
+#[deny(unused_variables)]
+extern crate cogo_http;
+
 use std::fs::File;
-use std::io;
 use std::ops::Deref;
-use cogo::std::http::server::{HttpServer, HttpService, Request, Response};
+use cdbc::Executor;
+use cdbc_sqlite::SqlitePool;
 use cogo::std::lazy::sync::Lazy;
-use cdbc::executor::Executor;
-use cdbc::pool::Pool;
-use cdbc::PoolOptions;
-use cdbc_mysql::{MySql, MySqlPool};
+use cogo_http::server::{Request, Response};
 
-pub static  POOL:Lazy<Pool<MySql>>= Lazy::new(||{
-     make_pool().unwrap()
-});
-
-
-// implement the `HttpService` trait for your service
-#[derive(Clone)]
-struct HelloWorld;
-
-#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug,serde::Serialize,serde::Deserialize)]
 pub struct BizActivity {
     pub id: Option<String>,
     pub name: Option<String>,
@@ -25,56 +16,40 @@ pub struct BizActivity {
 }
 
 impl BizActivity {
-    pub fn fetch_one() -> cdbc::Result<BizActivity> {
-        let mut conn = POOL.acquire()?;
-        let row = conn.fetch_one("select * from biz_activity limit 1")?;
-        cdbc::row_scan!(row,BizActivity{id: None,name: None,delete_flag: None})
-    }
-    pub fn fetch_all() -> cdbc::Result<Vec<BizActivity>> {
-        let mut conn = POOL.acquire()?;
-        let row = conn.fetch_all("select * from biz_activity")?;
-        cdbc::row_scans!(row,BizActivity{id: None,name: None,delete_flag: None})
-    }
-    pub fn count() -> cdbc::Result<i64> {
-        pub struct BizActivityCount {
-            pub count: i64,
-        }
-        let mut conn = POOL.acquire()?;
-        let row = conn.fetch_one("select count(1) as count from biz_activity")?;
-        let c=cdbc::row_scan!(row,BizActivityCount{count: 0})?;
-        Ok(c.count)
+    pub fn find_all() -> cdbc::Result<Vec<Self>> {
+        let data = cdbc::row_scans!(
+        cdbc::query("select * from biz_activity limit 1")
+        .fetch_all(&*Pool)?,
+        BizActivity{id:None,name:None,delete_flag:None})?;
+        Ok(data)
     }
 }
 
-impl HttpService for HelloWorld {
-    fn call(&mut self, req: Request, resp: &mut Response) -> io::Result<()> {
-        match BizActivity::count() {
-            Ok(v) => {
-                resp.body_vec(v.to_string().into_bytes());
-                Ok(())
-            }
-            Err(e) => {
-                resp.body_vec(e.to_string().into_bytes());
-                Ok(())
-            }
-        }
-    }
+
+fn hello(req: Request, res: Response) {
+    let records = BizActivity::find_all().unwrap();
+    res.send(serde_json::json!(records).to_string().as_bytes());
 }
 
-// start the server in main
 fn main() {
-    //if use ssl,or debug. Release mode doesn't require that much stack memory
-    //cogo::config().set_stack_size(2*0x1000);//8kb
-
-    //check and init pool
-    POOL.deref();
-    let server = HttpServer(HelloWorld).start("0.0.0.0:8000").unwrap();
-    println!("http start on http://127.0.0.1:8000");
-    server.join().unwrap();
+    //or use  fast_log::init_log();
+    let _listening = cogo_http::Server::http("0.0.0.0:3000").unwrap()
+        .handle(hello);
+    println!("Listening on http://127.0.0.1:3000");
 }
 
-fn make_pool() -> cdbc::Result<MySqlPool> {
-    //Concurrent reads and writes to SQLite limit set connection number to 1
-    let pool = MySqlPool::connect("mysql://root:123456@127.0.0.1:3306/test")?;
+
+pub static Pool: Lazy<SqlitePool> = Lazy::new(|| { make_sqlite().unwrap() });
+
+fn make_sqlite() -> cdbc::Result<SqlitePool> {
+    //first. create sqlite dir/file
+    std::fs::create_dir_all("target/db/");
+    File::create("target/db/sqlite.db");
+    //next create table and query result
+    let pool = SqlitePool::connect("sqlite://target/db/sqlite.db")?;
+    let mut conn = pool.acquire()?;
+    conn.execute("CREATE TABLE biz_activity(  id string, name string,age int, delete_flag int) ");
+    conn.execute("INSERT INTO biz_activity (id,name,age,delete_flag) values (\"1\",\"1\",1,0)");
     Ok(pool)
 }
+

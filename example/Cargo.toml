@@ -38,6 +38,8 @@ path = "src/transaction/tx.rs"
 
 cogo = "0.1"
 
+cogo-http = "0.1"
+
 cdbc = { path = "../" }
 cdbc-mysql = { path = "../cdbc-mysql" }
 cdbc-pg = { path = "../cdbc-pg" }
