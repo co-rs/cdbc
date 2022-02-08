@@ -47,6 +47,10 @@ fn upgrade(stream: &mut MySqlStream, options: &MySqlConnectOptions) -> Result<bo
     );
     let accept_invalid_host_names = !matches!(options.ssl_mode, MySqlSslMode::VerifyIdentity);
 
+    if !cfg!(feature = "native-tls")  {
+        return Result::Err(Error::from("must enable native-tls!"));
+    }
+    #[cfg(feature = "native-tls")]
     stream
         .upgrade(
             &options.host,

@@ -1,6 +1,6 @@
 [package]
 name = "cdbc-mysql"
-version = "0.1.12"
+version = "0.1.13"
 edition = "2021"
 authors = ["zhuxiujia@qq.com"]
 description = "Rust Coroutine Database Driver Connectivity"
@@ -8,7 +8,7 @@ repository = "https://github.com/co-rs/cdbc"
 license = "Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
-default = ["offline","time"]
+default = ["cdbc","offline", "time"]
 offline = ["serde", "either/serde"]
 _tls-native-tls = []
 
@@ -25,29 +25,30 @@ bigdecimal = ["bigdecimal_", "num-bigint"]
 decimal = ["rust_decimal", "num-bigint"]
 json = ["serde", "serde_json"]
 
+native-tls = ["cdbc/native-tls"]
+
 [dependencies]
-cdbc = { version = "0.1.12", path = "../"}
+cdbc = { version = "0.1.13", path = "../", optional = true }
 
 cogo = "0.1"
 hashlink = "0.7.0"
 thiserror = "1.0.30"
 bytes = '1.0.0'
 memchr = "2.3.4"
-serde={version = "1.0.130" ,optional = true}
+serde = { version = "1.0.130", optional = true }
 log = { version = "0.4.8", default-features = false }
 
 either = "1.5.3"
 bstr = { version = "0.2.14", default-features = false, features = ["std"] }
-native-tls = {version ="0.2"}
-generic-array = {version ="^0.14.4",features = ["serde"]}
-rand = {version = "0.8.4",features = ["std","serde"]}
-rsa = {version = "0.5.0",features = ["std","serde","serde_crate"]}
-sha-1 = {version = "0.9.0", default-features = false}
-sha2 = {version = "0.9.0", default-features = false}
-base64 = {version="0.13.0",features = ["std"]}
-digest = {version = "0.9.0"}
+generic-array = { version = "^0.14.4", features = ["serde"] }
+rand = { version = "0.8.4", features = ["std", "serde"] }
+rsa = { version = "0.5.0", features = ["std", "serde", "serde_crate"] }
+sha-1 = { version = "0.9.0", default-features = false }
+sha2 = { version = "0.9.0", default-features = false }
+base64 = { version = "0.13.0", features = ["std"] }
+digest = { version = "0.9.0" }
 smallvec = "1.7.0"
-byteorder = { version = "1.3.4",  features = ["std"] }
+byteorder = { version = "1.3.4", features = ["std"] }
 ahash = "0.7.2"
 percent-encoding = "2.1.0"
 url = { version = "2.1.1" }

@@ -10,7 +10,6 @@ use std::result::Result as StdResult;
 use std::sync::mpsc::{RecvError, SendError};
 use std::sync::PoisonError;
 use cogo::std::sync::channel;
-use native_tls::HandshakeError;
 use crate::database::Database;
 use crate::type_info::TypeInfo;
 use crate::types::Type;

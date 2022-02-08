@@ -65,8 +65,11 @@ fn upgrade(stream: &mut PgStream, options: &PgConnectOptions) -> Result<bool, Er
     );
     let accept_invalid_hostnames = !matches!(options.ssl_mode, PgSslMode::VerifyFull);
 
-    stream
-        .upgrade(
+    if !cfg!(feature = "native-tls")  {
+        return cdbc::Result::Err(Error::from("must enable native-tls!"));
+    }
+    #[cfg(feature = "native-tls")]
+    stream.upgrade(
             &options.host,
             accept_invalid_certs,
             accept_invalid_hostnames,

@@ -9,7 +9,6 @@ use std::task::{Context, Poll};
 
 use crate::error::Error;
 use std::mem::replace;
-use native_tls::HandshakeError;
 use crate::decode::Decode;
 use crate::encode::Encode;
 use crate::net::socket::IsTLS;
@@ -57,9 +56,11 @@ impl std::fmt::Display for CertificateInput {
 }
 
 
+#[cfg(feature = "native-tls")]
 pub struct TlsStream<S>{
     pub inner:native_tls::TlsStream<S>
 }
+#[cfg(feature = "native-tls")]
 impl <S>Deref for TlsStream<S>{
     type Target = native_tls::TlsStream<S>;
 
@@ -67,6 +68,7 @@ impl <S>Deref for TlsStream<S>{
         &self.inner
     }
 }
+#[cfg(feature = "native-tls")]
 impl <S>DerefMut for TlsStream<S>{
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
@@ -80,6 +82,7 @@ where
     S: std::io::Read + std::io::Write,
 {
     Raw(S),
+    #[cfg(feature = "native-tls")]
     Tls(TlsStream<S>),
     Upgrading,
 }
@@ -89,6 +92,7 @@ impl<S> MaybeTlsStream<S>
 where
     S: std::io::Read + std::io::Write  + std::fmt::Debug + Send +Sync + 'static,
 {
+    #[cfg(feature = "native-tls")]
     pub fn upgrade(
         &mut self,
         host: &str,
@@ -135,11 +139,17 @@ where
 impl <S>IsTLS for MaybeTlsStream<S> where S:Write+Read{
     #[inline]
     fn is_tls(&self) -> bool {
-        matches!(self, Self::Tls(_))
+        if !cfg!(feature = "native-tls")  {
+            return false;
+        }else{
+            #[cfg(feature = "native-tls")]
+            return matches!(self, Self::Tls(_));
+        }
+        return false;
     }
 }
 
-// #[cfg(feature = "_tls-native-tls")]
+#[cfg(feature = "native-tls")]
 fn configure_tls_connector(
     accept_invalid_certs: bool,
     accept_invalid_hostnames: bool,
@@ -185,6 +195,7 @@ where
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         match &mut *self {
             MaybeTlsStream::Raw(s) => s.read(buf),
+            #[cfg(feature = "native-tls")]
             MaybeTlsStream::Tls(s) => s.read(buf),
             MaybeTlsStream::Upgrading => Err(io::ErrorKind::ConnectionAborted.into()),
         }
@@ -198,8 +209,8 @@ where
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         match self {
             MaybeTlsStream::Raw(s) => s.write( buf),
+            #[cfg(feature = "native-tls")]
             MaybeTlsStream::Tls(s) => s.write( buf),
-
             MaybeTlsStream::Upgrading => Err(io::ErrorKind::ConnectionAborted.into()),
         }
     }
@@ -207,6 +218,7 @@ where
     fn flush(&mut self) -> std::io::Result<()> {
         match self {
             MaybeTlsStream::Raw(s) => s.flush(),
+            #[cfg(feature = "native-tls")]
             MaybeTlsStream::Tls(s) => s.flush(),
 
             MaybeTlsStream::Upgrading => Err(io::ErrorKind::ConnectionAborted.into()),
@@ -224,7 +236,7 @@ where
     fn deref(&self) -> &Self::Target {
         match self {
             MaybeTlsStream::Raw(s) => s,
-
+            #[cfg(feature = "native-tls")]
             MaybeTlsStream::Tls(s) => s.get_ref(),
 
             MaybeTlsStream::Upgrading => {
@@ -241,7 +253,7 @@ where
     fn deref_mut(&mut self) -> &mut Self::Target {
         match self {
             MaybeTlsStream::Raw(s) => s,
-
+            #[cfg(feature = "native-tls")]
             MaybeTlsStream::Tls(s) => s.get_mut(),
 
             MaybeTlsStream::Upgrading => {

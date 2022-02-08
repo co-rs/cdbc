@@ -9,7 +9,7 @@ members = [
 
 [package]
 name = "cdbc"
-version = "0.1.12"
+version = "0.1.13"
 edition = "2021"
 authors = ["zhuxiujia@qq.com"]
 description = "Rust Coroutine Database Driver Connectivity"
@@ -18,7 +18,8 @@ license = "Apache-2.0"
 
 [features]
 default = []
-_tls-native-tls = []
+
+#native-tls
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
@@ -32,6 +33,6 @@ log = { version = "0.4.8", default-features = false }
 crossbeam-queue = "0.3.1"
 either = {version = "1.5.3",features = ["serde"]}
 bstr = { version = "0.2.14", default-features = false, features = ["std"] }
-native-tls = {version ="0.2"}
+native-tls = {version ="0.2",optional = true}
 ahash = "0.7.2"
 serde_json = { version = "1.0.51", features = ["raw_value"]}
