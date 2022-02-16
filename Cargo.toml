@@ -5,6 +5,7 @@ members = [
   "cdbc-mysql",
   "cdbc-pg",
   "cdbc-sqlite",
+  "cdbc-mssql",
 ]
 
 [package]

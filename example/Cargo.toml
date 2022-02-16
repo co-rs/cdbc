@@ -18,6 +18,11 @@ name = "sqlite"
 path = "src/sqlite/main-sqlite.rs"
 
 [[bin]]
+name = "mssql"
+path = "src/mssql/main-mssql.rs"
+
+
+[[bin]]
 name = "scanrow"
 path = "src/macro_scan.rs"
 
@@ -44,6 +49,7 @@ cdbc = { path = "../" }
 cdbc-mysql = { path = "../cdbc-mysql" }
 cdbc-pg = { path = "../cdbc-pg" }
 cdbc-sqlite = { path = "../cdbc-sqlite" }
+cdbc-mssql = { path = "../cdbc-mssql" }
 
 log = "0.4"
 fast_log = "1.4"
