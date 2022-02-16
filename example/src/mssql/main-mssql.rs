@@ -1,4 +1,4 @@
-use cogo::std::time::Time;
+use mco::std::time::Time;
 
 fn main() -> cdbc::Result<()> {
     #[derive(Debug,serde::Serialize)]
