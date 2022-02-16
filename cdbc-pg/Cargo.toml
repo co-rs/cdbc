@@ -1,6 +1,6 @@
 [package]
 name = "cdbc-pg"
-version = "0.1.13"
+version = "0.1.14"
 edition = "2021"
 authors = ["zhuxiujia@qq.com"]
 description = "Rust Coroutine Database Driver Connectivity"
@@ -42,11 +42,11 @@ json = ["serde", "serde_json"]
 offline = ["json"]
 
 [dependencies]
-cdbc = { version = "0.1.13", path = "../"}
+cdbc = { version = "0.1.14", path = "../"}
 
 atoi = "0.4.0"
 smallvec = "1.4.0"
-cogo = "0.1"
+mco = "0.1"
 hashlink = "0.7.0"
 thiserror = "1.0.30"
 bytes = '1.0.0'

@@ -27,12 +27,12 @@ name = "scanrow"
 path = "src/macro_scan.rs"
 
 [[bin]]
-name = "cogo"
-path = "src/cogo/main.rs"
+name = "mco"
+path = "src/mco/main.rs"
 
 [[bin]]
-name = "cogohttp"
-path = "src/cogo-http/main.rs"
+name = "mcohttp"
+path = "src/mco-http/main.rs"
 
 [[bin]]
 name = "tx"
@@ -41,9 +41,8 @@ path = "src/transaction/tx.rs"
 
 [dependencies]
 
-cogo = "0.1"
-
-cogo-http = "0.1"
+mco = "0.1"
+mco-http = "0.1"
 
 cdbc = { path = "../" }
 cdbc-mysql = { path = "../cdbc-mysql" }

@@ -10,7 +10,7 @@ members = [
 
 [package]
 name = "cdbc"
-version = "0.1.13"
+version = "0.1.14"
 edition = "2021"
 authors = ["zhuxiujia@qq.com"]
 description = "Rust Coroutine Database Driver Connectivity"
@@ -24,7 +24,7 @@ default = []
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-cogo = "0.1"
+mco = "0.1"
 hashlink = "0.7.0"
 thiserror = "1.0.30"
 bytes = '1.0.0'

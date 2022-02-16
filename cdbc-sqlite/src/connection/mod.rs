@@ -8,7 +8,7 @@ use libsqlite3_sys::sqlite3;
 use std::cmp::Ordering;
 use std::fmt::{self, Debug, Formatter};
 use std::ptr::NonNull;
-use cogo::std::sync::MutexGuard;
+use mco::std::sync::MutexGuard;
 use either::Either;
 use cdbc::database::{Database, HasStatement};
 use cdbc::{Execute, Executor};

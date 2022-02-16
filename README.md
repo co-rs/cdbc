@@ -1,5 +1,5 @@
 # cdbc
-Coroutine Database driver Connectivity.based on [cogo](https://github.com/co-rs/cogo)
+Coroutine Database driver Connectivity.based on [mco](https://github.com/co-rs/mco)
 
 * High concurrency，based on coroutine
 * No ``` Future<'q,Output=*> ```，No ``` async fn ```, No ```.await ```, no Poll* func，No ```Pin``` 
@@ -7,13 +7,13 @@ Coroutine Database driver Connectivity.based on [cogo](https://github.com/co-rs/
 * NativeTls and TCP connections are supported
 * Low coupling，The database driver and the abstraction layer are designed separately
 * Lightweight, no over-design, only have macro with intelligent tips
-* Inspired by golang, [cogo](https://github.com/co-rs/cogo), sqlx
+* Inspired by golang, [mco](https://github.com/co-rs/mco), sqlx
 
 
 ##### Why cdbc ？
 | crates | Concurrency   | feature level | All Smart tips | ```Libc``` | have proc macro      | separation  driver | support env/crates                                                               |
 |--------|---------------|---------------|----------------|------------|----------------------|----------------------|----------------------------------------------------------------------------------|
-| cdbc   | CSP（cogo）     | lower         | √              | only sqlite | Don't need           | √    | ```cogo```,  ```cogo/std/http```, ```native-thread```,```tokio-spawn_blocking``` |
+| cdbc   | CSP（mco）     | lower         | √              | only sqlite | Don't need           | √    | ```mco```,  ```mco/std/http```, ```native-thread```,```tokio-spawn_blocking``` |
 | rbatis | Future（tokio） | heavy-weight  | √              | only sqlite | only py_sql,html_sql | x    | tokio, async_std, smol                                                           |
 | sqlx   | Future（tokio） | lower         | x              | only sqlite | only derive(StructOpt) | x    | tokio, async_std, smol                                                           |
 | diesel | Native Thread | lower         | x              | all-libc   | derive(Queryable)  | x    | native thread                                                                    |
@@ -23,7 +23,7 @@ Coroutine Database driver Connectivity.based on [cogo](https://github.com/co-rs/
 
 | crates           | Requests/sec | Mem  | CpuLoad |
 |------------------|--------------|------|--------|
-| cdbc-cogo-http   | 4606      | 30MB | 6%     |
+| cdbc-mco-http   | 4606      | 30MB | 6%     |
 | sqlx-axum-tokio  | 4560      | 17MB | 8%     |                                                          
 | sqlx-actix-async-std | 559.00       | 22MB | 2%     |                                                        
 | diesel           | *            | *    |    *   |                                                             

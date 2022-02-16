@@ -1,5 +1,5 @@
 use ::time::Month;
-use cogo::std::lazy::sync::Lazy;
+use mco::std::lazy::sync::Lazy;
 
 mod date;
 mod datetime;

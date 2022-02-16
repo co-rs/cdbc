@@ -1,28 +1,28 @@
 use std::fs::File;
-use cogo::coroutine::sleep;
+use mco::coroutine::sleep;
 use std::time::Duration;
-use cogo::go;
+use mco::co;
 use cdbc::Executor;
 use cdbc_sqlite::{Sqlite, SqlitePool};
-use cogo::coroutine::Builder;
+use mco::coroutine::Builder;
 use cdbc::pool::PoolOptions;
 
 fn main(){
     let pool = make_sqlite().unwrap();
     //spawn coroutines
     let copy_pool = pool.clone();
-    go!(move ||{
+    co!(move ||{
       run_sqlite(copy_pool);
     });
     let copy_pool2 = pool.clone();
-    go!(Builder::new().name("co1".to_string()),move ||{
+    co!(Builder::new().name("co1".to_string()),move ||{
       run_sqlite(copy_pool2);
     });
     sleep(Duration::from_secs(3));
 }
 
 fn run_sqlite(pool:SqlitePool) -> cdbc::Result<()> {
-    println!("run on coroutine:{:?}",cogo::coroutine::current().name());
+    println!("run on coroutine:{:?}",mco::coroutine::current().name());
     #[derive(Debug)]
     pub struct BizActivity {
         pub id: Option<String>,

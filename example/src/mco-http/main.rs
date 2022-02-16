@@ -1,12 +1,12 @@
 #[deny(unused_variables)]
-extern crate cogo_http;
+extern crate mco_http;
 
 use std::fs::File;
 use std::ops::Deref;
 use cdbc::Executor;
 use cdbc_sqlite::SqlitePool;
-use cogo::std::lazy::sync::Lazy;
-use cogo_http::server::{Request, Response};
+use mco::std::lazy::sync::Lazy;
+use mco_http::server::{Request, Response};
 
 #[derive(Debug,serde::Serialize,serde::Deserialize)]
 pub struct BizActivity {
@@ -33,7 +33,7 @@ fn hello(req: Request, res: Response) {
 
 fn main() {
     //or use  fast_log::init_log();
-    let _listening = cogo_http::Server::http("0.0.0.0:3000").unwrap()
+    let _listening = mco_http::Server::http("0.0.0.0:3000").unwrap()
         .handle(hello);
     println!("Listening on http://127.0.0.1:3000");
 }

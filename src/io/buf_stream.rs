@@ -1,6 +1,6 @@
 use bytes::BytesMut;
 use std::io::{Cursor, Read, Write};
-use cogo::net::TcpStream;
+use mco::net::TcpStream;
 use crate::Error;
 use crate::io::Decode;
 use crate::io::encode::Encode;

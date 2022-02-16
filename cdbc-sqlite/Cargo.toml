@@ -1,6 +1,6 @@
 [package]
 name = "cdbc-sqlite"
-version = "0.1.13"
+version = "0.1.14"
 edition = "2021"
 authors = ["zhuxiujia@qq.com"]
 description = "Rust Coroutine Database Driver Connectivity"
@@ -21,8 +21,8 @@ all-types = [
 ]
 [dependencies]
 
-cogo = "0.1"
-cdbc = { version = "0.1.13", path = "../"}
+mco = "0.1"
+cdbc = { version = "0.1.14", path = "../"}
 serde={version = "1.0.130" ,features = ["derive", "rc"],optional = true}
 serde_json = { version = "1.0.51", features = ["raw_value"], optional = true }
 log = { version = "0.4.8", default-features = false }

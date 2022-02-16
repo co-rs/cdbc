@@ -1,5 +1,5 @@
 use std::borrow::Cow;
-use cogo::std::time::time::{RFC3339Nano, Time};
+use mco::std::time::time::{RFC3339Nano, Time};
 use cdbc::decode::Decode;
 use cdbc::error::BoxDynError;
 use cdbc::types::Type;

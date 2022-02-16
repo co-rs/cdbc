@@ -1,8 +1,8 @@
 use std::fmt::{Debug, Display};
 
 use std::sync::mpsc::RecvError;
-use cogo::chan;
-use cogo::std::sync::channel::{Receiver, Sender};
+use mco::chan;
+use mco::std::sync::channel::{Receiver, Sender};
 
 use crate::Error;
 use crate::error::Result;
@@ -101,7 +101,7 @@ macro_rules! chan_stream {
         ChanStream::new(move |sender| {
             macro_rules! r#yield {
                 ($v:expr) => {{
-                    //cogo::std::sync::channel::Sender::send(&sender,Some(Ok($v)));
+                    //mco::std::sync::channel::Sender::send(&sender,Some(Ok($v)));
                     sender.send(Some(Ok($v)));
                 }}
             }
@@ -114,7 +114,7 @@ macro_rules! chan_stream {
             ///end loop
             macro_rules! end {
                 () => {{
-                   //cogo::std::sync::channel::Sender::send(&sender,None);
+                   //mco::std::sync::channel::Sender::send(&sender,None);
                      sender.send(None);
                 }}
             }
@@ -186,7 +186,7 @@ impl<T> ChanStream<T> {
 mod test {
     use std::thread::sleep;
     use std::time::Duration;
-    use cogo::go;
+    use mco::co;
     use crate::io::chan_stream::{ChanStream, Stream, TryStream};
 
     #[test]

@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::fs::File;
-use cogo::defer;
+use mco::defer;
 use cdbc::connection::Connection;
 use cdbc::Executor;
 use cdbc_sqlite::SqlitePool;

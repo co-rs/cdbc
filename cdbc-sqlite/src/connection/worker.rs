@@ -3,9 +3,9 @@ use std::future::Future;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::thread;
-use cogo::chan;
-use cogo::std::sync::channel::Sender;
-use cogo::std::sync::{channel, Mutex, MutexGuard};
+use mco::chan;
+use mco::std::sync::channel::Sender;
+use mco::std::sync::{channel, Mutex, MutexGuard};
 
 use either::Either;
 use cdbc::describe::Describe;

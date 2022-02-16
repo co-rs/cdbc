@@ -7,8 +7,8 @@ edition = "2021"
 
 
 [[bin]]
-name = "cogo-cdbc"
-path = "src/cogo-cdbc.rs"
+name = "mco-cdbc"
+path = "src/mco-cdbc.rs"
 [[bin]]
 name = "actix"
 path = "src/actix-web-sqlx.rs"
@@ -17,7 +17,7 @@ name = "axum"
 path = "src/axum-sqlx.rs"
 
 [dependencies]
-cogo = "0.1"
+mco = "0.1"
 cdbc = {path = "../../"}
 cdbc-mysql = {path = "../../cdbc-mysql"}
 log = "0.4"

@@ -112,20 +112,20 @@ impl<'r> Decode<'r, Postgres> for OffsetDateTime {
 }
 
 
-impl Type<Postgres> for cogo::std::time::time::Time{
+impl Type<Postgres> for mco::std::time::time::Time{
     fn type_info() -> PgTypeInfo {
         PgTypeInfo::TIMESTAMPTZ
     }
 }
 
-impl Encode<'_, Postgres> for cogo::std::time::time::Time {
+impl Encode<'_, Postgres> for mco::std::time::time::Time {
     fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> IsNull {
         self.inner.encode_by_ref(buf)
     }
 }
 
-impl<'r> Decode<'r, Postgres> for cogo::std::time::time::Time {
+impl<'r> Decode<'r, Postgres> for mco::std::time::time::Time {
     fn decode(value: PgValueRef<'r>) -> Result<Self, BoxDynError> {
-        Ok(cogo::std::time::time::Time{ inner: OffsetDateTime::decode(value)? })
+        Ok(mco::std::time::time::Time{ inner: OffsetDateTime::decode(value)? })
     }
 }

@@ -9,7 +9,7 @@ use std::io::ErrorKind;
 use std::result::Result as StdResult;
 use std::sync::mpsc::{RecvError, SendError};
 use std::sync::PoisonError;
-use cogo::std::sync::channel;
+use mco::std::sync::channel;
 use crate::database::Database;
 use crate::type_info::TypeInfo;
 use crate::types::Type;
@@ -287,8 +287,8 @@ impl <T>From<PoisonError<T>> for Error{
     }
 }
 
-impl From<cogo::std::errors::Error> for Error {
-    fn from(arg: cogo::std::errors::Error) -> Self {
+impl From<mco::std::errors::Error> for Error {
+    fn from(arg: mco::std::errors::Error) -> Self {
         Self::Protocol(arg.to_string())
     }
 }

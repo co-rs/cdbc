@@ -2,7 +2,7 @@ use std::fmt::{self, Debug, Formatter};
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 use std::time::Instant;
-use cogo::std::sync::Blocker;
+use mco::std::sync::Blocker;
 
 use crate::connection::Connection;
 use crate::database::Database;
