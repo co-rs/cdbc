@@ -63,7 +63,7 @@ impl MssqlConnection {
     }
 }
 
-impl Executor for &mut MssqlConnection {
+impl Executor for MssqlConnection {
     type Database = Mssql;
 
     fn fetch_many<'q, E: 'q>(

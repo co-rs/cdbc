@@ -30,33 +30,32 @@ impl Debug for MssqlConnection {
     }
 }
 
-impl Executor for MssqlConnection {
+impl Executor for &mut MssqlConnection {
     type Database = Mssql;
 
     fn fetch_many<'q, E: 'q>(&mut self, query: E) -> ChanStream<Either<<Self::Database as Database>::QueryResult, <Self::Database as Database>::Row>> where E: Execute<'q, Self::Database> {
-         self.fetch_many(query)
+        MssqlConnection::fetch_many(self, query)
     }
 
     fn fetch_optional<'q, E: 'q>(&mut self, query: E) -> Result<Option<<Self::Database as Database>::Row>, cdbc::Error> where E: Execute<'q, Self::Database> {
-        self.fetch_optional(query)
+        MssqlConnection::fetch_optional(self, query)
     }
 
     fn prepare_with<'q>(&mut self, sql: &'q str, parameters: &'q [<Self::Database as Database>::TypeInfo]) -> Result<<Self::Database as HasStatement<'q>>::Statement, cdbc::Error> {
-        self.prepare_with(sql,parameters)
+        MssqlConnection::prepare_with(self, sql, parameters)
     }
 
     fn describe(&mut self, sql: &str) -> Result<Describe<Self::Database>, cdbc::Error> {
-        self.describe(sql)
+        MssqlConnection::describe(self, sql)
     }
 }
 
 impl Connection for MssqlConnection {
-
     type Options = MssqlConnectOptions;
 
     #[allow(unused_mut)]
-    fn close(mut self) ->  Result<(), cdbc::Error> {
-       Ok(self.stream.shutdown(Shutdown::Both)?)
+    fn close(mut self) -> Result<(), cdbc::Error> {
+        Ok(self.stream.shutdown(Shutdown::Both)?)
     }
 
     fn ping(&mut self) -> Result<(), cdbc::Error> {
@@ -65,15 +64,15 @@ impl Connection for MssqlConnection {
         Ok(())
     }
 
-    fn begin(&mut self) ->  Result<Transaction<'_, Self::Database>, cdbc::Error>
-    where
-        Self: Sized,
+    fn begin(&mut self) -> Result<Transaction<'_, Self::Database>, cdbc::Error>
+        where
+            Self: Sized,
     {
         Ok(Transaction::begin(self)?)
     }
 
     #[doc(hidden)]
-    fn flush(&mut self) ->  Result<(), cdbc::Error> {
+    fn flush(&mut self) -> Result<(), cdbc::Error> {
         self.stream.wait_until_ready()
     }
 
