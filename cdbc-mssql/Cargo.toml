@@ -2,6 +2,10 @@
 name = "cdbc-mssql"
 version = "0.1.14"
 edition = "2021"
+authors = ["zhuxiujia@qq.com"]
+description = "Rust Coroutine Database Driver Connectivity"
+repository = "https://github.com/co-rs/cdbc"
+license = "Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
