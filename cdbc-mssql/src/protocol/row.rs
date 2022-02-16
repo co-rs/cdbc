@@ -1,17 +1,17 @@
 use bytes::Bytes;
+use cdbc::Error;
 
-use crate::error::Error;
-use crate::io::BufExt;
-use crate::mssql::{MssqlColumn, MssqlTypeInfo};
+use cdbc::io::BufExt;
+use crate::{MssqlColumn, MssqlTypeInfo};
 
 #[derive(Debug)]
-pub(crate) struct Row {
-    pub(crate) column_types: Vec<MssqlTypeInfo>,
-    pub(crate) values: Vec<Option<Bytes>>,
+pub struct Row {
+    pub column_types: Vec<MssqlTypeInfo>,
+    pub values: Vec<Option<Bytes>>,
 }
 
 impl Row {
-    pub(crate) fn get(
+    pub fn get(
         buf: &mut Bytes,
         nullable: bool,
         columns: &[MssqlColumn],

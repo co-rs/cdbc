@@ -1,21 +1,21 @@
 use bytes::{Buf, Bytes};
+use cdbc::Error;
 
-use crate::error::Error;
-use crate::mssql::io::MssqlBufExt;
+use crate::io::MssqlBufExt;
 
 #[derive(Debug)]
-pub(crate) struct Info {
-    pub(crate) number: u32,
-    pub(crate) state: u8,
-    pub(crate) class: u8,
-    pub(crate) message: String,
-    pub(crate) server: String,
-    pub(crate) procedure: String,
-    pub(crate) line: u32,
+pub struct Info {
+    pub number: u32,
+    pub state: u8,
+    pub class: u8,
+    pub message: String,
+    pub server: String,
+    pub procedure: String,
+    pub line: u32,
 }
 
 impl Info {
-    pub(crate) fn get(buf: &mut Bytes) -> Result<Self, Error> {
+    pub fn get(buf: &mut Bytes) -> Result<Self, Error> {
         let len = buf.get_u16_le();
         let mut data = buf.split_to(len as usize);
 

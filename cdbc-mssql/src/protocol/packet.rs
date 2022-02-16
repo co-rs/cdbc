@@ -1,28 +1,28 @@
 use bitflags::bitflags;
 use bytes::{Buf, Bytes};
+use cdbc::Error;
 
-use crate::error::Error;
-use crate::io::{Decode, Encode};
+use cdbc::io::{Decode, Encode};
 
 #[derive(Debug)]
-pub(crate) struct PacketHeader {
+pub struct PacketHeader {
     // Type defines the type of message. Type is a 1-byte unsigned char.
-    pub(crate) r#type: PacketType,
+    pub r#type: PacketType,
 
     // Status is a bit field used to indicate the message state. Status is a 1-byte unsigned char.
-    pub(crate) status: Status,
+    pub status: Status,
 
     // Length is the size of the packet including the 8 bytes in the packet header.
-    pub(crate) length: u16,
+    pub length: u16,
 
     // The process ID on the server, corresponding to the current connection.
-    pub(crate) server_process_id: u16,
+    pub server_process_id: u16,
 
     // Packet ID is used for numbering message packets that contain data in addition to the packet
     // header. Packet ID is a 1-byte, unsigned char. Each time packet data is sent, the value of
     // PacketID is incremented by 1, modulo 256. This allows the receiver to track the sequence
     // of TDS packets for a given message. This value is currently ignored.
-    pub(crate) packet_id: u8,
+    pub packet_id: u8,
 }
 
 impl<'s> Encode<'s, &'s mut usize> for PacketHeader {
@@ -54,7 +54,7 @@ impl Decode<'_> for PacketHeader {
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]
-pub(crate) enum PacketType {
+pub enum PacketType {
     // Pre-login. Should always be #18 unless we decide to try and support pre 7.0 TDS
     PreTds7Login = 2,
     PreLogin = 18,
@@ -96,7 +96,7 @@ impl PacketType {
 // Status is a bit field used to indicate the message state. Status is a 1-byte unsigned char.
 // The following Status bit flags are defined.
 bitflags! {
-    pub(crate) struct Status: u8 {
+    pub struct Status: u8 {
         // "Normal" message.
         const NORMAL = 0x00;
 

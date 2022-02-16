@@ -1,15 +1,18 @@
-use crate::common::StatementCache;
-use crate::connection::{Connection, LogSettings};
-use crate::error::Error;
-use crate::executor::Executor;
-use crate::mssql::connection::stream::MssqlStream;
-use crate::mssql::statement::MssqlStatementMetadata;
-use crate::mssql::{Mssql, MssqlConnectOptions};
-use crate::transaction::Transaction;
-use futures_core::future::BoxFuture;
-use futures_util::{FutureExt, TryFutureExt};
+use cdbc::utils::statement_cache::StatementCache;
+use cdbc::connection::{Connection};
+use cdbc::executor::Executor;
+use crate::connection::stream::MssqlStream;
+use crate::statement::MssqlStatementMetadata;
+use crate::{Mssql, MssqlConnectOptions};
+use cdbc::transaction::Transaction;
 use std::fmt::{self, Debug, Formatter};
+use std::net::Shutdown;
 use std::sync::Arc;
+use either::Either;
+use cdbc::database::{Database, HasStatement};
+use cdbc::describe::Describe;
+use cdbc::Execute;
+use cdbc::io::chan_stream::ChanStream;
 
 mod establish;
 mod executor;
@@ -17,9 +20,8 @@ mod prepare;
 mod stream;
 
 pub struct MssqlConnection {
-    pub(crate) stream: MssqlStream,
-    pub(crate) cache_statement: StatementCache<Arc<MssqlStatementMetadata>>,
-    log_settings: LogSettings,
+    pub stream: MssqlStream,
+    pub cache_statement: StatementCache<Arc<MssqlStatementMetadata>>,
 }
 
 impl Debug for MssqlConnection {
@@ -28,48 +30,51 @@ impl Debug for MssqlConnection {
     }
 }
 
-impl Connection for MssqlConnection {
+impl Executor for MssqlConnection {
     type Database = Mssql;
+
+    fn fetch_many<'q, E: 'q>(&mut self, query: E) -> ChanStream<Either<<Self::Database as Database>::QueryResult, <Self::Database as Database>::Row>> where E: Execute<'q, Self::Database> {
+         self.fetch_many(query)
+    }
+
+    fn fetch_optional<'q, E: 'q>(&mut self, query: E) -> Result<Option<<Self::Database as Database>::Row>, cdbc::Error> where E: Execute<'q, Self::Database> {
+        self.fetch_optional(query)
+    }
+
+    fn prepare_with<'q>(&mut self, sql: &'q str, parameters: &'q [<Self::Database as Database>::TypeInfo]) -> Result<<Self::Database as HasStatement<'q>>::Statement, cdbc::Error> {
+        self.prepare_with(sql,parameters)
+    }
+
+    fn describe(&mut self, sql: &str) -> Result<Describe<Self::Database>, cdbc::Error> {
+        self.describe(sql)
+    }
+}
+
+impl Connection for MssqlConnection {
 
     type Options = MssqlConnectOptions;
 
     #[allow(unused_mut)]
-    fn close(mut self) -> BoxFuture<'static, Result<(), Error>> {
-        // NOTE: there does not seem to be a clean shutdown packet to send to MSSQL
-
-        #[cfg(feature = "_rt-async-std")]
-        {
-            use std::future::ready;
-            use std::net::Shutdown;
-
-            ready(self.stream.shutdown(Shutdown::Both).map_err(Into::into)).boxed()
-        }
-
-        #[cfg(any(feature = "_rt-actix", feature = "_rt-tokio"))]
-        {
-            use sqlx_rt::AsyncWriteExt;
-
-            // FIXME: This is equivalent to Shutdown::Write, not Shutdown::Both like above
-            // https://docs.rs/tokio/1.0.1/tokio/io/trait.AsyncWriteExt.html#method.shutdown
-            async move { self.stream.shutdown().await.map_err(Into::into) }.boxed()
-        }
+    fn close(mut self) ->  Result<(), cdbc::Error> {
+       Ok(self.stream.shutdown(Shutdown::Both)?)
     }
 
-    fn ping(&mut self) -> BoxFuture<'_, Result<(), Error>> {
+    fn ping(&mut self) -> Result<(), cdbc::Error> {
         // NOTE: we do not use `SELECT 1` as that *could* interact with any ongoing transactions
-        self.execute("/* SQLx ping */").map_ok(|_| ()).boxed()
+        self.execute("/* SQLx ping */")?;
+        Ok(())
     }
 
-    fn begin(&mut self) -> BoxFuture<'_, Result<Transaction<'_, Self::Database>, Error>>
+    fn begin(&mut self) ->  Result<Transaction<'_, Self::Database>, cdbc::Error>
     where
         Self: Sized,
     {
-        Transaction::begin(self)
+        Ok(Transaction::begin(self)?)
     }
 
     #[doc(hidden)]
-    fn flush(&mut self) -> BoxFuture<'_, Result<(), Error>> {
-        self.stream.wait_until_ready().boxed()
+    fn flush(&mut self) ->  Result<(), cdbc::Error> {
+        self.stream.wait_until_ready()
     }
 
     #[doc(hidden)]

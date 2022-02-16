@@ -1,24 +1,24 @@
 use bitflags::bitflags;
 use either::Either;
 
-use crate::io::Encode;
-use crate::mssql::io::MssqlBufMutExt;
-use crate::mssql::protocol::header::{AllHeaders, Header};
-use crate::mssql::MssqlArguments;
+use cdbc::io::Encode;
+use crate::io::MssqlBufMutExt;
+use crate::protocol::header::{AllHeaders, Header};
+use crate::MssqlArguments;
 
-pub(crate) struct RpcRequest<'a> {
-    pub(crate) transaction_descriptor: u64,
+pub struct RpcRequest<'a> {
+    pub transaction_descriptor: u64,
 
     // the procedure can be encoded as a u16 of a built-in or the name for a custom one
-    pub(crate) procedure: Either<&'a str, Procedure>,
-    pub(crate) options: OptionFlags,
-    pub(crate) arguments: &'a MssqlArguments,
+    pub procedure: Either<&'a str, Procedure>,
+    pub options: OptionFlags,
+    pub arguments: &'a MssqlArguments,
 }
 
 #[derive(Debug, Copy, Clone)]
 #[repr(u16)]
 #[allow(dead_code)]
-pub(crate) enum Procedure {
+pub enum Procedure {
     Cursor = 1,
     CursorOpen = 2,
     CursorPrepare = 3,
@@ -37,7 +37,7 @@ pub(crate) enum Procedure {
 }
 
 bitflags! {
-    pub(crate) struct OptionFlags: u16 {
+    pub struct OptionFlags: u16 {
         const WITH_RECOMPILE = 1;
 
         // The server sends NoMetaData only if fNoMetadata is set to 1 in the request
@@ -50,7 +50,7 @@ bitflags! {
 }
 
 bitflags! {
-    pub(crate) struct StatusFlags: u8 {
+    pub struct StatusFlags: u8 {
         // if the parameter is passed by reference (OUTPUT parameter) or
         // 0 if parameter is passed by value
         const BY_REF_VALUE = 1;

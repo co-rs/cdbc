@@ -1,28 +1,25 @@
-use crate::describe::Describe;
-use crate::error::Error;
-use crate::executor::{Execute, Executor};
-use crate::logger::QueryLogger;
-use crate::mssql::connection::prepare::prepare;
-use crate::mssql::protocol::col_meta_data::Flags;
-use crate::mssql::protocol::done::Status;
-use crate::mssql::protocol::message::Message;
-use crate::mssql::protocol::packet::PacketType;
-use crate::mssql::protocol::rpc::{OptionFlags, Procedure, RpcRequest};
-use crate::mssql::protocol::sql_batch::SqlBatch;
-use crate::mssql::{
+use cdbc::describe::Describe;
+use cdbc::executor::{Execute, Executor};
+use crate::connection::prepare::prepare;
+use crate::protocol::col_meta_data::Flags;
+use crate::protocol::done::Status;
+use crate::protocol::message::Message;
+use crate::protocol::packet::PacketType;
+use crate::protocol::rpc::{OptionFlags, Procedure, RpcRequest};
+use crate::protocol::sql_batch::SqlBatch;
+use crate::{
     Mssql, MssqlArguments, MssqlConnection, MssqlQueryResult, MssqlRow, MssqlStatement,
     MssqlTypeInfo,
 };
 use either::Either;
-use futures_core::future::BoxFuture;
-use futures_core::stream::BoxStream;
-use futures_util::TryStreamExt;
 use std::borrow::Cow;
 use std::sync::Arc;
+use cdbc::Error;
+use cdbc::io::chan_stream::{ChanStream, TryStream};
 
 impl MssqlConnection {
-    async fn run(&mut self, query: &str, arguments: Option<MssqlArguments>) -> Result<(), Error> {
-        self.stream.wait_until_ready().await?;
+    fn run(&mut self, query: &str, arguments: Option<MssqlArguments>) -> Result<(), Error> {
+        self.stream.wait_until_ready()?;
         self.stream.pending_done_count += 1;
 
         if let Some(mut arguments) = arguments {
@@ -60,39 +57,34 @@ impl MssqlConnection {
             );
         }
 
-        self.stream.flush().await?;
+        self.stream.flush()?;
 
         Ok(())
     }
 }
 
-impl<'c> Executor<'c> for &'c mut MssqlConnection {
+impl Executor for &mut MssqlConnection {
     type Database = Mssql;
 
-    fn fetch_many<'e, 'q: 'e, E: 'q>(
+    fn fetch_many<'q, E: 'q>(
         self,
         mut query: E,
-    ) -> BoxStream<'e, Result<Either<MssqlQueryResult, MssqlRow>, Error>>
-    where
-        'c: 'e,
-        E: Execute<'q, Self::Database>,
+    ) -> ChanStream<Either<MssqlQueryResult, MssqlRow>>
+        where
+            E: Execute<'q, Self::Database>,
     {
         let sql = query.sql();
         let arguments = query.take_arguments();
-        let mut logger = QueryLogger::new(sql, self.log_settings.clone());
-
-        Box::pin(try_stream! {
-            self.run(sql, arguments).await?;
+        chan_stream! {
+            self.run(sql, arguments)?;
 
             loop {
-                let message = self.stream.recv_message().await?;
+                let message = self.stream.recv_message()?;
 
                 match message {
                     Message::Row(row) => {
                         let columns = Arc::clone(&self.stream.columns);
                         let column_names = Arc::clone(&self.stream.column_names);
-
-                        logger.increment_rows();
 
                         r#yield!(Either::Right(MssqlRow { row, column_names, columns }));
                     }
@@ -126,69 +118,55 @@ impl<'c> Executor<'c> for &'c mut MssqlConnection {
             }
 
             Ok(())
-        })
+        }
     }
 
-    fn fetch_optional<'e, 'q: 'e, E: 'q>(
+    fn fetch_optional<'q, E: 'q>(
         self,
         query: E,
-    ) -> BoxFuture<'e, Result<Option<MssqlRow>, Error>>
-    where
-        'c: 'e,
-        E: Execute<'q, Self::Database>,
+    ) ->  Result<Option<MssqlRow>, Error>
+        where
+            E: Execute<'q, Self::Database>,
     {
         let mut s = self.fetch_many(query);
-
-        Box::pin(async move {
-            while let Some(v) = s.try_next().await? {
-                if let Either::Right(r) = v {
-                    return Ok(Some(r));
-                }
+        while let Some(v) = s.try_next()? {
+            if let Either::Right(r) = v {
+                return Ok(Some(r));
             }
-
-            Ok(None)
-        })
+        }
+        Ok(None)
     }
 
-    fn prepare_with<'e, 'q: 'e>(
+    fn prepare_with<'q>(
         self,
         sql: &'q str,
         _parameters: &[MssqlTypeInfo],
-    ) -> BoxFuture<'e, Result<MssqlStatement<'q>, Error>>
-    where
-        'c: 'e,
-    {
-        Box::pin(async move {
-            let metadata = prepare(self, sql).await?;
+    ) -> Result<MssqlStatement<'q>, Error> {
+        let metadata = prepare(self, sql)?;
 
-            Ok(MssqlStatement {
-                sql: Cow::Borrowed(sql),
-                metadata,
-            })
+        Ok(MssqlStatement {
+            sql: Cow::Borrowed(sql),
+            metadata,
         })
     }
 
-    fn describe<'e, 'q: 'e>(
+    fn describe<'q>(
         self,
         sql: &'q str,
-    ) -> BoxFuture<'e, Result<Describe<Self::Database>, Error>>
-    where
-        'c: 'e,
+    ) -> Result<Describe<Self::Database>, Error>
     {
-        Box::pin(async move {
-            let metadata = prepare(self, sql).await?;
+        let metadata = prepare(self, sql)?;
 
-            let mut nullable = Vec::with_capacity(metadata.columns.len());
+        let mut nullable = Vec::with_capacity(metadata.columns.len());
 
-            for col in metadata.columns.iter() {
-                nullable.push(Some(col.flags.contains(Flags::NULLABLE)));
-            }
+        for col in metadata.columns.iter() {
+            nullable.push(Some(col.flags.contains(Flags::NULLABLE)));
+        }
 
-            Ok(Describe {
-                nullable,
-                columns: (metadata.columns).clone(),
-                parameters: None,
-            })
+        Ok(Describe {
+            nullable,
+            columns: (metadata.columns).clone(),
+            parameters: None,
         })
     }
 }

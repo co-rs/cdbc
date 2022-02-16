@@ -1,52 +1,53 @@
+
 use std::ops::{Deref, DerefMut};
 
 use bytes::{Bytes, BytesMut};
-use sqlx_rt::TcpStream;
 
-use crate::error::Error;
-use crate::ext::ustr::UStr;
-use crate::io::{BufStream, Encode};
-use crate::mssql::protocol::col_meta_data::ColMetaData;
-use crate::mssql::protocol::done::{Done, Status as DoneStatus};
-use crate::mssql::protocol::env_change::EnvChange;
-use crate::mssql::protocol::error::Error as ProtocolError;
-use crate::mssql::protocol::info::Info;
-use crate::mssql::protocol::login_ack::LoginAck;
-use crate::mssql::protocol::message::{Message, MessageType};
-use crate::mssql::protocol::order::Order;
-use crate::mssql::protocol::packet::{PacketHeader, PacketType, Status};
-use crate::mssql::protocol::return_status::ReturnStatus;
-use crate::mssql::protocol::return_value::ReturnValue;
-use crate::mssql::protocol::row::Row;
-use crate::mssql::{MssqlColumn, MssqlConnectOptions, MssqlDatabaseError};
-use crate::net::MaybeTlsStream;
-use crate::HashMap;
+
+use cdbc::utils::ustr::UStr;
+use cdbc::io::{BufStream, Encode};
+use crate::protocol::col_meta_data::ColMetaData;
+use crate::protocol::done::{Done, Status as DoneStatus};
+use crate::protocol::env_change::EnvChange;
+use crate::protocol::error::ProtoError as ProtocolError;
+use crate::protocol::info::Info;
+use crate::protocol::login_ack::LoginAck;
+use crate::protocol::message::{Message, MessageType};
+use crate::protocol::order::Order;
+use crate::protocol::packet::{PacketHeader, PacketType, Status};
+use crate::protocol::return_status::ReturnStatus;
+use crate::protocol::return_value::ReturnValue;
+use crate::protocol::row::Row;
+use crate::{MssqlColumn, MssqlConnectOptions, MssqlDatabaseError};
+use cdbc::net::MaybeTlsStream;
+use cdbc::{Error, HashMap};
 use std::sync::Arc;
+use mco::net::TcpStream;
 
-pub(crate) struct MssqlStream {
+pub struct MssqlStream {
     inner: BufStream<MaybeTlsStream<TcpStream>>,
 
     // how many Done (or Error) we are currently waiting for
-    pub(crate) pending_done_count: usize,
+    pub pending_done_count: usize,
 
     // current transaction descriptor
     // set from ENVCHANGE on `BEGIN` and reset to `0` on a ROLLBACK
-    pub(crate) transaction_descriptor: u64,
-    pub(crate) transaction_depth: usize,
+    pub transaction_descriptor: u64,
+    pub transaction_depth: usize,
 
     // current TabularResult from the server that we are iterating over
     response: Option<(PacketHeader, Bytes)>,
 
     // most recent column data from ColMetaData
     // we need to store this as its needed when decoding <Row>
-    pub(crate) columns: Arc<Vec<MssqlColumn>>,
-    pub(crate) column_names: Arc<HashMap<UStr, usize>>,
+    pub columns: Arc<Vec<MssqlColumn>>,
+    pub column_names: Arc<HashMap<UStr, usize>>,
 }
 
 impl MssqlStream {
-    pub(super) async fn connect(options: &MssqlConnectOptions) -> Result<Self, Error> {
+    pub(super) fn connect(options: &MssqlConnectOptions) -> Result<Self, Error> {
         let inner = BufStream::new(MaybeTlsStream::Raw(
-            TcpStream::connect((&*options.host, options.port)).await?,
+            TcpStream::connect((&*options.host, options.port))?,
         ));
 
         Ok(Self {
@@ -62,7 +63,7 @@ impl MssqlStream {
 
     // writes the packet out to the write buffer
     // will (eventually) handle packet chunking
-    pub(crate) fn write_packet<'en, T: Encode<'en>>(&mut self, ty: PacketType, payload: T) {
+    pub fn write_packet<'en, T: Encode<'en>>(&mut self, ty: PacketType, payload: T) {
         // TODO: Support packet chunking for large packet sizes
         //       We likely need to double-buffer the writes so we know to chunk
 
@@ -91,8 +92,8 @@ impl MssqlStream {
 
     // receive the next packet from the database
     // blocks until a packet is available
-    pub(super) async fn recv_packet(&mut self) -> Result<(PacketHeader, Bytes), Error> {
-        let mut header: PacketHeader = self.inner.read(8).await?;
+    pub(super) fn recv_packet(&mut self) -> Result<(PacketHeader, Bytes), Error> {
+        let mut header: PacketHeader = self.inner.read(8)?;
 
         // NOTE: From what I can tell, the response type from the server should ~always~
         //       be TabularResult. Here we expect that and die otherwise.
@@ -108,13 +109,13 @@ impl MssqlStream {
         loop {
             self.inner
                 .read_raw_into(&mut payload, (header.length - 8) as usize)
-                .await?;
+                ?;
 
             if header.status.contains(Status::END_OF_MESSAGE) {
                 break;
             }
 
-            header = self.inner.read(8).await?;
+            header = self.inner.read(8)?;
         }
 
         Ok((header, payload.freeze()))
@@ -122,7 +123,7 @@ impl MssqlStream {
 
     // receive the next ~message~
     // TDS communicates in streams of packets that are themselves streams of messages
-    pub(super) async fn recv_message(&mut self) -> Result<Message, Error> {
+    pub(super) fn recv_message(&mut self) -> Result<Message, Error> {
         loop {
             while self.response.as_ref().map_or(false, |r| !r.1.is_empty()) {
                 let buf = if let Some((_, buf)) = self.response.as_mut() {
@@ -188,26 +189,26 @@ impl MssqlStream {
             }
 
             // no packet from the server to iterate (or its empty); fill our buffer
-            self.response = Some(self.recv_packet().await?);
+            self.response = Some(self.recv_packet()?);
         }
     }
 
-    pub(crate) fn handle_done(&mut self, _done: &Done) {
+    pub fn handle_done(&mut self, _done: &Done) {
         self.pending_done_count -= 1;
     }
 
-    pub(crate) fn handle_error<T>(&mut self, error: ProtocolError) -> Result<T, Error> {
+    pub fn handle_error<T>(&mut self, error: ProtocolError) -> Result<T, Error> {
         // NOTE: [error] is sent IN ADDITION TO [done]
         Err(MssqlDatabaseError(error).into())
     }
 
-    pub(crate) async fn wait_until_ready(&mut self) -> Result<(), Error> {
+    pub fn wait_until_ready(&mut self) -> Result<(), Error> {
         if !self.wbuf.is_empty() {
-            self.flush().await?;
+            self.flush()?;
         }
 
         while self.pending_done_count > 0 {
-            let message = self.recv_message().await?;
+            let message = self.recv_message()?;
 
             if let Message::DoneProc(done) | Message::Done(done) = message {
                 if !done.status.contains(DoneStatus::DONE_MORE) {

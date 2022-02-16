@@ -1,5 +1,5 @@
-use crate::database::{Database, HasArguments, HasStatement, HasValueRef};
-use crate::mssql::{
+use cdbc::database::{Database, HasArguments, HasStatement, HasValueRef};
+use crate::{
     MssqlArguments, MssqlColumn, MssqlConnection, MssqlQueryResult, MssqlRow, MssqlStatement,
     MssqlTransactionManager, MssqlTypeInfo, MssqlValue, MssqlValueRef,
 };

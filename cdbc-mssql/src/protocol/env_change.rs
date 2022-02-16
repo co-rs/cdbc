@@ -1,11 +1,11 @@
 use bytes::{Buf, Bytes};
+use cdbc::Error;
 
-use crate::error::Error;
-use crate::mssql::io::MssqlBufExt;
+use crate::io::MssqlBufExt;
 
 #[derive(Debug)]
 #[allow(dead_code)]
-pub(crate) enum EnvChange {
+pub enum EnvChange {
     Database(String),
     Language(String),
     CharacterSet(String),
@@ -32,7 +32,7 @@ pub(crate) enum EnvChange {
 }
 
 impl EnvChange {
-    pub(crate) fn get(buf: &mut Bytes) -> Result<Self, Error> {
+    pub fn get(buf: &mut Bytes) -> Result<Self, Error> {
         let len = buf.get_u16_le();
         let ty = buf.get_u8();
         let mut data = buf.split_to((len - 1) as usize);

@@ -1,23 +1,22 @@
-use crate::column::ColumnIndex;
-use crate::error::Error;
-use crate::ext::ustr::UStr;
-use crate::mssql::{Mssql, MssqlArguments, MssqlColumn, MssqlTypeInfo};
-use crate::statement::Statement;
-use crate::HashMap;
+use cdbc::column::ColumnIndex;
+use cdbc::utils::ustr::UStr;
+use crate::{Mssql, MssqlArguments, MssqlColumn, MssqlTypeInfo};
+use cdbc::statement::Statement;
+use cdbc::{Error, HashMap};
 use either::Either;
 use std::borrow::Cow;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct MssqlStatement<'q> {
-    pub(crate) sql: Cow<'q, str>,
-    pub(crate) metadata: Arc<MssqlStatementMetadata>,
+    pub sql: Cow<'q, str>,
+    pub metadata: Arc<MssqlStatementMetadata>,
 }
 
 #[derive(Debug, Default, Clone)]
-pub(crate) struct MssqlStatementMetadata {
-    pub(crate) columns: Vec<MssqlColumn>,
-    pub(crate) column_names: HashMap<UStr, usize>,
+pub struct MssqlStatementMetadata {
+    pub columns: Vec<MssqlColumn>,
+    pub column_names: HashMap<UStr, usize>,
 }
 
 impl<'q> Statement<'q> for MssqlStatement<'q> {

@@ -1,8 +1,9 @@
-use crate::error::Error;
-use crate::mssql::MssqlConnectOptions;
+
+use crate::MssqlConnectOptions;
 use percent_encoding::percent_decode_str;
 use std::str::FromStr;
 use url::Url;
+use cdbc::Error;
 
 impl FromStr for MssqlConnectOptions {
     type Err = Error;

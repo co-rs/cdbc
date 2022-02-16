@@ -1,19 +1,16 @@
-use crate::column::ColumnIndex;
-use crate::error::Error;
-use crate::ext::ustr::UStr;
-use crate::mssql::protocol::row::Row as ProtocolRow;
-use crate::mssql::{Mssql, MssqlColumn, MssqlValueRef};
-use crate::row::Row;
-use crate::HashMap;
+use cdbc::column::ColumnIndex;
+use cdbc::utils::ustr::UStr;
+use crate::protocol::row::Row as ProtocolRow;
+use crate::{Mssql, MssqlColumn, MssqlValueRef};
+use cdbc::row::Row;
+use cdbc::{Error, HashMap};
 use std::sync::Arc;
 
 pub struct MssqlRow {
-    pub(crate) row: ProtocolRow,
-    pub(crate) columns: Arc<Vec<MssqlColumn>>,
-    pub(crate) column_names: Arc<HashMap<UStr, usize>>,
+    pub row: ProtocolRow,
+    pub columns: Arc<Vec<MssqlColumn>>,
+    pub column_names: Arc<HashMap<UStr, usize>>,
 }
-
-impl crate::row::private_row::Sealed for MssqlRow {}
 
 impl Row for MssqlRow {
     type Database = Mssql;

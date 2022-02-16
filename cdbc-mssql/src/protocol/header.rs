@@ -1,6 +1,6 @@
-use crate::io::Encode;
+use cdbc::io::Encode;
 
-pub(crate) struct AllHeaders<'a>(pub(crate) &'a [Header]);
+pub struct AllHeaders<'a>(pub &'a [Header]);
 
 impl Encode<'_> for AllHeaders<'_> {
     fn encode_with(&self, buf: &mut Vec<u8>, _: ()) {
@@ -16,7 +16,7 @@ impl Encode<'_> for AllHeaders<'_> {
     }
 }
 
-pub(crate) enum Header {
+pub enum Header {
     TransactionDescriptor {
         // number of requests currently active on the connection
         outstanding_request_count: u32,

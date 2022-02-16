@@ -1,9 +1,9 @@
-use crate::decode::Decode;
-use crate::encode::{Encode, IsNull};
-use crate::error::BoxDynError;
-use crate::mssql::protocol::type_info::{DataType, TypeInfo};
-use crate::mssql::{Mssql, MssqlTypeInfo, MssqlValueRef};
-use crate::types::Type;
+use cdbc::decode::Decode;
+use cdbc::encode::{Encode, IsNull};
+use cdbc::error::BoxDynError;
+use crate::protocol::type_info::{DataType, TypeInfo};
+use crate::{Mssql, MssqlTypeInfo, MssqlValueRef};
+use cdbc::types::Type;
 
 impl Type<Mssql> for bool {
     fn type_info() -> MssqlTypeInfo {

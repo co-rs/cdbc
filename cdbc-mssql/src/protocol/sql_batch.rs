@@ -1,11 +1,11 @@
-use crate::io::Encode;
-use crate::mssql::io::MssqlBufMutExt;
-use crate::mssql::protocol::header::{AllHeaders, Header};
+use cdbc::io::Encode;
+use crate::io::MssqlBufMutExt;
+use crate::protocol::header::{AllHeaders, Header};
 
 #[derive(Debug)]
-pub(crate) struct SqlBatch<'a> {
-    pub(crate) transaction_descriptor: u64,
-    pub(crate) sql: &'a str,
+pub struct SqlBatch<'a> {
+    pub transaction_descriptor: u64,
+    pub sql: &'a str,
 }
 
 impl Encode<'_> for SqlBatch<'_> {

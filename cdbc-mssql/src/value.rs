@@ -1,18 +1,18 @@
-use crate::error::{BoxDynError, UnexpectedNullError};
-use crate::mssql::{Mssql, MssqlTypeInfo};
-use crate::value::{Value, ValueRef};
+use cdbc::error::{BoxDynError, UnexpectedNullError};
+use crate::{Mssql, MssqlTypeInfo};
+use cdbc::value::{Value, ValueRef};
 use bytes::Bytes;
 use std::borrow::Cow;
 
 /// Implementation of [`ValueRef`] for MSSQL.
 #[derive(Clone)]
 pub struct MssqlValueRef<'r> {
-    pub(crate) type_info: MssqlTypeInfo,
-    pub(crate) data: Option<&'r Bytes>,
+    pub type_info: MssqlTypeInfo,
+    pub data: Option<&'r Bytes>,
 }
 
 impl<'r> MssqlValueRef<'r> {
-    pub(crate) fn as_bytes(&self) -> Result<&'r [u8], BoxDynError> {
+    pub fn as_bytes(&self) -> Result<&'r [u8], BoxDynError> {
         match &self.data {
             Some(v) => Ok(v),
             None => Err(UnexpectedNullError.into()),
@@ -53,8 +53,8 @@ impl<'r> From<MssqlValueRef<'r>> for crate::any::AnyValueRef<'r> {
 /// Implementation of [`Value`] for MSSQL.
 #[derive(Clone)]
 pub struct MssqlValue {
-    pub(crate) type_info: MssqlTypeInfo,
-    pub(crate) data: Option<Bytes>,
+    pub type_info: MssqlTypeInfo,
+    pub data: Option<Bytes>,
 }
 
 impl Value for MssqlValue {

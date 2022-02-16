@@ -1,10 +1,10 @@
-use crate::decode::Decode;
-use crate::encode::{Encode, IsNull};
-use crate::error::BoxDynError;
-use crate::mssql::io::MssqlBufMutExt;
-use crate::mssql::protocol::type_info::{Collation, CollationFlags, DataType, TypeInfo};
-use crate::mssql::{Mssql, MssqlTypeInfo, MssqlValueRef};
-use crate::types::Type;
+use cdbc::decode::Decode;
+use cdbc::encode::{Encode, IsNull};
+use cdbc::error::BoxDynError;
+use crate::io::MssqlBufMutExt;
+use crate::protocol::type_info::{Collation, CollationFlags, DataType, TypeInfo};
+use crate::{Mssql, MssqlTypeInfo, MssqlValueRef};
+use cdbc::types::Type;
 use std::borrow::Cow;
 
 impl Type<Mssql> for str {

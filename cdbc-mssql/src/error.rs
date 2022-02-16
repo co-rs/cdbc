@@ -1,11 +1,11 @@
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display, Formatter};
 
-use crate::error::DatabaseError;
-use crate::mssql::protocol::error::Error;
+use cdbc::error::DatabaseError;
+use crate::protocol::error::ProtoError;
 
 /// An error returned from the MSSQL database.
-pub struct MssqlDatabaseError(pub(crate) Error);
+pub struct MssqlDatabaseError(pub ProtoError);
 
 impl Debug for MssqlDatabaseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {

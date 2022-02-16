@@ -2,13 +2,13 @@ use bitflags::bitflags;
 use bytes::{Buf, Bytes};
 use encoding_rs::Encoding;
 
-use crate::encode::{Encode, IsNull};
-use crate::error::Error;
-use crate::mssql::Mssql;
+use cdbc::encode::{Encode, IsNull};
+use cdbc::Error;
+use crate::Mssql;
 
 bitflags! {
     #[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
-    pub(crate) struct CollationFlags: u8 {
+    pub struct CollationFlags: u8 {
         const IGNORE_CASE = (1 << 0);
         const IGNORE_ACCENT = (1 << 1);
         const IGNORE_WIDTH = (1 << 2);
@@ -20,17 +20,17 @@ bitflags! {
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 #[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
-pub(crate) struct Collation {
-    pub(crate) locale: u32,
-    pub(crate) flags: CollationFlags,
-    pub(crate) sort: u8,
-    pub(crate) version: u8,
+pub struct Collation {
+    pub locale: u32,
+    pub flags: CollationFlags,
+    pub sort: u8,
+    pub version: u8,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 #[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
 #[repr(u8)]
-pub(crate) enum DataType {
+pub enum DataType {
     // fixed-length data types
     // https://docs.microsoft.com/en-us/openspecs/sql_server_protocols/ms-sstds/d33ef17b-7e53-4380-ad11-2ba42c8dda8d
     Null = 0x1f,
@@ -89,16 +89,16 @@ pub(crate) enum DataType {
 // http://msdn.microsoft.com/en-us/library/dd358284.aspx
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
-pub(crate) struct TypeInfo {
-    pub(crate) ty: DataType,
-    pub(crate) size: u32,
-    pub(crate) scale: u8,
-    pub(crate) precision: u8,
-    pub(crate) collation: Option<Collation>,
+pub struct TypeInfo {
+    pub ty: DataType,
+    pub size: u32,
+    pub scale: u8,
+    pub precision: u8,
+    pub collation: Option<Collation>,
 }
 
 impl TypeInfo {
-    pub(crate) const fn new(ty: DataType, size: u32) -> Self {
+    pub const fn new(ty: DataType, size: u32) -> Self {
         Self {
             ty,
             size,
@@ -108,7 +108,7 @@ impl TypeInfo {
         }
     }
 
-    pub(crate) fn encoding(&self) -> Result<&'static Encoding, Error> {
+    pub fn encoding(&self) -> Result<&'static Encoding, Error> {
         match self.ty {
             DataType::NChar | DataType::NVarChar => Ok(encoding_rs::UTF_16LE),
 
@@ -134,7 +134,7 @@ impl TypeInfo {
     }
 
     // reads a TYPE_INFO from the buffer
-    pub(crate) fn get(buf: &mut Bytes) -> Result<Self, Error> {
+    pub fn get(buf: &mut Bytes) -> Result<Self, Error> {
         let ty = DataType::get(buf)?;
 
         Ok(match ty {
@@ -235,7 +235,7 @@ impl TypeInfo {
     }
 
     // writes a TYPE_INFO to the buffer
-    pub(crate) fn put(&self, buf: &mut Vec<u8>) {
+    pub fn put(&self, buf: &mut Vec<u8>) {
         buf.push(self.ty as u8);
 
         match self.ty {
@@ -299,11 +299,11 @@ impl TypeInfo {
         }
     }
 
-    pub(crate) fn is_null(&self) -> bool {
+    pub fn is_null(&self) -> bool {
         matches!(self.ty, DataType::Null)
     }
 
-    pub(crate) fn get_value(&self, buf: &mut Bytes) -> Option<Bytes> {
+    pub fn get_value(&self, buf: &mut Bytes) -> Option<Bytes> {
         match self.ty {
             DataType::Null
             | DataType::TinyInt
@@ -380,7 +380,7 @@ impl TypeInfo {
         }
     }
 
-    pub(crate) fn put_value<'q, T: Encode<'q, Mssql>>(&self, buf: &mut Vec<u8>, value: T) {
+    pub fn put_value<'q, T: Encode<'q, Mssql>>(&self, buf: &mut Vec<u8>, value: T) {
         match self.ty {
             DataType::Null
             | DataType::TinyInt
@@ -435,11 +435,11 @@ impl TypeInfo {
         }
     }
 
-    pub(crate) fn put_fixed_value<'q, T: Encode<'q, Mssql>>(&self, buf: &mut Vec<u8>, value: T) {
+    pub fn put_fixed_value<'q, T: Encode<'q, Mssql>>(&self, buf: &mut Vec<u8>, value: T) {
         let _ = value.encode(buf);
     }
 
-    pub(crate) fn put_byte_len_value<'q, T: Encode<'q, Mssql>>(&self, buf: &mut Vec<u8>, value: T) {
+    pub fn put_byte_len_value<'q, T: Encode<'q, Mssql>>(&self, buf: &mut Vec<u8>, value: T) {
         let offset = buf.len();
         buf.push(0);
 
@@ -452,7 +452,7 @@ impl TypeInfo {
         buf[offset] = size;
     }
 
-    pub(crate) fn put_short_len_value<'q, T: Encode<'q, Mssql>>(
+    pub fn put_short_len_value<'q, T: Encode<'q, Mssql>>(
         &self,
         buf: &mut Vec<u8>,
         value: T,
@@ -469,7 +469,7 @@ impl TypeInfo {
         buf[offset..(offset + 2)].copy_from_slice(&size.to_le_bytes());
     }
 
-    pub(crate) fn put_long_len_value<'q, T: Encode<'q, Mssql>>(&self, buf: &mut Vec<u8>, value: T) {
+    pub fn put_long_len_value<'q, T: Encode<'q, Mssql>>(&self, buf: &mut Vec<u8>, value: T) {
         let offset = buf.len();
         buf.extend(&0_u32.to_le_bytes());
 
@@ -482,7 +482,7 @@ impl TypeInfo {
         buf[offset..(offset + 4)].copy_from_slice(&size.to_le_bytes());
     }
 
-    pub(crate) fn name(&self) -> &'static str {
+    pub fn name(&self) -> &'static str {
         match self.ty {
             DataType::Null => "NULL",
             DataType::TinyInt => "TINYINT",
@@ -519,7 +519,7 @@ impl TypeInfo {
         }
     }
 
-    pub(crate) fn fmt(&self, s: &mut String) {
+    pub fn fmt(&self, s: &mut String) {
         match self.ty {
             DataType::Null => s.push_str("nvarchar(1)"),
             DataType::TinyInt => s.push_str("tinyint"),
@@ -584,7 +584,7 @@ impl TypeInfo {
 }
 
 impl DataType {
-    pub(crate) fn get(buf: &mut Bytes) -> Result<Self, Error> {
+    pub fn get(buf: &mut Bytes) -> Result<Self, Error> {
         Ok(match buf.get_u8() {
             0x1f => DataType::Null,
             0x30 => DataType::TinyInt,
@@ -637,7 +637,7 @@ impl DataType {
 }
 
 impl Collation {
-    pub(crate) fn get(buf: &mut Bytes) -> Collation {
+    pub fn get(buf: &mut Bytes) -> Collation {
         let locale_sort_version = buf.get_u32_le();
         let locale = locale_sort_version & 0xfffff;
         let flags = CollationFlags::from_bits_truncate(((locale_sort_version >> 20) & 0xFF) as u8);
@@ -652,7 +652,7 @@ impl Collation {
         }
     }
 
-    pub(crate) fn put(&self, buf: &mut Vec<u8>) {
+    pub fn put(&self, buf: &mut Vec<u8>) {
         let locale_sort_version =
             self.locale | ((self.flags.bits() as u32) << 20) | ((self.version as u32) << 28);
 

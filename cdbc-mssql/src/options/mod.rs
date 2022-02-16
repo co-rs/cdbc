@@ -1,16 +1,14 @@
-use crate::connection::LogSettings;
 
 mod connect;
 mod parse;
 
 #[derive(Debug, Clone)]
 pub struct MssqlConnectOptions {
-    pub(crate) host: String,
-    pub(crate) port: u16,
-    pub(crate) username: String,
-    pub(crate) database: String,
-    pub(crate) password: Option<String>,
-    pub(crate) log_settings: LogSettings,
+    pub host: String,
+    pub port: u16,
+    pub username: String,
+    pub database: String,
+    pub password: Option<String>,
 }
 
 impl Default for MssqlConnectOptions {
@@ -27,7 +25,6 @@ impl MssqlConnectOptions {
             database: String::from("master"),
             username: String::from("sa"),
             password: None,
-            log_settings: Default::default(),
         }
     }
 

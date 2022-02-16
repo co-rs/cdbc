@@ -1,31 +1,30 @@
 use bitflags::bitflags;
 use bytes::{Buf, Bytes};
 
-use crate::error::Error;
-use crate::ext::ustr::UStr;
-use crate::mssql::io::MssqlBufExt;
-use crate::mssql::protocol::type_info::TypeInfo;
-use crate::mssql::MssqlColumn;
-use crate::HashMap;
+use cdbc::utils::ustr::UStr;
+use crate::io::MssqlBufExt;
+use crate::protocol::type_info::TypeInfo;
+use crate::MssqlColumn;
+use cdbc::{Error, HashMap};
 
 #[derive(Debug)]
-pub(crate) struct ColMetaData;
+pub struct ColMetaData;
 
 #[derive(Debug)]
-pub(crate) struct ColumnData {
+pub struct ColumnData {
     // The user type ID of the data type of the column. Depending on the TDS version that is used,
     // valid values are 0x0000 or 0x00000000, with the exceptions of data type
     // TIMESTAMP (0x0050 or 0x00000050) and alias types (greater than 0x00FF or 0x000000FF).
-    pub(crate) user_type: u32,
+    pub user_type: u32,
 
-    pub(crate) flags: Flags,
-    pub(crate) type_info: TypeInfo,
+    pub flags: Flags,
+    pub type_info: TypeInfo,
 
-    // TODO: pub(crate) table_name: Option<Vec<String>>,
+    // TODO: pub table_name: Option<Vec<String>>,
     // TODO: crypto_meta_data: Option<CryptoMetaData>,
 
     // The column name. It contains the column name length and column name.
-    pub(crate) col_name: String,
+    pub col_name: String,
 }
 
 bitflags! {
@@ -77,7 +76,7 @@ bitflags! {
 }
 
 impl ColMetaData {
-    pub(crate) fn get(
+    pub fn get(
         buf: &mut Bytes,
         columns: &mut Vec<MssqlColumn>,
         column_names: &mut HashMap<UStr, usize>,

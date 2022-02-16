@@ -1,21 +1,19 @@
-use crate::column::Column;
-use crate::ext::ustr::UStr;
-use crate::mssql::protocol::col_meta_data::{ColumnData, Flags};
-use crate::mssql::{Mssql, MssqlTypeInfo};
+use cdbc::column::Column;
+use cdbc::utils::ustr::UStr;
+use crate::protocol::col_meta_data::{ColumnData, Flags};
+use crate::{Mssql, MssqlTypeInfo};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
 pub struct MssqlColumn {
-    pub(crate) ordinal: usize,
-    pub(crate) name: UStr,
-    pub(crate) type_info: MssqlTypeInfo,
-    pub(crate) flags: Flags,
+    pub ordinal: usize,
+    pub name: UStr,
+    pub type_info: MssqlTypeInfo,
+    pub flags: Flags,
 }
 
-impl crate::column::private_column::Sealed for MssqlColumn {}
-
 impl MssqlColumn {
-    pub(crate) fn new(meta: ColumnData, ordinal: usize) -> Self {
+    pub fn new(meta: ColumnData, ordinal: usize) -> Self {
         Self {
             name: UStr::from(meta.col_name),
             type_info: MssqlTypeInfo(meta.type_info),

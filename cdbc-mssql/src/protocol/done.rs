@@ -1,11 +1,11 @@
 use bitflags::bitflags;
 use bytes::{Buf, Bytes};
+use cdbc::Error;
 
-use crate::error::Error;
 
 #[derive(Debug)]
-pub(crate) struct Done {
-    pub(crate) status: Status,
+pub struct Done {
+    pub status: Status,
 
     // The token of the current SQL statement. The token value is provided and controlled by the
     // application layer, which utilizes TDS. The TDS layer does not evaluate the value.
@@ -13,11 +13,11 @@ pub(crate) struct Done {
 
     // The count of rows that were affected by the SQL statement. The value of DoneRowCount is
     // valid if the value of Status includes DONE_COUNT.
-    pub(crate) affected_rows: u64, // NOTE: u32 before TDS 7.2
+    pub affected_rows: u64, // NOTE: u32 before TDS 7.2
 }
 
 impl Done {
-    pub(crate) fn get(buf: &mut Bytes) -> Result<Self, Error> {
+    pub fn get(buf: &mut Bytes) -> Result<Self, Error> {
         let status = Status::from_bits_truncate(buf.get_u16_le());
         let cursor_command = buf.get_u16_le();
         let affected_rows = buf.get_u64_le();

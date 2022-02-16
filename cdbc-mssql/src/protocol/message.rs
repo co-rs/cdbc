@@ -1,14 +1,15 @@
 use bytes::{Buf, Bytes};
+use cdbc::Error;
 
-use crate::mssql::protocol::done::Done;
-use crate::mssql::protocol::login_ack::LoginAck;
-use crate::mssql::protocol::order::Order;
-use crate::mssql::protocol::return_status::ReturnStatus;
-use crate::mssql::protocol::return_value::ReturnValue;
-use crate::mssql::protocol::row::Row;
+use crate::protocol::done::Done;
+use crate::protocol::login_ack::LoginAck;
+use crate::protocol::order::Order;
+use crate::protocol::return_status::ReturnStatus;
+use crate::protocol::return_value::ReturnValue;
+use crate::protocol::row::Row;
 
 #[derive(Debug)]
-pub(crate) enum Message {
+pub enum Message {
     LoginAck(LoginAck),
     Done(Done),
     DoneInProc(Done),
@@ -20,7 +21,7 @@ pub(crate) enum Message {
 }
 
 #[derive(Debug)]
-pub(crate) enum MessageType {
+pub enum MessageType {
     Info,
     LoginAck,
     EnvChange,
@@ -37,7 +38,7 @@ pub(crate) enum MessageType {
 }
 
 impl MessageType {
-    pub(crate) fn get(buf: &mut Bytes) -> Result<Self, crate::error::Error> {
+    pub fn get(buf: &mut Bytes) -> Result<Self, Error> {
         Ok(match buf.get_u8() {
             0x81 => MessageType::ColMetaData,
             0xaa => MessageType::Error,

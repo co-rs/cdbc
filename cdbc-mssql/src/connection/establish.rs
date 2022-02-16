@@ -1,16 +1,16 @@
-use crate::common::StatementCache;
-use crate::error::Error;
-use crate::io::Decode;
-use crate::mssql::connection::stream::MssqlStream;
-use crate::mssql::protocol::login::Login7;
-use crate::mssql::protocol::message::Message;
-use crate::mssql::protocol::packet::PacketType;
-use crate::mssql::protocol::pre_login::{Encrypt, PreLogin, Version};
-use crate::mssql::{MssqlConnectOptions, MssqlConnection};
+use cdbc::Error;
+use cdbc::utils::statement_cache::StatementCache;
+use cdbc::io::Decode;
+use crate::connection::stream::MssqlStream;
+use crate::protocol::login::Login7;
+use crate::protocol::message::Message;
+use crate::protocol::packet::PacketType;
+use crate::protocol::pre_login::{Encrypt, PreLogin, Version};
+use crate::{MssqlConnectOptions, MssqlConnection};
 
 impl MssqlConnection {
-    pub(crate) async fn establish(options: &MssqlConnectOptions) -> Result<Self, Error> {
-        let mut stream: MssqlStream = MssqlStream::connect(options).await?;
+    pub fn establish(options: &MssqlConnectOptions) -> Result<Self, Error> {
+        let mut stream: MssqlStream = MssqlStream::connect(options)?;
 
         // Send PRELOGIN to set up the context for login. The server should immediately
         // respond with a PRELOGIN message of its own.
@@ -28,9 +28,9 @@ impl MssqlConnection {
             },
         );
 
-        stream.flush().await?;
+        stream.flush()?;
 
-        let (_, packet) = stream.recv_packet().await?;
+        let (_, packet) = stream.recv_packet()?;
         let _ = PreLogin::decode(packet)?;
 
         // LOGIN7 defines the authentication rules for use between client and server
@@ -55,13 +55,13 @@ impl MssqlConnection {
             },
         );
 
-        stream.flush().await?;
+        stream.flush()?;
 
         loop {
             // NOTE: we should receive an [Error] message if something goes wrong, otherwise,
             //       all messages are mostly informational (ENVCHANGE, INFO, LOGINACK)
 
-            match stream.recv_message().await? {
+            match stream.recv_message()? {
                 Message::LoginAck(_) => {
                     // indicates that the login was successful
                     // no action is needed, we are just going to keep waiting till we hit <Done>
@@ -82,7 +82,6 @@ impl MssqlConnection {
         Ok(Self {
             stream,
             cache_statement: StatementCache::new(1024),
-            log_settings: options.log_settings.clone(),
         })
     }
 }

@@ -1,17 +1,18 @@
-use crate::decode::Decode;
-use crate::error::Error;
-use crate::mssql::protocol::done::Status;
-use crate::mssql::protocol::message::Message;
-use crate::mssql::protocol::packet::PacketType;
-use crate::mssql::protocol::rpc::{OptionFlags, Procedure, RpcRequest};
-use crate::mssql::statement::MssqlStatementMetadata;
-use crate::mssql::{Mssql, MssqlArguments, MssqlConnection, MssqlTypeInfo, MssqlValueRef};
+
+use cdbc::decode::Decode;
+use crate::protocol::done::Status;
+use crate::protocol::message::Message;
+use crate::protocol::packet::PacketType;
+use crate::protocol::rpc::{OptionFlags, Procedure, RpcRequest};
+use crate::statement::MssqlStatementMetadata;
+use crate::{Mssql, MssqlArguments, MssqlConnection, MssqlTypeInfo, MssqlValueRef};
 use either::Either;
-use once_cell::sync::Lazy;
 use regex::Regex;
 use std::sync::Arc;
+use once_cell::sync::Lazy;
+use cdbc::Error;
 
-pub(crate) async fn prepare(
+pub fn prepare(
     conn: &mut MssqlConnection,
     sql: &str,
 ) -> Result<Arc<MssqlStatementMetadata>, Error> {
@@ -66,14 +67,14 @@ pub(crate) async fn prepare(
         },
     );
 
-    conn.stream.flush().await?;
-    conn.stream.wait_until_ready().await?;
+    conn.stream.flush()?;
+    conn.stream.wait_until_ready()?;
     conn.stream.pending_done_count += 1;
 
     let mut id: Option<i32> = None;
 
     loop {
-        let message = conn.stream.recv_message().await?;
+        let message = conn.stream.recv_message()?;
 
         match message {
             Message::DoneProc(done) | Message::Done(done) => {
@@ -110,12 +111,12 @@ pub(crate) async fn prepare(
             },
         );
 
-        conn.stream.flush().await?;
-        conn.stream.wait_until_ready().await?;
+        conn.stream.flush()?;
+        conn.stream.wait_until_ready()?;
         conn.stream.pending_done_count += 1;
 
         loop {
-            let message = conn.stream.recv_message().await?;
+            let message = conn.stream.recv_message()?;
 
             match message {
                 Message::DoneProc(done) | Message::Done(done) => {

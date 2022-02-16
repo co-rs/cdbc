@@ -1,11 +1,11 @@
 use std::fmt::{self, Display, Formatter};
 
-use crate::mssql::protocol::type_info::{DataType, TypeInfo as ProtocolTypeInfo};
-use crate::type_info::TypeInfo;
+use crate::protocol::type_info::{DataType, TypeInfo as ProtocolTypeInfo};
+use cdbc::type_info::TypeInfo;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "offline", derive(serde::Serialize, serde::Deserialize))]
-pub struct MssqlTypeInfo(pub(crate) ProtocolTypeInfo);
+pub struct MssqlTypeInfo(pub ProtocolTypeInfo);
 
 impl TypeInfo for MssqlTypeInfo {
     fn is_null(&self) -> bool {

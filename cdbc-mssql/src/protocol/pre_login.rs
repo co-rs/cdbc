@@ -3,21 +3,21 @@ use std::fmt::{self, Display, Formatter};
 use bitflags::bitflags;
 use bytes::{Buf, Bytes};
 use uuid::Uuid;
+use cdbc::Error;
 
-use crate::error::Error;
-use crate::io::{Decode, Encode};
+use cdbc::io::{Decode, Encode};
 
 /// A message sent by the client to set up context for login. The server responds to a client
 /// `PRELOGIN` message with a message of packet header type `0x04` and the packet data
 /// containing a `PRELOGIN` structure.
 #[derive(Debug, Default)]
-pub(crate) struct PreLogin<'a> {
-    pub(crate) version: Version,
-    pub(crate) encryption: Encrypt,
-    pub(crate) instance: Option<&'a str>,
-    pub(crate) thread_id: Option<u32>,
-    pub(crate) trace_id: Option<TraceId>,
-    pub(crate) multiple_active_result_sets: Option<bool>,
+pub struct PreLogin<'a> {
+    pub version: Version,
+    pub encryption: Encrypt,
+    pub instance: Option<&'a str>,
+    pub thread_id: Option<u32>,
+    pub trace_id: Option<TraceId>,
+    pub multiple_active_result_sets: Option<bool>,
 }
 
 impl<'de> Decode<'de> for PreLogin<'de> {
@@ -201,26 +201,26 @@ impl PreLoginOptionToken {
 }
 
 #[derive(Debug)]
-pub(crate) struct TraceId {
+pub struct TraceId {
     // client application trace ID (GUID_CONNID)
-    pub(crate) connection_id: Uuid,
+    pub connection_id: Uuid,
 
     // client application activity ID (GUID_ActivityID)
-    pub(crate) activity_id: Uuid,
+    pub activity_id: Uuid,
 
     // client application activity sequence (ActivitySequence)
-    pub(crate) activity_seq: u32,
+    pub activity_seq: u32,
 }
 
 // Version of the sender (UL_VERSION)
 #[derive(Debug, Default)]
-pub(crate) struct Version {
-    pub(crate) major: u8,
-    pub(crate) minor: u8,
-    pub(crate) build: u16,
+pub struct Version {
+    pub major: u8,
+    pub minor: u8,
+    pub build: u16,
 
     // Sub-build number of the sender (US_SUBBUILD)
-    pub(crate) sub_build: u16,
+    pub sub_build: u16,
 }
 
 impl Version {
@@ -242,7 +242,7 @@ bitflags! {
     /// During the Pre-Login handshake, the client and the server negotiate the
     /// wire encryption to be used.
     #[derive(Default)]
-    pub(crate) struct Encrypt: u8 {
+    pub struct Encrypt: u8 {
         /// Encryption is available but on.
         const ON = 0x01;
 

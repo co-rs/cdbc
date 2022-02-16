@@ -1,7 +1,7 @@
 use bytes::{Buf, Bytes};
+use cdbc::Error;
 
-use crate::error::Error;
-use crate::io::BufExt;
+use cdbc::io::BufExt;
 
 pub trait MssqlBufExt: Buf {
     fn get_utf16_str(&mut self, n: usize) -> Result<String, Error>;

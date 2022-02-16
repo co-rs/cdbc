@@ -1,19 +1,18 @@
 use bytes::{Buf, Bytes};
-
-use crate::error::Error;
-use crate::mssql::io::MssqlBufExt;
-use crate::mssql::protocol::pre_login::Version;
+use cdbc::Error;
+use crate::io::MssqlBufExt;
+use crate::protocol::pre_login::Version;
 
 #[derive(Debug)]
-pub(crate) struct LoginAck {
-    pub(crate) interface: u8,
-    pub(crate) tds_version: u32,
-    pub(crate) program_name: String,
-    pub(crate) program_version: Version,
+pub struct LoginAck {
+    pub interface: u8,
+    pub tds_version: u32,
+    pub program_name: String,
+    pub program_version: Version,
 }
 
 impl LoginAck {
-    pub(crate) fn get(buf: &mut Bytes) -> Result<Self, Error> {
+    pub fn get(buf: &mut Bytes) -> Result<Self, Error> {
         let len = buf.get_u16_le();
         let mut data = buf.split_to(len as usize);
 
