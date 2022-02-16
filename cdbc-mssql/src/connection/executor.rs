@@ -67,7 +67,7 @@ impl Executor for &mut MssqlConnection {
     type Database = Mssql;
 
     fn fetch_many<'q, E: 'q>(
-        self,
+        &mut self,
         mut query: E,
     ) -> ChanStream<Either<MssqlQueryResult, MssqlRow>>
         where
@@ -122,7 +122,7 @@ impl Executor for &mut MssqlConnection {
     }
 
     fn fetch_optional<'q, E: 'q>(
-        self,
+        &mut self,
         query: E,
     ) ->  Result<Option<MssqlRow>, Error>
         where
@@ -138,7 +138,7 @@ impl Executor for &mut MssqlConnection {
     }
 
     fn prepare_with<'q>(
-        self,
+        &mut self,
         sql: &'q str,
         _parameters: &[MssqlTypeInfo],
     ) -> Result<MssqlStatement<'q>, Error> {
@@ -151,7 +151,7 @@ impl Executor for &mut MssqlConnection {
     }
 
     fn describe<'q>(
-        self,
+        &mut self,
         sql: &'q str,
     ) -> Result<Describe<Self::Database>, Error>
     {
