@@ -7,7 +7,7 @@ use std::path::Path;
 
 use std::task::{Context, Poll};
 use std::time::Duration;
-use cogo::net::TcpStream;
+use mco::net::TcpStream;
 
 
 #[derive(Debug)]

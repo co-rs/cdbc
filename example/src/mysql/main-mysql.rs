@@ -1,4 +1,4 @@
-use cogo::std::time::time::Time;
+use mco::std::time::time::Time;
 use cdbc::Executor;
 use cdbc_mysql::MySqlPool;
 

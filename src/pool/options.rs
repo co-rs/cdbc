@@ -7,7 +7,7 @@ use std::cmp;
 use std::fmt::{self, Debug, Formatter};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use cogo::go;
+use mco::co;
 
 pub struct PoolOptions<DB: Database> {
     pub test_before_acquire: bool,
@@ -198,7 +198,7 @@ impl<DB: Database> PoolOptions<DB> {
         let shared = SharedPool::new_arc(self, options);
 
         let shared_clone = Arc::clone(&shared);
-        let _ = go!(move ||{
+        let _ = co!(move ||{
             let _ = init_min_connections(&shared_clone);
         });
 

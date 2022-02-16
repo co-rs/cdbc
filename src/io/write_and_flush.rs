@@ -1,6 +1,6 @@
 use std::io::{BufRead, Cursor, Read, Write};
 use crate::error::Error;
-use cogo::net::TcpStream;
+use mco::net::TcpStream;
 
 /// Atomic operation that writes the full buffer to the stream, flushes the stream, and then
 /// clears the buffer (even if either of the two previous operations failed).

@@ -9,9 +9,9 @@ use either::Either;
 use std::fmt::{self, Debug};
 use std::io;
 use std::str::from_utf8;
-use cogo::{chan, go};
-use cogo::std::sync::channel::{Receiver, Sender};
-use cogo::std::sync::channel;
+use mco::{chan, co};
+use mco::std::sync::channel::{Receiver, Sender};
+use mco::std::sync::channel;
 use cdbc::io::chan_stream::ChanStream;
 
 /// A stream of asynchronous notifications from Postgres.
@@ -271,7 +271,7 @@ impl Drop for PgListener {
             };
 
             // Unregister any listeners before returning the connection to the pool.
-            go!(fut);
+            co!(fut);
         }
     }
 }

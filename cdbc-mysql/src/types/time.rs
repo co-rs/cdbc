@@ -284,7 +284,7 @@ fn decode_time(len: u8, mut buf: &[u8]) -> Result<Time, BoxDynError> {
 }
 
 
-impl Type<MySql> for cogo::std::time::time::Time{
+impl Type<MySql> for mco::std::time::time::Time{
     fn type_info() -> MySqlTypeInfo {
         MySqlTypeInfo::binary(ColumnType::Timestamp)
     }
@@ -294,14 +294,14 @@ impl Type<MySql> for cogo::std::time::time::Time{
     }
 }
 
-impl Encode<'_, MySql> for cogo::std::time::time::Time {
+impl Encode<'_, MySql> for mco::std::time::time::Time {
     fn encode_by_ref(&self, buf: &mut Vec<u8>) -> IsNull {
         self.inner.encode_by_ref(buf)
     }
 }
 
-impl<'r> Decode<'r, MySql> for cogo::std::time::time::Time {
+impl<'r> Decode<'r, MySql> for mco::std::time::time::Time {
     fn decode(value: MySqlValueRef<'r>) -> Result<Self, BoxDynError> {
-        Ok(cogo::std::time::time::Time{ inner: OffsetDateTime::decode(value)? })
+        Ok(mco::std::time::time::Time{ inner: OffsetDateTime::decode(value)? })
     }
 }

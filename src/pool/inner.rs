@@ -14,8 +14,8 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
 
 use std::time::{Duration, Instant};
-use cogo::go;
-use cogo::std::sync::Blocker;
+use mco::co;
+use mco::std::sync::Blocker;
 use crate::pool::semaphore::{BoxSemaphore, PermitGuard};
 
 /// Ihe number of permits to release to wake all waiters, such as on `SharedPool::close()`.
@@ -257,7 +257,7 @@ impl<DB: Database> SharedPool<DB> {
             // If the connection is refused wait in exponentially
             // increasing steps for the server to come up,
             // capped by a factor of the remaining time until the deadline
-            cogo::coroutine::sleep(backoff);
+            mco::coroutine::sleep(backoff);
             backoff = cmp::min(backoff * 2, max_backoff);
         }
     }
@@ -331,12 +331,12 @@ fn spawn_reaper<DB: Database>(pool: &Arc<SharedPool<DB>>) {
 
     let pool = Arc::clone(&pool);
 
-    go!(move || {
+    co!(move || {
         while !pool.is_closed() {
             if !pool.idle_conns.is_empty() {
                 do_reap(&pool);
             }
-           cogo::coroutine::sleep(period);
+           mco::coroutine::sleep(period);
         }
     });
 }

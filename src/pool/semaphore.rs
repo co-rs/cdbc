@@ -1,14 +1,14 @@
 use std::sync::Arc;
 use std::sync::atomic::{AtomicI64, AtomicUsize, Ordering};
-use cogo::std::queue::seg_queue::SegQueue;
-use cogo::std::sync::{Blocker, Semphore};
+use mco::std::queue::seg_queue::SegQueue;
+use mco::std::sync::{Blocker, Semphore};
 use crate::Error;
 use crate::error::Result;
 
 /// permit guard
 pub struct PermitGuard<'a> {
     inner: &'a BoxSemaphore,
-    blocker: Arc<cogo::std::sync::Blocker>,
+    blocker: Arc<mco::std::sync::Blocker>,
 }
 
 impl <'a>PermitGuard<'a>{
@@ -23,7 +23,7 @@ pub struct BoxSemaphore {
     ///permit
     permit: AtomicI64,
     ///wait queue
-    waiters: SegQueue<Arc<cogo::std::sync::Blocker>>,
+    waiters: SegQueue<Arc<mco::std::sync::Blocker>>,
 }
 
 impl BoxSemaphore {
@@ -101,29 +101,29 @@ impl BoxSemaphore {
 mod test {
     use std::sync::Arc;
     use std::time::Duration;
-    use cogo::coroutine::sleep;
-    use cogo::{chan, go};
+    use mco::coroutine::sleep;
+    use mco::{chan, co};
     use crate::pool::semaphore::{BoxSemaphore};
 
     #[test]
     fn test_acq() {
         let b = Arc::new(BoxSemaphore::new(2));
         let b1 = b.clone();
-        go!(move ||{
+        co!(move ||{
             b1.acquire();
             println!("{}",1);
             println!("num:{}",b1.permit());
         });
         sleep(Duration::from_secs(1));
         let b2 = b.clone();
-        go!(move ||{
+        co!(move ||{
             b2.acquire();
             println!("{}",2);
             println!("num:{}",b2.permit());
         });
         sleep(Duration::from_secs(1));
         let b3 = b.clone();
-        go!(move ||{
+        co!(move ||{
             println!("req b3");
             println!("num:{}",b3.permit());
             b3.acquire();
@@ -131,7 +131,7 @@ mod test {
         });
         sleep(Duration::from_secs(1));
         let b4 = b.clone();
-        go!(move ||{
+        co!(move ||{
             println!("release");
             b4.release();
             println!("num:{}",b4.permit());
@@ -151,17 +151,17 @@ mod test {
         println!("permit:{}", b.permit());
 
         let b1 = b.clone();
-        go!(move ||{
+        co!(move ||{
             b1.acquire();
             println!("acq{}",4);
         });
         let b1 = b.clone();
-        go!(move ||{
+        co!(move ||{
             b1.acquire();
             println!("acq{}",5);
         });
         let b1 = b.clone();
-        go!(move ||{
+        co!(move ||{
             b1.acquire();
             println!("acq{}",6);
         });
@@ -186,7 +186,7 @@ mod test {
                 s1.send(1);
                 b1.release();
             };
-            go!(f1);
+            co!(f1);
         }
         let mut recvs = 0;
         for idx in 0..total {
