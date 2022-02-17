@@ -1,15 +1,17 @@
 #[macro_use]
 extern crate lazy_static;
+#[deny(unused_variables)]
+extern crate mco_http;
+
 use std::fs::File;
-use std::io;
-use mco::std::http::server::{HttpServer, HttpService, Request, Response};
-use cdbc::executor::Executor;
-use cdbc::pool::Pool;
-use cdbc::PoolOptions;
-use cdbc_mysql::{MySql, MySqlPool};
+use std::ops::Deref;
+use cdbc::Executor;
+use mco::std::lazy::sync::Lazy;
+use mco_http::server::{Request, Response};
+use cdbc_mysql::MySqlPool;
 
 lazy_static!(
-    pub static ref POOL: Pool<MySql> = make_pool().unwrap();
+    pub static ref POOL: MySqlPool = make_pool().unwrap();
 );
 
 // implement the `HttpService` trait for your service
@@ -45,34 +47,24 @@ impl BizActivity {
     }
 }
 
-impl HttpService for HelloWorld {
-    fn call(&mut self, req: Request, resp: &mut Response) -> io::Result<()> {
-        match BizActivity::count() {
-            Ok(v) => {
-                resp.body_vec(v.to_string().into_bytes());
-                Ok(())
-            }
-            Err(e) => {
-                resp.body_vec(e.to_string().into_bytes());
-                Ok(())
-            }
-        }
-    }
+
+fn hello(req: Request, res: Response) {
+    let records = BizActivity::count().unwrap();
+    res.send(records.to_string().as_bytes());
 }
 
-// start the server in main
 fn main() {
-    //if use ssl,or debug. Release mode doesn't require that much stack memory
-    //mco::config().set_stack_size(2*0x1000);//8kb
-    ///check and init pool
-    POOL.acquire().unwrap();
-    let server = HttpServer(HelloWorld).start("0.0.0.0:8000").unwrap();
-    println!("http start on http://127.0.0.1:8000");
-    server.join().unwrap();
+    //or use  fast_log::init_log();
+    let _listening = mco_http::Server::http("0.0.0.0:3000").unwrap()
+        .handle(hello);
+    println!("Listening on http://127.0.0.1:3000");
 }
+
+pub static Pool: Lazy<MySqlPool> = Lazy::new(|| { make_pool().unwrap() });
 
 fn make_pool() -> cdbc::Result<MySqlPool> {
     //Concurrent reads and writes to SQLite limit set connection number to 1
     let pool = MySqlPool::connect("mysql://root:123456@127.0.0.1:3306/test")?;
     Ok(pool)
 }
+
