@@ -1,6 +1,6 @@
 [package]
 name = "cdbc-mssql"
-version = "0.1.14"
+version = "0.1.15"
 edition = "2021"
 authors = ["zhuxiujia@qq.com"]
 description = "Rust Coroutine Database Driver Connectivity"
