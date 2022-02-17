@@ -498,14 +498,14 @@ impl TypeInfo {
                 4 => "INT",
                 8 => "BIGINT",
 
-                _ => unreachable!("invalid size {} for int"),
+                _ => unreachable!("invalid size {} for int",self.size),
             },
 
             DataType::FloatN => match self.size {
                 4 => "REAL",
                 8 => "FLOAT",
 
-                _ => unreachable!("invalid size {} for float"),
+                _ => unreachable!("invalid size {} for float",self.size),
             },
 
             DataType::VarChar => "VARCHAR",
@@ -536,14 +536,14 @@ impl TypeInfo {
                 4 => "int",
                 8 => "bigint",
 
-                _ => unreachable!("invalid size {} for int"),
+                _ => unreachable!("invalid size {} for int",self.size),
             }),
 
             DataType::FloatN => s.push_str(match self.size {
                 4 => "real",
                 8 => "float",
 
-                _ => unreachable!("invalid size {} for float"),
+                _ => unreachable!("invalid size {} for float",self.size),
             }),
 
             DataType::VarChar
