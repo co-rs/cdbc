@@ -7,7 +7,8 @@ use std::fs::File;
 use std::ops::Deref;
 use cdbc::Executor;
 use mco::std::lazy::sync::Lazy;
-use mco_http::server::{Request, Response};
+use mco_http::route::Route;
+use mco_http::server::{Handler, Request, Response};
 use cdbc_mysql::MySqlPool;
 
 lazy_static!(
@@ -42,22 +43,9 @@ impl BizActivity {
         }
         let mut conn = POOL.acquire()?;
         let row = conn.fetch_one("select count(1) as count from biz_activity")?;
-        let c=cdbc::row_scan!(row,BizActivityCount{count: 0})?;
+        let c = cdbc::row_scan!(row,BizActivityCount{count: 0})?;
         Ok(c.count)
     }
-}
-
-
-fn hello(req: Request, res: Response) {
-    let records = BizActivity::count().unwrap();
-    res.send(records.to_string().as_bytes());
-}
-
-fn main() {
-    //or use  fast_log::init_log();
-    let _listening = mco_http::Server::http("0.0.0.0:3000").unwrap()
-        .handle(hello);
-    println!("Listening on http://127.0.0.1:3000");
 }
 
 pub static Pool: Lazy<MySqlPool> = Lazy::new(|| { make_pool().unwrap() });
@@ -67,4 +55,20 @@ fn make_pool() -> cdbc::Result<MySqlPool> {
     let pool = MySqlPool::connect("mysql://root:123456@127.0.0.1:3306/test")?;
     Ok(pool)
 }
+
+fn hello(req: Request, res: Response) {
+    let records = BizActivity::count().unwrap();
+    res.send(records.to_string().as_bytes());
+}
+
+fn main() {
+    //fast_log::init_log();
+    let router = Route::new();
+    router.handle_fn("/", hello);
+    let _listening = mco_http::Server::http("0.0.0.0:3000").unwrap()
+        .handle(router);
+    println!("Listening on http://127.0.0.1:3000");
+}
+
+
 

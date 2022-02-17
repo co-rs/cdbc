@@ -6,6 +6,7 @@ use std::ops::Deref;
 use cdbc::Executor;
 use cdbc_sqlite::SqlitePool;
 use mco::std::lazy::sync::Lazy;
+use mco_http::route::Route;
 use mco_http::server::{Request, Response};
 
 #[derive(Debug,serde::Serialize,serde::Deserialize)]
@@ -33,8 +34,10 @@ fn hello(req: Request, res: Response) {
 
 fn main() {
     //or use  fast_log::init_log();
+    let router = Route::new();
+    router.handle_fn("/", hello);
     let _listening = mco_http::Server::http("0.0.0.0:3000").unwrap()
-        .handle(hello);
+        .handle(router);
     println!("Listening on http://127.0.0.1:3000");
 }
 
