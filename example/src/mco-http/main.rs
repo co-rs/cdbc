@@ -7,7 +7,7 @@ use std::sync::Arc;
 use cdbc::{execute, Executor, fetch_all, fetch_one, Query, query};
 use cdbc_sqlite::{Sqlite, SqlitePool};
 use mco::std::lazy::sync::{Lazy, OnceCell};
-use mco_http::route::Route;
+use mco_http::route::{MiddleWare, Route};
 use mco_http::server::{Request, Response};
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -43,20 +43,37 @@ impl BizActivity {
 }
 
 fn hello(req: Request, res: Response) {
-    let records = BizActivity::fetch_all(&*Pool).unwrap();
+    let records = BizActivity::fetch_all(&req.extra.get::<Arc<SqlitePool>>().unwrap()).unwrap();
     res.send(serde_json::json!(records).to_string().as_bytes());
+}
+
+#[derive(Debug)]
+pub struct MyMiddleWare {
+    pool: Arc<SqlitePool>
+}
+
+impl MiddleWare for MyMiddleWare {
+    fn handle(&self, req: &mut Request, res: &mut Option<Response>) {
+        //You can carry any data here
+        req.extra.insert(self.pool.clone());
+    }
 }
 
 fn main() {
     //or use  fast_log::init_log();
-    let mut router = Route::new();
+    let mut router = Arc::new(Route::new());
 
+    router.add_middleware(MyMiddleWare{
+        pool: Arc::new(make_sqlite().unwrap())
+    });
     router.handle_fn("/", hello);
     router.handle_fn("/fetch_one", |req: Request, res: Response| {
-        res.send(serde_json::json!(BizActivity::fetch_one(&*Pool).unwrap()).to_string().as_bytes());
+        let pool = &req.extra.get::<Arc<SqlitePool>>().unwrap();
+        res.send(serde_json::json!(BizActivity::fetch_one(pool).unwrap()).to_string().as_bytes());
     });
     router.handle_fn("/execute", |req: Request, res: Response| {
-        res.send(serde_json::json!(BizActivity::execute(&*Pool).unwrap()).to_string().as_bytes());
+        let pool = &req.extra.get::<Arc<SqlitePool>>().unwrap();
+        res.send(serde_json::json!(BizActivity::execute(pool).unwrap()).to_string().as_bytes());
     });
     let _listening = mco_http::Server::http("0.0.0.0:3000").unwrap()
         .handle(router);
@@ -65,8 +82,6 @@ fn main() {
     println!("Listening on http://127.0.0.1:3000/execute");
 }
 
-
-pub static Pool: Lazy<SqlitePool> = Lazy::new(|| { make_sqlite().unwrap() });
 
 fn make_sqlite() -> cdbc::Result<SqlitePool> {
     //first. create sqlite dir/file
