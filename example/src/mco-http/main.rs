@@ -28,7 +28,7 @@ impl BizActivity {
     }
 
     pub fn fetch_one(pool: &SqlitePool) -> cdbc::Result<Self> {
-        let v = fetch_one!(pool,query!("select * from biz_activity limit 1"),Self{
+        let v = fetch_one!(pool,query!("select * from biz_activity limit ?"; vec![1]),Self{
             id: None,
             name: None,
             delete_flag: None

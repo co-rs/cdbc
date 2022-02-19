@@ -433,4 +433,13 @@ macro_rules! query {
             q
         }
     };
+    ($sql:expr; $vec:expr) => {
+        {
+            let mut q = $crate::query($sql);
+            for x in $vec{
+                q = q.bind(x);
+            }
+            q
+        }
+    };
 }
