@@ -71,7 +71,7 @@ macro_rules! row_scans {
 }
 
 /// for example:
-///  let v = fetch_all!(&*Pool,"select * from biz_activity", Table{
+///  let v = fetch_all!(&*Pool,query!("select * from biz_activity"), Table{
 ///             id: None,
 ///             name: None,
 ///             delete_flag: None
@@ -79,15 +79,12 @@ macro_rules! row_scans {
 #[macro_export]
 macro_rules! fetch_all {
     ($pool:expr,$query:expr,$target:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
-        $crate::row_scans!(
-        cdbc::query($query)
-        .fetch_all($pool)?,
-        $target { $($field_name:$field_value,)+})
+        $crate::row_scans!($query.fetch_all($pool)?,$target { $($field_name:$field_value,)+})
     }
 }
 
 /// for example:
-/// let v = fetch_one!(&*Pool,"select * from biz_activity limit 1", Table{
+/// let v = fetch_one!(&*Pool,query!("select * from biz_activity limit 1"), Table{
 ///             id: None,
 ///             name: None,
 ///             delete_flag: None
@@ -95,20 +92,17 @@ macro_rules! fetch_all {
 #[macro_export]
 macro_rules! fetch_one {
     ($pool:expr,$query:expr,$target:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
-        $crate::row_scan!(
-        cdbc::query($query)
-        .fetch_one($pool)?,
-        $target { $($field_name:$field_value,)+})
+        $crate::row_scan!($query.fetch_one($pool)?,$target { $($field_name:$field_value,)+})
     }
 }
 
 /// for example:
 ///
-/// let v = execute!(&*Pool,"select * from biz_activity limit 1")?;
+/// let v = execute!(&*Pool,query!("select * from biz_activity limit 1"))?;
 /// Ok(v.rows_affected())
 #[macro_export]
 macro_rules! execute {
     ($pool:expr,$query:expr) => {
-        cdbc::query($query).execute($pool)
+        $query.execute($pool)
     }
 }

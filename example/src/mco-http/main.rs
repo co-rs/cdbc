@@ -19,7 +19,7 @@ pub struct BizActivity {
 
 impl BizActivity {
     pub fn fetch_all(pool: &SqlitePool) -> cdbc::Result<Vec<Self>> {
-        let v = fetch_all!(pool,"select * from biz_activity",Self{
+        let v = fetch_all!(pool,query!("select * from biz_activity"),Self{
             id: None,
             name: None,
             delete_flag: None
@@ -28,7 +28,7 @@ impl BizActivity {
     }
 
     pub fn fetch_one(pool: &SqlitePool) -> cdbc::Result<Self> {
-        let v = fetch_one!(pool,"select * from biz_activity limit 1",Self{
+        let v = fetch_one!(pool,query!("select * from biz_activity limit 1"),Self{
             id: None,
             name: None,
             delete_flag: None
@@ -37,7 +37,7 @@ impl BizActivity {
     }
 
     pub fn execute(pool: &SqlitePool) -> cdbc::Result<u64> {
-        let v = execute!(pool,"select * from biz_activity limit 1")?;
+        let v = execute!(pool,query!("select * from biz_activity limit ?",1))?;
         Ok(v.rows_affected())
     }
 }
@@ -49,7 +49,7 @@ fn hello(req: Request, res: Response) {
 
 #[derive(Debug)]
 pub struct MyMiddleWare {
-    pool: Arc<SqlitePool>
+    pool: Arc<SqlitePool>,
 }
 
 impl MiddleWare for MyMiddleWare {
@@ -63,7 +63,7 @@ fn main() {
     //or use  fast_log::init_log();
     let mut router = Arc::new(Route::new());
 
-    router.add_middleware(MyMiddleWare{
+    router.add_middleware(MyMiddleWare {
         pool: Arc::new(make_sqlite().unwrap())
     });
     router.handle_fn("/", hello);
