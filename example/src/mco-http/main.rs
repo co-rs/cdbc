@@ -3,9 +3,10 @@ extern crate mco_http;
 
 use std::fs::File;
 use std::ops::Deref;
+use std::sync::Arc;
 use cdbc::{execute, Executor, fetch_all, fetch_one, Query, query};
 use cdbc_sqlite::{Sqlite, SqlitePool};
-use mco::std::lazy::sync::Lazy;
+use mco::std::lazy::sync::{Lazy, OnceCell};
 use mco_http::route::Route;
 use mco_http::server::{Request, Response};
 
@@ -41,7 +42,6 @@ impl BizActivity {
     }
 }
 
-
 fn hello(req: Request, res: Response) {
     let records = BizActivity::fetch_all(&*Pool).unwrap();
     res.send(serde_json::json!(records).to_string().as_bytes());
@@ -49,7 +49,8 @@ fn hello(req: Request, res: Response) {
 
 fn main() {
     //or use  fast_log::init_log();
-    let router = Route::new();
+    let mut router = Route::new();
+
     router.handle_fn("/", hello);
     router.handle_fn("/fetch_one", |req: Request, res: Response| {
         res.send(serde_json::json!(BizActivity::fetch_one(&*Pool).unwrap()).to_string().as_bytes());
@@ -60,6 +61,8 @@ fn main() {
     let _listening = mco_http::Server::http("0.0.0.0:3000").unwrap()
         .handle(router);
     println!("Listening on http://127.0.0.1:3000");
+    println!("Listening on http://127.0.0.1:3000/fetch_one");
+    println!("Listening on http://127.0.0.1:3000/execute");
 }
 
 
