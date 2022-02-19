@@ -30,7 +30,9 @@ pub mod value;
 pub mod from_row;
 #[macro_use]
 pub mod query;
+#[macro_use]
 pub mod query_as;
+#[macro_use]
 pub mod query_scalar;
 pub mod executor;
 pub mod describe;
