@@ -67,6 +67,23 @@ cdbc-mysql = {version = "0.1"}
 cdbc-pg = {version = "0.1"}
 cdbc-sqlite = {version = "0.1"}
 ```
+
+* impl scan macro
+```rust
+ use cdbc::{impl_scan};
+ use cdbc::scan::{Scan,Scans};
+ pub struct BizActivity {
+     pub id: Option<String>,
+     pub name: Option<String>,
+     pub delete_flag: Option<i32>,
+ }
+ impl_scan!(SqliteRow,BizActivity{id:None,name:None,delete_flag:None});
+
+ let v:Vec<BizActivity > = query!("select * from biz_activity limit 1").fetch_all(pool)?.scan()?;
+```
+
+
+
 * row_scan macro
 ```rust
 use std::fs::File;
