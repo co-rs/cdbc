@@ -9,7 +9,7 @@ use mco::std::lazy::sync::{Lazy, OnceCell};
 use mco_http::route::{MiddleWare, Route};
 use mco_http::server::{Request, Response};
 use cdbc::{Executor, impl_scan, query};
-use cdbc::scan::{Scan,Scans};
+use cdbc::scan::{Scan, Scans, Table};
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct BizActivity {
@@ -22,6 +22,7 @@ impl_scan!(SqliteRow,BizActivity{id:None,name:None,delete_flag:None});
 
 impl BizActivity {
     pub fn fetch_all(pool: &SqlitePool) -> cdbc::Result<Vec<Self>> {
+        println!("table:{}",BizActivity::table_name());
         let v = query!("select * from biz_activity limit 1")
             .fetch_all(pool)?.scan()?;
         Ok(v)

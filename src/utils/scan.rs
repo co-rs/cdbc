@@ -1,11 +1,15 @@
+pub trait Table {
+    fn table_name() -> &'static str;
+    fn table_columns() -> &'static [&'static str];
+}
 
 /// Scan trait must be impl macro
-pub trait Scan<Table>{
+pub trait Scan<Table> {
     fn scan(&mut self) -> crate::Result<Table>;
 }
 
 /// Scan trait must be impl macro
-pub trait Scans<Table>{
+pub trait Scans<Table> {
     fn scan(&mut self) -> crate::Result<Vec<Table>>;
 }
 
@@ -27,6 +31,16 @@ pub trait Scans<Table>{
 #[macro_export]
 macro_rules! impl_scan {
     ($db_row:path,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
+    impl $crate::scan::Table for BizActivity{
+    fn table_name() -> &'static str {
+        stringify!($table)
+    }
+
+    fn table_columns() -> &'static [&'static str] {
+        &[$(stringify!($field_name),)+]
+     }
+   }
+
     impl $crate::scan::Scan<$table> for $db_row{
       fn scan(&mut self) -> cdbc::Result<$table> {
           $crate::row_scan!(self,$table { $($field_name:$field_value,)+})
