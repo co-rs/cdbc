@@ -13,6 +13,7 @@ pub trait Scans<Table>{
 /// for example:
 /// ```rust
 /// use cdbc::{impl_scan,query};
+/// use cdbc::scan::{Scan,Scans};
 /// pub struct BizActivity {
 ///     pub id: Option<String>,
 ///     pub name: Option<String>,
