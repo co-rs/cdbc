@@ -1,5 +1,6 @@
 pub trait Table {
     fn table_name() -> &'static str;
+    fn table_snake_name() -> String;
     fn table_columns() -> &'static [&'static str];
 }
 
@@ -35,7 +36,9 @@ macro_rules! impl_scan {
     fn table_name() -> &'static str {
         stringify!($table)
     }
-
+    fn table_snake_name() -> String {
+        $crate::to_snake_name(stringify!($table))
+    }
     fn table_columns() -> &'static [&'static str] {
         &[$(stringify!($field_name),)+]
      }
