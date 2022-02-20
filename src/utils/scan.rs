@@ -1,4 +1,31 @@
 
+/// Scan trait must be impl macro
+pub trait Scan<Table>{
+    fn scan(&mut self) -> crate::Result<Table>;
+}
+
+/// Scan trait must be impl macro
+pub trait Scans<Table>{
+    fn scan(&mut self) -> crate::Result<Vec<Table>>;
+}
+
+#[macro_export]
+macro_rules! impl_scan {
+    ($db_row:path,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
+    impl $crate::scan::Scan<$table> for $db_row{
+      fn scan(&mut self) -> cdbc::Result<$table> {
+          $crate::row_scan!(self,$table { $($field_name:$field_value,)+})
+      }
+    }
+    impl $crate::scan::Scans<$table> for Vec<$db_row>{
+      fn scan(&mut self) -> cdbc::Result<Vec<$table>> {
+          $crate::row_scans!(self,$table { $($field_name:$field_value,)+})
+      }
+    }
+  };
+}
+
+
 /// scan CDBC Row to an Table,return cdbc::Result<Table>
 /// for example:
 ///

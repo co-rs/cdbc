@@ -4,11 +4,12 @@ extern crate mco_http;
 use std::fs::File;
 use std::ops::Deref;
 use std::sync::Arc;
-use cdbc_sqlite::{Sqlite, SqlitePool};
+use cdbc_sqlite::{Sqlite, SqlitePool, SqliteRow};
 use mco::std::lazy::sync::{Lazy, OnceCell};
 use mco_http::route::{MiddleWare, Route};
 use mco_http::server::{Request, Response};
-use cdbc::{Executor, query};
+use cdbc::{Executor, impl_scan, query};
+use cdbc::scan::{Scan,Scans};
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct BizActivity {
@@ -17,20 +18,18 @@ pub struct BizActivity {
     pub delete_flag: Option<i32>,
 }
 
+impl_scan!(SqliteRow,BizActivity{id:None,name:None,delete_flag:None});
+
 impl BizActivity {
     pub fn fetch_all(pool: &SqlitePool) -> cdbc::Result<Vec<Self>> {
-        let v = cdbc::row_scans!(
-        cdbc::query("select * from biz_activity limit 1")
-        .fetch_all(pool)?,
-        BizActivity{id:None,name:None,delete_flag:None})?;;
+        let v = cdbc::query("select * from biz_activity limit 1")
+            .fetch_all(pool)?.scan()?;
         Ok(v)
     }
 
     pub fn fetch_one(pool: &SqlitePool) -> cdbc::Result<Self> {
-        let v = cdbc::row_scan!(
-        cdbc::query("select * from biz_activity limit 1")
-        .fetch_one(pool)?,
-        BizActivity{id:None,name:None,delete_flag:None})?;;
+        let v = cdbc::query("select * from biz_activity limit 1")
+            .fetch_one(pool)?.scan()?;
         Ok(v)
     }
 
