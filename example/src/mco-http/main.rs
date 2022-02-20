@@ -36,7 +36,7 @@ impl BizActivity {
     }
 
     pub fn execute(pool: &SqlitePool) -> cdbc::Result<u64> {
-        let v = query!("select * from biz_activity limit ?",1).execute(pool)?;
+        let v = query!("update biz_activity set delete_flag = delete_flag+1 where id = ?","2").execute(pool)?;
         Ok(v.rows_affected())
     }
 }
