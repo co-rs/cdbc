@@ -12,13 +12,16 @@ pub trait Scans<Table>{
 /// impl scan for table struct
 /// for example:
 /// ```rust
-/// use cdbc::{impl_scan};
+/// use cdbc::{impl_scan,query};
 /// pub struct BizActivity {
 ///     pub id: Option<String>,
 ///     pub name: Option<String>,
 ///     pub delete_flag: Option<i32>,
 /// }
 /// impl_scan!(SqliteRow,BizActivity{id:None,name:None,delete_flag:None});
+///
+///
+///  let v:Vec<BizActivity > = query!("select * from biz_activity limit 1").fetch_all(pool)?.scan()?;
 /// ```
 #[macro_export]
 macro_rules! impl_scan {
