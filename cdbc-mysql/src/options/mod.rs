@@ -30,9 +30,9 @@ pub use ssl_mode::MySqlSslMode;
 /// # Example
 ///
 /// ```rust,no_run
-/// # use sqlx_core::error::Error;
-/// # use sqlx_core::connection::{Connection, ConnectOptions};
-/// # use sqlx_core::mysql::{MySqlConnectOptions, MySqlConnection, MySqlSslMode};
+/// # use cdbc::error::Error;
+/// # use cdbc::connection::{Connection, ConnectOptions};
+/// # use cdbc_mysql::::{MySqlConnectOptions, MySqlConnection, MySqlSslMode};
 /// #
 /// # fn main() ->Result<()>{
 /// // URI connection string
@@ -140,7 +140,7 @@ impl MySqlConnectOptions {
     /// # Example
     ///
     /// ```rust
-    /// # use sqlx_core::mysql::{MySqlSslMode, MySqlConnectOptions};
+    /// # use cdbc_mysql::::{MySqlSslMode, MySqlConnectOptions};
     /// let options = MySqlConnectOptions::new()
     ///     .ssl_mode(MySqlSslMode::Required);
     /// ```
@@ -154,7 +154,7 @@ impl MySqlConnectOptions {
     /// # Example
     ///
     /// ```rust
-    /// # use sqlx_core::mysql::{MySqlSslMode, MySqlConnectOptions};
+    /// # use cdbc_mysql::::{MySqlSslMode, MySqlConnectOptions};
     /// let options = MySqlConnectOptions::new()
     ///     .ssl_mode(MySqlSslMode::VerifyCa)
     ///     .ssl_ca("path/to/ca.crt");
@@ -169,7 +169,7 @@ impl MySqlConnectOptions {
     /// # Example
     ///
     /// ```rust
-    /// # use sqlx_core::mysql::{MySqlSslMode, MySqlConnectOptions};
+    /// # use cdbc_mysql::::{MySqlSslMode, MySqlConnectOptions};
     /// let options = MySqlConnectOptions::new()
     ///     .ssl_mode(MySqlSslMode::VerifyCa)
     ///     .ssl_ca_from_pem(vec![]);

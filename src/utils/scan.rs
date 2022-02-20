@@ -9,6 +9,17 @@ pub trait Scans<Table>{
     fn scan(&mut self) -> crate::Result<Vec<Table>>;
 }
 
+/// impl scan for table struct
+/// for example:
+/// ```rust
+/// use cdbc::{impl_scan};
+/// pub struct BizActivity {
+///     pub id: Option<String>,
+///     pub name: Option<String>,
+///     pub delete_flag: Option<i32>,
+/// }
+/// impl_scan!(SqliteRow,BizActivity{id:None,name:None,delete_flag:None});
+/// ```
 #[macro_export]
 macro_rules! impl_scan {
     ($db_row:path,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {

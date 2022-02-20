@@ -22,13 +22,13 @@ impl_scan!(SqliteRow,BizActivity{id:None,name:None,delete_flag:None});
 
 impl BizActivity {
     pub fn fetch_all(pool: &SqlitePool) -> cdbc::Result<Vec<Self>> {
-        let v = cdbc::query("select * from biz_activity limit 1")
+        let v = query!("select * from biz_activity limit 1")
             .fetch_all(pool)?.scan()?;
         Ok(v)
     }
 
     pub fn fetch_one(pool: &SqlitePool) -> cdbc::Result<Self> {
-        let v = cdbc::query("select * from biz_activity limit 1")
+        let v = query!("select * from biz_activity limit 1")
             .fetch_one(pool)?.scan()?;
         Ok(v)
     }

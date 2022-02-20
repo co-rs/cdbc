@@ -148,8 +148,8 @@ impl PgListener {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use sqlx_core::postgres::PgListener;
-    /// # use sqlx_core::error::Error;
+    /// # use cdbc_pg::PgListener;
+    /// # use cdbc::error::Error;
     /// #
     /// # #[cfg(feature = "_rt-async-std")]
     /// # sqlx_rt::block_on::<_, Result<(), Error>>(async move {
@@ -179,8 +179,8 @@ impl PgListener {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use sqlx_core::postgres::PgListener;
-    /// # use sqlx_core::error::Error;
+    /// # use cdbc_pg::PgListener;
+    /// # use cdbc::error::Error;
     /// #
     /// # #[cfg(feature = "_rt-async-std")]
     /// # sqlx_rt::block_on::<_, Result<(), Error>>(async move {

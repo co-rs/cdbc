@@ -35,19 +35,19 @@ pub trait Connection: Send+Executor {
     ///
     /// # Example
     ///
-    /// ```rust
-    /// use sqlx_core::connection::Connection;
-    /// use sqlx_core::error::Error;
-    /// use sqlx_core::executor::Executor;
-    /// use sqlx_core::postgres::{PgConnection, PgRow};
-    /// use sqlx_core::query::query;
+    ///
+    /// use cdbc::connection::Connection;
+    /// use cdbc::error::Error;
+    /// use cdbc::executor::Executor;
+    /// use cdbc_pg::{PgConnection, PgRow};
+    /// use cdbc::query::query;
     ///
     /// # pub fn _f(conn: &mut PgConnection) -> Result<Vec<PgRow>, Error> {
     /// conn.transaction(|conn|Box::pin( || {
     ///     query("select * from ..").fetch_all(conn)
     /// }))
     /// # }
-    /// ```
+    ///
     fn transaction<'a, F, R, E>(&'a mut self, callback: F) ->  Result<R, E>
         where
                 for<'c> F: FnOnce(&'c mut Transaction<'_, Self::Database>) ->  Result<R, E>

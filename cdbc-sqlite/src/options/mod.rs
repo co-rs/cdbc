@@ -35,9 +35,9 @@ use std::cmp::Ordering;
 /// # Example
 ///
 /// ```rust,no_run
-/// # use sqlx_core as sqlx;
-/// # use sqlx_core::connection::ConnectOptions;
-/// # use sqlx_core::error::Error;
+/// # use cdbc as sqlx;
+/// # use cdbc::connection::ConnectOptions;
+/// # use cdbc::error::Error;
 /// use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode};
 /// use std::str::FromStr;
 ///

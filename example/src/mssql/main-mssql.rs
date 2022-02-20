@@ -1,4 +1,4 @@
-use cdbc::Executor;
+use cdbc::{Executor, impl_scan};
 use cdbc_mssql::MssqlPool;
 
 //docker run  --name mssql -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=TestPass!123456" -p 1433:1433 -d genschsa/mssql-server-linux
@@ -27,13 +27,4 @@ fn main() -> cdbc::Result<()> {
     println!("{:?}", data);
     println!("{}", serde_json::to_string(&data).unwrap());
     Ok(())
-}
-
-
-#[cfg(test)]
-mod test {
-    #[test]
-    fn test_stream_mysql() -> cdbc::Result<()> {
-        Ok(())
-    }
 }

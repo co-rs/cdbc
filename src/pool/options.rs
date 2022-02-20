@@ -127,8 +127,8 @@ impl<DB: Database> PoolOptions<DB> {
     ///
     /// ```no_run
     /// # fn f() -> Result<(), Box<dyn std::error::Error>> {
-    /// use sqlx_core::executor::Executor;
-    /// use sqlx_core::postgres::PgPoolOptions;
+    /// use cdbc::executor::Executor;
+    /// use cdbc_pg::PgPoolOptions;
     /// // PostgreSQL
     /// let pool = PgPoolOptions::new()
     ///     .after_connect(|conn| {
