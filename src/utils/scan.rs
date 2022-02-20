@@ -31,7 +31,7 @@ pub trait Scans<Table> {
 #[macro_export]
 macro_rules! impl_scan {
     ($db_row:path,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
-    impl $crate::scan::Table for BizActivity{
+    impl $crate::scan::Table for $table{
     fn table_name() -> &'static str {
         stringify!($table)
     }
