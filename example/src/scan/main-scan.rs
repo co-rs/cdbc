@@ -2,7 +2,7 @@ use std::fs::File;
 use cdbc::{Executor, query};
 use cdbc_sqlite::SqlitePool;
 use cdbc::ScanAll;
-use cdbc::scan::Scans;
+use cdbc::scan::Scan;
 
 /// or use this example
 /// #[derive(Debug,cdbc::ScanSqlite,cdbc::ScanMssql,cdbc::ScanMysql,cdbc::ScanPg)]
@@ -15,6 +15,11 @@ pub struct BizActivity {
 
 fn main() -> cdbc::Result<()> {
     let pool = make_sqlite()?;
+    let data = query!("select * from biz_activity limit 1")
+        .fetch_one(pool.clone())?
+        .scan();
+    println!("{:?}", data);
+
     let data = query!("select * from biz_activity limit 1")
         .fetch_all(pool.clone())?
         .scan();

@@ -11,7 +11,6 @@ pub(crate) fn impl_scan(ast: &syn::DeriveInput,db_type:&[TokenStream]) -> crate:
         fields = quote! {#fields #x:None,};
     }
     let mut get_matchs = quote! {
-        use cdbc::scan::Scan;
     };
     for db_type in db_type {
         get_matchs = quote! {

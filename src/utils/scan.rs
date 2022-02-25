@@ -1,3 +1,5 @@
+use crate::Row;
+
 pub trait Table {
     fn table_name() -> &'static str;
     fn table_name_snake() -> String;
@@ -6,13 +8,13 @@ pub trait Table {
 
 /// Scan trait must be impl macro
 pub trait Scan<Table> {
-    fn scan(&mut self) -> crate::Result<Table>;
+    fn scan(self) -> crate::Result<Table>;
 }
 
-/// Scan trait must be impl macro
-pub trait Scans<Table> {
-    fn scan(&mut self) -> crate::Result<Vec<Table>>;
-}
+// /// Scan trait must be impl macro
+// pub trait Scans<Table> {
+//     fn scan(self) -> crate::Result<Vec<Table>>;
+// }
 
 /// impl scan for table struct
 /// for example:
@@ -33,7 +35,7 @@ pub trait Scans<Table> {
 macro_rules! impl_scan {
     ($row_type:path,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
     impl $crate::scan::Scan<$table> for $row_type{
-      fn scan(&mut self) -> $crate::Result<$table> {
+      fn scan(self) -> $crate::Result<$table> {
            let mut table = {
              $table {
                $(
@@ -55,17 +57,24 @@ macro_rules! impl_scan {
            $crate::Result::Ok(table)
       }
     }
-    impl $crate::scan::Scans<$table> for Vec<$row_type>{
-      fn scan(&mut self) -> $crate::Result<Vec<$table>> {
-          let mut result_datas = vec![];
-           for r in self{
-             let table = r.scan()?;
-             result_datas.push(table);
-           }
-          $crate::Result::Ok(result_datas)
-      }
-    }
   };
+}
+
+impl<R: Row + Scan<T>, T> Scan<Vec<T>> for Vec<R> {
+    fn scan(self) -> crate::Result<Vec<T>> {
+        let mut result_datas = vec![];
+        for r in self {
+            let table = Scan::<T>::scan(r)?;
+            result_datas.push(table);
+        }
+        Ok(result_datas)
+    }
+}
+
+impl<T: Scan<T>> Scan<T> for crate::Result<T> {
+    fn scan(self) -> crate::Result<T> {
+        self?.scan()
+    }
 }
 
 

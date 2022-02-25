@@ -9,7 +9,7 @@ use mco::std::lazy::sync::{Lazy, OnceCell};
 use mco_http::route::{MiddleWare, Route};
 use mco_http::server::{Request, Response};
 use cdbc::{Executor, impl_scan, query};
-use cdbc::scan::{Scan, Scans, Table};
+use cdbc::scan::{Scan, Table};
 use cdbc_mysql::{MySql, MySqlRow};
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
