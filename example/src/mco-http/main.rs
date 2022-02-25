@@ -10,6 +10,7 @@ use mco_http::route::{MiddleWare, Route};
 use mco_http::server::{Request, Response};
 use cdbc::{Executor, impl_scan, query};
 use cdbc::scan::{Scan, Scans, Table};
+use cdbc_mysql::{MySql, MySqlRow};
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct BizActivity {
@@ -18,7 +19,8 @@ pub struct BizActivity {
     pub delete_flag: Option<i32>,
 }
 
-impl_scan!(SqliteRow,BizActivity{id:None,name:None,delete_flag:None});
+impl_scan!(SqliteRow,Sqlite,BizActivity{id:None,name:None,delete_flag:None});
+impl_scan!(MySqlRow,MySql,BizActivity{id:None,name:None,delete_flag:None});
 
 impl BizActivity {
     pub fn fetch_all(pool: &SqlitePool) -> cdbc::Result<Vec<Self>> {

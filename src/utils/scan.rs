@@ -1,3 +1,5 @@
+use crate::database::Database;
+
 pub trait Table {
     fn table_name() -> &'static str;
     fn table_name_snake() -> String;
@@ -5,12 +7,12 @@ pub trait Table {
 }
 
 /// Scan trait must be impl macro
-pub trait Scan<Table> {
+pub trait Scan<Table, DBType: Database> {
     fn scan(&mut self) -> crate::Result<Table>;
 }
 
 /// Scan trait must be impl macro
-pub trait Scans<Table> {
+pub trait Scans<Table, DBType: Database> {
     fn scan(&mut self) -> crate::Result<Vec<Table>>;
 }
 
@@ -31,15 +33,37 @@ pub trait Scans<Table> {
 /// ```
 #[macro_export]
 macro_rules! impl_scan {
-    ($row_type:path,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
-    impl $crate::scan::Scan<$table> for $row_type{
+    ($row_type:path,$db_type:path,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
+    impl $crate::scan::Scan<$table,$db_type> for $row_type{
       fn scan(&mut self) -> $crate::Result<$table> {
-          $crate::row_scan!(self,$table { $($field_name:$field_value,)+})
+           let mut table = {
+             $table {
+               $(
+                    $field_name:$field_value,
+               )+
+             }
+           };
+           use $crate::Row;
+           for _column in self.columns(){
+             use $crate::row::Row;use $crate::column::Column;
+             $(
+                  if stringify!($field_name).trim_start_matches("r#").eq(_column.name()){
+                     let v = self.try_get_raw(_column.name())?;
+                     table.$field_name = $crate::decode::Decode::<$db_type>::decode(v)?;
+                   }
+             )+
+           }
+           $crate::Result::Ok(table)
       }
     }
-    impl $crate::scan::Scans<$table> for Vec<$row_type>{
+    impl $crate::scan::Scans<$table,$db_type> for Vec<$row_type>{
       fn scan(&mut self) -> $crate::Result<Vec<$table>> {
-          $crate::row_scans!(self,$table { $($field_name:$field_value,)+})
+          let mut result_datas = vec![];
+           for r in self{
+             let table = r.scan()?;
+             result_datas.push(table);
+           }
+          $crate::Result::Ok(result_datas)
       }
     }
   };
@@ -69,15 +93,15 @@ macro_rules! row_scan {
     ($row:expr,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
         {
             //logic code
-        let mut table = {
-            $table {
+           let mut table = {
+             $table {
                $(
                     $field_name:$field_value,
                )+
-            }
-        };
-        let row = $row;
-        for _column in row.columns.iter(){
+             }
+           };
+           let row = $row;
+           for _column in row.columns.iter(){
              use $crate::row::Row;use $crate::column::Column;
              $(
                   if stringify!($field_name).trim_start_matches("r#").eq(_column.name()){
@@ -85,8 +109,8 @@ macro_rules! row_scan {
                      table.$field_name = $crate::decode::Decode::decode(v)?;
                    }
              )+
-        }
-          $crate::Result::Ok(table)
+           }
+           $crate::Result::Ok(table)
         }
     }
 }
