@@ -1,3 +1,4 @@
+use crate::BoxDynError;
 use crate::column::ColumnIndex;
 use crate::database::{Database, HasValueRef};
 use crate::decode::Decode;
@@ -178,6 +179,12 @@ pub trait Row: Send + Sync + 'static {
     ) -> Result<<Self::Database as HasValueRef<'_>>::ValueRef, Error>
     where
         I: ColumnIndex<Self>;
+
+
+    fn decode<'a,R>(&self, v:<Self::Database as HasValueRef<'a>>::ValueRef) -> Result<R, BoxDynError>
+        where R:Decode<'a, Self::Database>{
+        Decode::<Self::Database>::decode(v)
+    }
 }
 
 // Prevent users from implementing the `Row` trait.

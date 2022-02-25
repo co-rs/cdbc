@@ -1,5 +1,3 @@
-use crate::database::Database;
-
 pub trait Table {
     fn table_name() -> &'static str;
     fn table_name_snake() -> String;
@@ -7,12 +5,12 @@ pub trait Table {
 }
 
 /// Scan trait must be impl macro
-pub trait Scan<Table, DBType: Database> {
+pub trait Scan<Table> {
     fn scan(&mut self) -> crate::Result<Table>;
 }
 
 /// Scan trait must be impl macro
-pub trait Scans<Table, DBType: Database> {
+pub trait Scans<Table> {
     fn scan(&mut self) -> crate::Result<Vec<Table>>;
 }
 
@@ -33,8 +31,8 @@ pub trait Scans<Table, DBType: Database> {
 /// ```
 #[macro_export]
 macro_rules! impl_scan {
-    ($row_type:path,$db_type:path,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
-    impl $crate::scan::Scan<$table,$db_type> for $row_type{
+    ($row_type:path,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
+    impl $crate::scan::Scan<$table> for $row_type{
       fn scan(&mut self) -> $crate::Result<$table> {
            let mut table = {
              $table {
@@ -45,18 +43,18 @@ macro_rules! impl_scan {
            };
            use $crate::Row;
            for _column in self.columns(){
-             use $crate::row::Row;use $crate::column::Column;
+             use $crate::column::Column;
              $(
                   if stringify!($field_name).trim_start_matches("r#").eq(_column.name()){
-                     let v = self.try_get_raw(_column.name())?;
-                     table.$field_name = $crate::decode::Decode::<$db_type>::decode(v)?;
+                     let r = self.try_get_raw(_column.name())?;
+                     table.$field_name = self.decode(r)?;
                    }
              )+
            }
            $crate::Result::Ok(table)
       }
     }
-    impl $crate::scan::Scans<$table,$db_type> for Vec<$row_type>{
+    impl $crate::scan::Scans<$table> for Vec<$row_type>{
       fn scan(&mut self) -> $crate::Result<Vec<$table>> {
           let mut result_datas = vec![];
            for r in self{
