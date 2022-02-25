@@ -8,7 +8,7 @@ use std::io::Read;
 use quote::quote;
 use crate::proc_macro::TokenStream;
 
-
+/// this Scan will find on Cargo.toml database driver to impl cdbc::impl_scan!(#db_type,#name{#fields});
 #[proc_macro_derive(Scan)]
 pub fn macro_derive_scan_all(input: TokenStream) -> TokenStream {
     let mut cargo_data = "".to_string();
