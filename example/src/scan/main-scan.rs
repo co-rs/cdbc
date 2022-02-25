@@ -6,7 +6,7 @@ use cdbc::scan::Scans;
 
 /// or use this example
 /// #[derive(Debug,cdbc::ScanSqlite,cdbc::ScanMssql,cdbc::ScanMysql,cdbc::ScanPg)]
-#[derive(Debug,ScanAll)]
+#[derive(Debug,cdbc::ScanAll)]
 pub struct BizActivity {
     pub id: Option<String>,
     pub name: Option<String>,
