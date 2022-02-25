@@ -1,3 +1,9 @@
+
+#[macro_use]
+pub extern crate cdbc_macro;
+
+pub use cdbc_macro::{Scan};
+
 #[macro_use]
 pub mod error;
 #[macro_use]

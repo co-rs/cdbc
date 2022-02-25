@@ -37,6 +37,10 @@ path = "src/mco-http/main.rs"
 [[bin]]
 name = "tx"
 path = "src/transaction/tx.rs"
+
+[[bin]]
+name = "scan"
+path = "src/scan/main-scan.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
