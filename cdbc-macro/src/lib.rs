@@ -6,7 +6,7 @@ mod scan;
 use crate::proc_macro::TokenStream;
 
 
-#[proc_macro_derive(Scan)]
+#[proc_macro_derive(ScanSqlite)]
 pub fn macro_derive_scan(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
     let stream = scan::impl_scan(&ast);

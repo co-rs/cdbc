@@ -1,10 +1,10 @@
 use std::fs::File;
 use cdbc::Executor;
 use cdbc_sqlite::SqlitePool;
-use cdbc::Scan;
+use cdbc::ScanSqlite;
 use cdbc::scan::Scans;
 
-#[derive(Debug,Scan)]
+#[derive(Debug,ScanSqlite)]
 pub struct BizActivity {
     pub id: Option<String>,
     pub name: Option<String>,

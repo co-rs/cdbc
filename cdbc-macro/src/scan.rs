@@ -1,8 +1,9 @@
-use proc_macro2::{Ident};
+use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use quote::ToTokens;
 
-pub(crate) fn impl_scan(ast: &syn::DeriveInput) -> crate::proc_macro::TokenStream {
+/// db_type: cdbc_sqlite::SqliteRow
+pub(crate) fn impl_scan(ast: &syn::DeriveInput,db_type:TokenStream) -> crate::proc_macro::TokenStream {
     let name = &ast.ident;
     let field_idents = gen_fields(&ast.data);
     let mut fields = quote! {};
@@ -12,7 +13,7 @@ pub(crate) fn impl_scan(ast: &syn::DeriveInput) -> crate::proc_macro::TokenStrea
     let get_matchs = quote! {
         use cdbc::scan::Scan;
         //TODO feature control
-        cdbc::impl_scan!(cdbc_sqlite::SqliteRow,#name{#fields});
+        cdbc::impl_scan!(#db_type,#name{#fields});
     };
     get_matchs.into()
 }

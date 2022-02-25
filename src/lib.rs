@@ -2,7 +2,7 @@
 #[macro_use]
 pub extern crate cdbc_macro;
 
-pub use cdbc_macro::{Scan};
+pub use cdbc_macro::{ScanSqlite};
 
 #[macro_use]
 pub mod error;
