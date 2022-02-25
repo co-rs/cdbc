@@ -39,4 +39,4 @@ native-tls = {version ="0.2",optional = true}
 ahash = "0.7.2"
 serde_json = { version = "1.0.51", features = ["raw_value"]}
 
-cdbc-macro = {path="cdbc-macro",optional = true}
+cdbc-macro = {version = "0.1",path="cdbc-macro",optional = true}
