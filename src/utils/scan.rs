@@ -71,9 +71,27 @@ impl<R: Row + Scan<T>, T> Scan<Vec<T>> for Vec<R> {
     }
 }
 
-impl<T: Scan<T>> Scan<T> for crate::Result<T> {
+impl<R: Row + Scan<T>, T> Scan<T> for crate::Result<R> {
     fn scan(self) -> crate::Result<T> {
-        self?.scan()
+        match self{
+            Ok(v) => {
+                Ok(v.scan()?)
+            }
+            Err(e) => {
+                Err(e)
+            }
+        }
+    }
+}
+
+impl<R: Row + Scan<T>, T> Scan<Vec<T>> for crate::Result<Vec<R>> {
+    fn scan(self) -> crate::Result<Vec<T>> {
+        let mut result_datas = vec![];
+        for r in self? {
+            let table = Scan::<T>::scan(r)?;
+            result_datas.push(table);
+        }
+        Ok(result_datas)
     }
 }
 

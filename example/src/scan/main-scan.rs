@@ -16,12 +16,12 @@ pub struct BizActivity {
 fn main() -> cdbc::Result<()> {
     let pool = make_sqlite()?;
     let data = query!("select * from biz_activity limit 1")
-        .fetch_one(pool.clone())?
+        .fetch_one(pool.clone())
         .scan();
     println!("{:?}", data);
 
     let data = query!("select * from biz_activity limit 1")
-        .fetch_all(pool.clone())?
+        .fetch_all(pool.clone())
         .scan();
     println!("{:?}", data);
     Ok(())
