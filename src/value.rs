@@ -4,6 +4,7 @@ use crate::error::{mismatched_types, Error};
 use crate::type_info::TypeInfo;
 use crate::types::Type;
 use std::borrow::Cow;
+use crate::BoxDynError;
 
 /// An owned value from the database.
 pub trait Value {
@@ -110,4 +111,9 @@ pub trait ValueRef<'r>: Sized {
 
     /// Returns `true` if the SQL value is `NULL`.
     fn is_null(&self) -> bool;
+
+    fn decode<'a,R>(self) -> Result<R, BoxDynError>
+        where R:Decode<'a, Self::Database>, <<Self as ValueRef<'r>>::Database as HasValueRef<'a>>::ValueRef: From<Self>{
+        Decode::<Self::Database>::decode(self.into())
+    }
 }

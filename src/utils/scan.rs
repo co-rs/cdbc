@@ -42,12 +42,13 @@ macro_rules! impl_scan {
              }
            };
            use $crate::Row;
+           use $crate::column::Column;
+           use $crate::value::ValueRef;
            for _column in self.columns(){
-             use $crate::column::Column;
              $(
                   if stringify!($field_name).trim_start_matches("r#").eq(_column.name()){
                      let r = self.try_get_raw(_column.name())?;
-                     table.$field_name = self.decode(r)?;
+                     table.$field_name = r.decode()?;
                    }
              )+
            }
@@ -98,13 +99,14 @@ macro_rules! row_scan {
                )+
              }
            };
-           let row = $row;
-           for _column in row.columns.iter(){
-             use $crate::row::Row;use $crate::column::Column;
+           use $crate::Row;
+           use $crate::column::Column;
+           use $crate::value::ValueRef;
+           for _column in $row.columns(){
              $(
                   if stringify!($field_name).trim_start_matches("r#").eq(_column.name()){
-                     let v = row.try_get_raw(_column.name())?;
-                     table.$field_name = $crate::decode::Decode::decode(v)?;
+                     let v = $row.try_get_raw(_column.name())?;
+                     table.$field_name = v.decode()?;
                    }
              )+
            }
