@@ -31,13 +31,13 @@ pub trait Scans<Table> {
 /// ```
 #[macro_export]
 macro_rules! impl_scan {
-    ($db_row:path,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
-    impl $crate::scan::Scan<$table> for $db_row{
+    ($row_type:path,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
+    impl $crate::scan::Scan<$table> for $row_type{
       fn scan(&mut self) -> $crate::Result<$table> {
           $crate::row_scan!(self,$table { $($field_name:$field_value,)+})
       }
     }
-    impl $crate::scan::Scans<$table> for Vec<$db_row>{
+    impl $crate::scan::Scans<$table> for Vec<$row_type>{
       fn scan(&mut self) -> $crate::Result<Vec<$table>> {
           $crate::row_scans!(self,$table { $($field_name:$field_value,)+})
       }
@@ -66,11 +66,11 @@ macro_rules! impl_scan {
 ///    }
 #[macro_export]
 macro_rules! row_scan {
-    ($row:expr,$target:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
+    ($row:expr,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
         {
             //logic code
         let mut table = {
-            $target {
+            $table {
                $(
                     $field_name:$field_value,
                )+
@@ -104,11 +104,11 @@ macro_rules! row_scan {
 ///    let biz_activitys = cdbc::row_scans!(rows,BizActivity{id: None,name: None,delete_flag: None})
 #[macro_export]
 macro_rules! row_scans {
-   ($rows:expr,$target:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
+   ($rows:expr,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
         {
            let mut result_datas = vec![];
            for r in $rows{
-             let table = $crate::row_scan!(r, $target { $($field_name:$field_value,)+})?;
+             let table = $crate::row_scan!(r, $table { $($field_name:$field_value,)+})?;
              result_datas.push(table);
            }
           $crate::Result::Ok(result_datas)
