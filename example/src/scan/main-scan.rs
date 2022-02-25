@@ -4,6 +4,8 @@ use cdbc_sqlite::SqlitePool;
 use cdbc::ScanAll;
 use cdbc::scan::Scans;
 
+/// or use this example
+/// #[derive(Debug,cdbc::ScanSqlite,cdbc::ScanMssql,cdbc::ScanMysql,cdbc::ScanPg)]
 #[derive(Debug,ScanAll)]
 pub struct BizActivity {
     pub id: Option<String>,
