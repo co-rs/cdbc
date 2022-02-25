@@ -33,12 +33,12 @@ pub trait Scans<Table> {
 macro_rules! impl_scan {
     ($db_row:path,$table:path{$($field_name:ident: $field_value:expr$(,)?)+}) => {
     impl $crate::scan::Scan<$table> for $db_row{
-      fn scan(&mut self) -> cdbc::Result<$table> {
+      fn scan(&mut self) -> $crate::Result<$table> {
           $crate::row_scan!(self,$table { $($field_name:$field_value,)+})
       }
     }
     impl $crate::scan::Scans<$table> for Vec<$db_row>{
-      fn scan(&mut self) -> cdbc::Result<Vec<$table>> {
+      fn scan(&mut self) -> $crate::Result<Vec<$table>> {
           $crate::row_scans!(self,$table { $($field_name:$field_value,)+})
       }
     }
@@ -77,17 +77,17 @@ macro_rules! row_scan {
             }
         };
         let row = $row;
-        use cdbc::row::Row;
+        use $crate::row::Row;
         for _column in row.columns(){
-             use cdbc::row::Row;use cdbc::column::Column;
+             use $crate::row::Row;use $crate::column::Column;
              $(
                   if stringify!($field_name).trim_start_matches("r#").eq(_column.name()){
                      let v = row.try_get_raw(_column.name())?;
-                     table.$field_name = cdbc::decode::Decode::decode(v)?;
+                     table.$field_name = $crate::decode::Decode::decode(v)?;
                    }
              )+
         }
-          cdbc::Result::Ok(table)
+          $crate::Result::Ok(table)
         }
     }
 }
@@ -109,10 +109,10 @@ macro_rules! row_scans {
         {
            let mut result_datas = vec![];
            for r in $rows{
-             let table = cdbc::row_scan!(r, $target { $($field_name:$field_value,)+})?;
+             let table = $crate::row_scan!(r, $target { $($field_name:$field_value,)+})?;
              result_datas.push(table);
            }
-          cdbc::Result::Ok(result_datas)
+          $crate::Result::Ok(result_datas)
         }
    }
 }
