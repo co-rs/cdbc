@@ -10,6 +10,7 @@ pub(crate) fn impl_scan(ast: &syn::DeriveInput) -> crate::proc_macro::TokenStrea
         fields = quote! {#fields #x:None,};
     }
     let get_matchs = quote! {
+        use cdbc::scan::Scan;
         cdbc::impl_scan!(SqliteRow,#name{#fields});
     };
     get_matchs.into()
