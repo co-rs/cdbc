@@ -11,7 +11,8 @@ pub(crate) fn impl_scan(ast: &syn::DeriveInput) -> crate::proc_macro::TokenStrea
     }
     let get_matchs = quote! {
         use cdbc::scan::Scan;
-        cdbc::impl_scan!(SqliteRow,#name{#fields});
+        //TODO feature control
+        cdbc::impl_scan!(cdbc_sqlite::SqliteRow,#name{#fields});
     };
     get_matchs.into()
 }

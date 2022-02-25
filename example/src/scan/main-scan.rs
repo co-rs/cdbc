@@ -3,7 +3,6 @@ use cdbc::Executor;
 use cdbc_sqlite::SqlitePool;
 use cdbc::Scan;
 use cdbc::scan::Scans;
-use cdbc_sqlite::SqliteRow;
 
 #[derive(Debug,Scan)]
 pub struct BizActivity {
