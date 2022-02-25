@@ -14,6 +14,7 @@ pub fn macro_derive_scan_all(input: TokenStream) -> TokenStream {
     let mut cargo_data = "".to_string();
     let mut f = File::open("Cargo.lock").unwrap();
     f.read_to_string(&mut cargo_data).unwrap();
+    drop(f);
 
     let mut database = vec![];
     for line in cargo_data.lines() {
