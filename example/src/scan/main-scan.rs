@@ -1,12 +1,12 @@
 use std::fs::File;
 use cdbc::{Executor, query};
 use cdbc_sqlite::SqlitePool;
-use cdbc::ScanAll;
+use cdbc::Scan;
 use cdbc::scan::Scan;
 
 /// or use this example
 /// #[derive(Debug,cdbc::ScanSqlite,cdbc::ScanMssql,cdbc::ScanMysql,cdbc::ScanPg)]
-#[derive(Debug, cdbc::ScanAll)]
+#[derive(Debug, cdbc::Scan)]
 pub struct BizActivity {
     pub id: Option<String>,
     pub name: Option<String>,
