@@ -1,6 +1,6 @@
 [package]
 name = "cdbc-mysql"
-version = "0.1.14"
+version = "0.1.18"
 edition = "2021"
 authors = ["zhuxiujia@qq.com"]
 description = "Rust Coroutine Database Driver Connectivity"
@@ -28,7 +28,7 @@ json = ["serde", "serde_json"]
 native-tls = ["cdbc/native-tls"]
 
 [dependencies]
-cdbc = { version = "0.1.14", path = "../", optional = true }
+cdbc = { version = "0.1.18", path = "../", optional = true }
 
 mco = "0.1"
 hashlink = "0.7.0"
