@@ -12,22 +12,23 @@ use crate::proc_macro::TokenStream;
 #[proc_macro_derive(Scan)]
 pub fn macro_derive_scan_all(input: TokenStream) -> TokenStream {
     let mut cargo_data = "".to_string();
-    let mut f = File::open("Cargo.toml").unwrap();
+    let mut f = File::open("Cargo.lock").unwrap();
     f.read_to_string(&mut cargo_data).unwrap();
-    println!("read Cargo.toml: {}", cargo_data);
 
     let mut database = vec![];
-    if cargo_data.contains("cdbc-mysql"){
-        database.push(quote!(cdbc_mysql::MySqlRow));
-    }
-    if cargo_data.contains("cdbc-pg"){
-        database.push(quote!(cdbc_pg::PgRow));
-    }
-    if cargo_data.contains("cdbc-sqlite"){
-        database.push(quote!(cdbc_sqlite::SqliteRow));
-    }
-    if cargo_data.contains("cdbc-mssql"){
-        database.push(quote!(cdbc_mssql::MssqlRow));
+    for line in cargo_data.lines() {
+        if line.trim_start_matches(r#"name = ""#).starts_with("cdbc-mysql") {
+            database.push(quote!(cdbc_mysql::MySqlRow));
+        }
+        if line.trim_start_matches(r#"name = ""#).starts_with("cdbc-pg") {
+            database.push(quote!(cdbc_pg::PgRow));
+        }
+        if line.trim_start_matches(r#"name = ""#).starts_with("cdbc-sqlite") {
+            database.push(quote!(cdbc_sqlite::SqliteRow));
+        }
+        if line.trim_start_matches(r#"name = ""#).starts_with("cdbc-mssql") {
+            database.push(quote!(cdbc_mssql::MssqlRow));
+        }
     }
 
     let ast = syn::parse(input).unwrap();
