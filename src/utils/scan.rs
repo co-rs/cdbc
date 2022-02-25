@@ -62,7 +62,7 @@ macro_rules! impl_scan {
 
 impl<R: Row + Scan<T>, T> Scan<Vec<T>> for Vec<R> {
     fn scan(self) -> crate::Result<Vec<T>> {
-        let mut result_datas = vec![];
+        let mut result_datas = Vec::with_capacity(self.capacity());
         for r in self {
             let table = Scan::<T>::scan(r)?;
             result_datas.push(table);
@@ -73,7 +73,7 @@ impl<R: Row + Scan<T>, T> Scan<Vec<T>> for Vec<R> {
 
 impl<R: Row + Scan<T>, T> Scan<T> for crate::Result<R> {
     fn scan(self) -> crate::Result<T> {
-        match self{
+        match self {
             Ok(v) => {
                 Ok(v.scan()?)
             }
@@ -86,8 +86,9 @@ impl<R: Row + Scan<T>, T> Scan<T> for crate::Result<R> {
 
 impl<R: Row + Scan<T>, T> Scan<Vec<T>> for crate::Result<Vec<R>> {
     fn scan(self) -> crate::Result<Vec<T>> {
-        let mut result_datas = vec![];
-        for r in self? {
+        let c = self?;
+        let mut result_datas = Vec::with_capacity(c.capacity());
+        for r in c {
             let table = Scan::<T>::scan(r)?;
             result_datas.push(table);
         }
