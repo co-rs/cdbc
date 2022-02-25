@@ -77,8 +77,7 @@ macro_rules! row_scan {
             }
         };
         let row = $row;
-        use $crate::row::Row;
-        for _column in row.columns(){
+        for _column in row.columns.iter(){
              use $crate::row::Row;use $crate::column::Column;
              $(
                   if stringify!($field_name).trim_start_matches("r#").eq(_column.name()){
