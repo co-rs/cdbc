@@ -34,9 +34,10 @@ impl CRUD<BizActivity> for SqlitePool {
             .bind(arg.id)
             .bind(arg.name)
             .bind(arg.age)
-            .bind(arg.delete_flag)).map(|r| {
-            r.rows_affected()
-        })
+            .bind(arg.delete_flag))
+            .map(|r| {
+                r.rows_affected()
+            })
     }
 
     fn inserts(&mut self, arg: Vec<BizActivity>) -> cdbc::Result<u64> where BizActivity: Sized {
@@ -51,11 +52,11 @@ impl CRUD<BizActivity> for SqlitePool {
         todo!()
     }
 
-    fn find(&mut self, arg: &str) -> cdbc::Result<BizActivity> where BizActivity: Sized {
+    fn find(&mut self, arg: &str) -> cdbc::Result<Option<BizActivity>> where BizActivity: Sized {
         todo!()
     }
 
-    fn finds(&mut self, arg: &str) -> cdbc::Result<BizActivity> where BizActivity: Sized {
+    fn finds(&mut self, arg: &str) -> cdbc::Result<Vec<BizActivity>> where BizActivity: Sized {
         todo!()
     }
 
@@ -63,52 +64,6 @@ impl CRUD<BizActivity> for SqlitePool {
         todo!()
     }
 }
-
-// impl Table<Sqlite> for BizActivity {
-//     fn table() -> &'static str {
-//         "biz_activity"
-//     }
-//
-//     fn columns() -> &'static [&'static str] {
-//         &["id", "name","age", "delete_flag"]
-//     }
-//
-//     fn insert<E>(e: E, arg: Self) -> cdbc::Result<u64> where E: Executor<Database=Sqlite> {
-//         let sql = format!("insert into {} ({}) values (?,?,?,?)", Self::table(), Self::columns_str());
-//         query::<Sqlite>(sql.as_str())
-//             .bind(arg.id)
-//             .bind(arg.name)
-//             .bind(arg.age)
-//             .bind(arg.delete_flag)
-//             .execute(e).map(|r|{
-//             r.rows_affected()
-//         })
-//     }
-//
-//     fn inserts<E>(e: E, arg: Vec<Self>) -> cdbc::Result<u64> where E: Executor<Database=Sqlite>, Self: Sized {
-//         todo!()
-//     }
-//
-//     fn update<E>(e: E, arg: Self) -> cdbc::Result<u64> where E: Executor<Database=Sqlite> {
-//         todo!()
-//     }
-//
-//     fn updates<E>(e: E, arg: Vec<Self>) -> cdbc::Result<u64> where E: Executor<Database=Sqlite>, Self: Sized {
-//         todo!()
-//     }
-//
-//     fn find<E>(e: E, arg: &str) -> cdbc::Result<Self> where E: Executor<Database=Sqlite>, Self: Sized {
-//         todo!()
-//     }
-//
-//     fn finds<E>(e: E, arg: &str) -> cdbc::Result<Self> where E: Executor<Database=Sqlite>, Self: Sized {
-//         todo!()
-//     }
-//
-//     fn delete<E>(e: E, arg: &str) -> cdbc::Result<u64> where E: Executor<Database=Sqlite> {
-//         todo!()
-//     }
-// }
 
 fn main() -> cdbc::Result<()> {
     let pool = make_sqlite()?;

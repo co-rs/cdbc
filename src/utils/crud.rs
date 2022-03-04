@@ -23,7 +23,7 @@ pub trait CRUD<T:Table> {
     fn inserts(&mut self, arg: Vec<T>) -> Result<u64> where T: Sized;
     fn update(&mut self, arg: T) -> Result<u64> where;
     fn updates(&mut self, arg: Vec<T>) -> Result<u64> where T: Sized;
-    fn find(&mut self, arg: &str) -> Result<T> where T: Sized;
-    fn finds(&mut self, arg: &str) -> Result<T> where T: Sized;
+    fn find(&mut self, arg: &str) -> Result<Option<T>> where T: Sized;
+    fn finds(&mut self, arg: &str) -> Result<Vec<T>> where T: Sized;
     fn delete(&mut self, arg: &str) -> Result<u64> where;
 }
