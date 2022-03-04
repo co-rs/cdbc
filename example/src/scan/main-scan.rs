@@ -60,7 +60,7 @@ impl CRUD<BizActivity> for SqlitePool {
         })
     }
 
-    fn updates(&mut self, args: Vec<BizActivity>, sql: &str) -> cdbc::Result<u64> where BizActivity: Sized {
+    fn updates(&mut self, args: Vec<BizActivity>, r#where: &str) -> cdbc::Result<u64> where BizActivity: Sized {
         let mut num = 0;
         for arg in args {
             let mut q = query("");
@@ -94,7 +94,11 @@ impl CRUD<BizActivity> for SqlitePool {
             if sets.ends_with(",") {
                 sets.pop();
             }
-            let mut sql = format!("update {} set {} where {}", BizActivity::table(), sets, sql);
+            let mut w = r#where.to_string();
+            if !w.trim().is_empty() {
+                w.insert_str(0, "where ");
+            }
+            let mut sql = format!("update {} set {} {}", BizActivity::table(), sets, w);
             log::info!("sql=> {}",sql);
             q.statement = Either::Left(&sql);
             self.execute(q).map(|r| {
@@ -104,16 +108,36 @@ impl CRUD<BizActivity> for SqlitePool {
         return Ok(num);
     }
 
-    fn find(&mut self, r#where: &str) -> cdbc::Result<Option<BizActivity>> where BizActivity: Sized {
-        todo!()
+    fn find(&mut self, r#where: &str) -> cdbc::Result<BizActivity> where BizActivity: Sized {
+        let mut w = r#where.to_string();
+        if !w.trim().is_empty() {
+            w.insert_str(0, "where ");
+        }
+        let mut sql = format!("select * from {} {} ", BizActivity::table(), w);
+        let q = query(&sql);
+        self.fetch_one(q)?.scan()
     }
 
     fn finds(&mut self, r#where: &str) -> cdbc::Result<Vec<BizActivity>> where BizActivity: Sized {
-        todo!()
+        let mut w = r#where.to_string();
+        if !w.trim().is_empty() {
+            w.insert_str(0, "where ");
+        }
+        let mut sql = format!("select * from {} {} ", BizActivity::table(), w);
+        let q = query(&sql);
+        self.fetch_all(q)?.scan()
     }
 
     fn delete(&mut self, r#where: &str) -> cdbc::Result<u64> where {
-        todo!()
+        let mut w = r#where.to_string();
+        if !w.trim().is_empty() {
+            w.insert_str(0, "where ");
+        }
+        let mut sql = format!("delete from {} {} ", BizActivity::table(), w);
+        let q = query(&sql);
+        self.execute(q).map(|r| {
+            r.rows_affected()
+        })
     }
 }
 

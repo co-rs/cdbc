@@ -2,6 +2,7 @@ use mco::err;
 use crate::database::Database;
 use crate::error::Result;
 use crate::Executor;
+use crate::scan::Scan;
 
 
 pub trait Table {
@@ -48,7 +49,7 @@ pub trait Table {
 }
 
 
-pub trait CRUD<T: Table> {
+pub trait CRUD<T: Table>{
     fn insert(&mut self, arg: T) -> Result<u64> {
         self.inserts(vec![arg])
     }
@@ -57,7 +58,7 @@ pub trait CRUD<T: Table> {
         self.updates(vec![arg], r#where)
     }
     fn updates(&mut self, arg: Vec<T>, r#where: &str) -> Result<u64> where T: Sized;
-    fn find(&mut self, r#where: &str) -> Result<Option<T>> where T: Sized;
+    fn find(&mut self, r#where: &str) -> Result<T> where T: Sized;
     fn finds(&mut self, r#where: &str) -> Result<Vec<T>> where T: Sized;
     fn delete(&mut self, r#where: &str) -> Result<u64> where;
 }
