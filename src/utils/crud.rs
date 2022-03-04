@@ -50,10 +50,10 @@ pub trait Table {
 
 
 pub trait CRUD<T: Table>{
-    fn insert(&mut self, arg: T) -> Result<u64> {
+    fn insert(&mut self, arg: T) -> Result<(String,u64)> {
         self.inserts(vec![arg])
     }
-    fn inserts(&mut self, arg: Vec<T>) -> Result<u64> where T: Sized;
+    fn inserts(&mut self, arg: Vec<T>) -> Result<(String,u64)> where T: Sized;
     fn update(&mut self, arg: T, r#where: &str) -> Result<u64> {
         self.updates(vec![arg], r#where)
     }

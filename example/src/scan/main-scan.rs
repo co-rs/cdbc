@@ -30,9 +30,9 @@ impl Table for BizActivity {
 }
 
 impl CRUD<BizActivity> for SqlitePool {
-    fn inserts(&mut self, arg: Vec<BizActivity>) -> cdbc::Result<u64> where BizActivity: Sized {
+    fn inserts(&mut self, arg: Vec<BizActivity>) -> cdbc::Result<(String,u64)> where BizActivity: Sized {
         if arg.len() == 0 {
-            return Ok(0);
+            return Ok((String::new(),0));
         }
         let mut arg_idx = 1;
         let mut sql = format!("insert into {} ({}) values ", BizActivity::table(), BizActivity::columns_str());
@@ -56,7 +56,7 @@ impl CRUD<BizActivity> for SqlitePool {
                 .bind(arg.delete_flag);
         }
         self.execute(q).map(|r| {
-            r.rows_affected()
+            (r.last_insert_rowid().to_string(),r.rows_affected())
         })
     }
 
