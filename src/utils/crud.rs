@@ -2,7 +2,8 @@ use crate::database::Database;
 use crate::error::Result;
 use crate::Executor;
 
-pub trait Table<DB: Database> {
+
+pub trait Table{
     fn table() -> &'static str;
     fn columns() -> &'static [&'static str];
     fn columns_str() -> String {
@@ -14,11 +15,15 @@ pub trait Table<DB: Database> {
         s.pop();
         return s;
     }
-    fn insert<E>(e: E, arg: Self) -> Result<u64> where E: Executor<Database=DB>;
-    fn inserts<E>(e: E, arg: Vec<Self>) -> Result<u64> where E: Executor<Database=DB>, Self: Sized;
-    fn update<E>(e: E, arg: Self) -> Result<u64> where E: Executor<Database=DB>;
-    fn updates<E>(e: E, arg: Vec<Self>) -> Result<u64> where E: Executor<Database=DB>, Self: Sized;
-    fn find<E>(e: E, arg: &str) -> Result<Self> where E: Executor<Database=DB>, Self: Sized;
-    fn finds<E>(e: E, arg: &str) -> Result<Self> where E: Executor<Database=DB>, Self: Sized;
-    fn delete<E>(e: E, arg: &str) -> Result<u64> where E: Executor<Database=DB>;
+}
+
+
+pub trait CRUD<T:Table> {
+    fn insert(&mut self, arg: T) -> Result<u64>;
+    fn inserts(&mut self, arg: Vec<T>) -> Result<u64> where T: Sized;
+    fn update(&mut self, arg: T) -> Result<u64> where;
+    fn updates(&mut self, arg: Vec<T>) -> Result<u64> where T: Sized;
+    fn find(&mut self, arg: &str) -> Result<T> where T: Sized;
+    fn finds(&mut self, arg: &str) -> Result<T> where T: Sized;
+    fn delete(&mut self, arg: &str) -> Result<u64> where;
 }
