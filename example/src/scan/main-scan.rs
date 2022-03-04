@@ -28,24 +28,16 @@ impl Table for BizActivity {
 }
 
 impl CRUD<BizActivity> for SqlitePool {
-    fn insert(&mut self, arg: BizActivity) -> cdbc::Result<u64> {
-        let sql = format!("insert into {} ({}) values (?,?,?,?)", BizActivity::table(), BizActivity::columns_str());
-        self.execute(query(sql.as_str())
-            .bind(arg.id)
-            .bind(arg.name)
-            .bind(arg.age)
-            .bind(arg.delete_flag))
-            .map(|r| {
-                r.rows_affected()
-            })
-    }
-
     fn inserts(&mut self, arg: Vec<BizActivity>) -> cdbc::Result<u64> where BizActivity: Sized {
-        todo!()
-    }
-
-    fn update(&mut self, arg: BizActivity) -> cdbc::Result<u64> where {
-        todo!()
+        let sql = format!("insert into {} ({}) values (?,?,?,?)", BizActivity::table(), BizActivity::columns_str());
+        let mut q = query(sql.as_str());
+        // q = q.bind(arg.id)
+        //     .bind(arg.name)
+        //     .bind(arg.age)
+        //     .bind(arg.delete_flag);
+        self.execute(q).map(|r| {
+            r.rows_affected()
+        })
     }
 
     fn updates(&mut self, arg: Vec<BizActivity>) -> cdbc::Result<u64> where BizActivity: Sized {

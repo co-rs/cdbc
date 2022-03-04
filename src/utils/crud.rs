@@ -1,3 +1,4 @@
+use mco::err;
 use crate::database::Database;
 use crate::error::Result;
 use crate::Executor;
@@ -19,9 +20,13 @@ pub trait Table{
 
 
 pub trait CRUD<T:Table> {
-    fn insert(&mut self, arg: T) -> Result<u64>;
+    fn insert(&mut self, arg: T) -> Result<u64>{
+        self.inserts(vec![arg])
+    }
     fn inserts(&mut self, arg: Vec<T>) -> Result<u64> where T: Sized;
-    fn update(&mut self, arg: T) -> Result<u64> where;
+    fn update(&mut self, arg: T) -> Result<u64>{
+        self.updates(vec![arg])
+    }
     fn updates(&mut self, arg: Vec<T>) -> Result<u64> where T: Sized;
     fn find(&mut self, arg: &str) -> Result<Option<T>> where T: Sized;
     fn finds(&mut self, arg: &str) -> Result<Vec<T>> where T: Sized;
