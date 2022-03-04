@@ -1,11 +1,4 @@
 use crate::Row;
-
-pub trait Table {
-    fn table_name() -> &'static str;
-    fn table_name_snake() -> String;
-    fn table_columns() -> &'static [&'static str];
-}
-
 /// Scan trait must be impl macro
 pub trait Scan<Table> {
     fn scan(self) -> crate::Result<Table>;
