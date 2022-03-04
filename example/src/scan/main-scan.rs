@@ -1,5 +1,7 @@
 use std::fs::File;
 use cdbc::{Executor, query};
+use cdbc::crud::Table;
+use cdbc::database::Database;
 use cdbc_sqlite::SqlitePool;
 use cdbc::Scan;
 use cdbc::scan::Scan;
@@ -13,8 +15,56 @@ pub struct BizActivity {
     pub delete_flag: Option<i32>,
 }
 
+// impl Table for BizActivity {
+//     fn table() -> &'static str {
+//         "BizActivity"
+//     }
+//
+//     fn columns() -> &'static [&'static str] {
+//         &["id", "name", "delete_flag"]
+//     }
+//
+//     fn insert<DB, E>(e: E, arg: Self) -> cdbc::Result<u64> where E: Executor<Database=DB>, DB: Database {
+//         let sql = format!("insert into {} ({}) values ({})",Self::table(),Self::columns_str(),"");
+//         query(sql.as_str()).bind(arg.id).bind(arg.name).bind(arg.delete_flag)
+//             .execute(e)
+//     }
+//
+//     fn inserts<DB, E>(e: E, arg: Vec<Self>) -> cdbc::Result<u64> where E: Executor<Database=DB>, Self: Sized, DB: Database {
+//         todo!()
+//     }
+//
+//     fn update<DB, E>(e: E, arg: Self) -> cdbc::Result<u64> where E: Executor<Database=DB>, DB: Database {
+//         todo!()
+//     }
+//
+//     fn updates<DB, E>(e: E, arg: Vec<Self>) -> cdbc::Result<u64> where E: Executor<Database=DB>, Self: Sized, DB: Database {
+//         todo!()
+//     }
+//
+//     fn find<DB, E>(e: E, arg: &str) -> cdbc::Result<Self> where E: Executor<Database=DB>, Self: Sized, DB: Database {
+//         todo!()
+//     }
+//
+//     fn finds<DB, E>(e: E, arg: &str) -> cdbc::Result<Self> where E: Executor<Database=DB>, Self: Sized, DB: Database {
+//         todo!()
+//     }
+//
+//     fn delete<DB, E>(e: E, arg: &str) -> cdbc::Result<u64> where E: Executor<Database=DB>, DB: Database {
+//         todo!()
+//     }
+// }
+
 fn main() -> cdbc::Result<()> {
     let pool = make_sqlite()?;
+
+    let arg=BizActivity{
+        id: Some("1".to_string()),
+        name: Some("1".to_string()),
+        delete_flag: Some(1)
+    };
+    //BizActivity::insert(&pool,arg);
+
     let data = query!("select * from biz_activity limit 1")
         .fetch_one(pool.clone())
         .scan();

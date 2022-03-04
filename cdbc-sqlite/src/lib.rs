@@ -59,4 +59,4 @@ impl_column_index_for_statement!(SqliteStatement);
 impl_into_maybe_pool!(Sqlite, SqliteConnection);
 
 // required because some databases have a different handling of NULL
-impl_encode_for_option!(Sqlite);
+//impl_encode_for_option!(Sqlite);
