@@ -48,6 +48,7 @@ impl CRUD<BizActivity> for SqlitePool {
         log::info!("sql=> {}",sql);
         let mut q = query(sql.as_str());
         for arg in arg {
+            log::info!("arg=> {:?},{:?},{:?},{:?}",arg.id,arg.name,arg.age,arg.delete_flag);
             q = q.bind(arg.id)
                 .bind(arg.name)
                 .bind(arg.age)
