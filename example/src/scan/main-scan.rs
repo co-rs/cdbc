@@ -37,15 +37,15 @@ impl CRUD<BizActivity> for SqlitePool {
         let mut sql = format!("insert into {} ({}) values ", BizActivity::table(), BizActivity::columns_str());
         let mut value_num = 0;
         for x in &arg {
-            sql.push_str("(");
-            sql.push_str(&BizActivity::values_str("?"));
-            sql.push_str(")");
             if value_num != 0 {
                 sql.push_str(",");
             }
+            sql.push_str("(");
+            sql.push_str(&BizActivity::values_str("?"));
+            sql.push_str(")");
             value_num += 1;
         }
-        sql.pop();
+        log::info!("sql=> {}",sql);
         let mut q = query(sql.as_str());
         for arg in arg {
             q = q.bind(arg.id)
