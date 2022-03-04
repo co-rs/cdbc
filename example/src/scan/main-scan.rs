@@ -2,7 +2,7 @@ use std::fs::File;
 use cdbc::{Executor, query};
 use cdbc::crud::Table;
 use cdbc::database::Database;
-use cdbc_sqlite::SqlitePool;
+use cdbc_sqlite::{Sqlite, SqlitePool};
 use cdbc::Scan;
 use cdbc::scan::Scan;
 
@@ -12,58 +12,66 @@ use cdbc::scan::Scan;
 pub struct BizActivity {
     pub id: Option<String>,
     pub name: Option<String>,
+    pub age:Option<i32>,
     pub delete_flag: Option<i32>,
 }
 
-// impl Table for BizActivity {
-//     fn table() -> &'static str {
-//         "BizActivity"
-//     }
-//
-//     fn columns() -> &'static [&'static str] {
-//         &["id", "name", "delete_flag"]
-//     }
-//
-//     fn insert<DB, E>(e: E, arg: Self) -> cdbc::Result<u64> where E: Executor<Database=DB>, DB: Database {
-//         let sql = format!("insert into {} ({}) values ({})",Self::table(),Self::columns_str(),"");
-//         query(sql.as_str()).bind(arg.id).bind(arg.name).bind(arg.delete_flag)
-//             .execute(e)
-//     }
-//
-//     fn inserts<DB, E>(e: E, arg: Vec<Self>) -> cdbc::Result<u64> where E: Executor<Database=DB>, Self: Sized, DB: Database {
-//         todo!()
-//     }
-//
-//     fn update<DB, E>(e: E, arg: Self) -> cdbc::Result<u64> where E: Executor<Database=DB>, DB: Database {
-//         todo!()
-//     }
-//
-//     fn updates<DB, E>(e: E, arg: Vec<Self>) -> cdbc::Result<u64> where E: Executor<Database=DB>, Self: Sized, DB: Database {
-//         todo!()
-//     }
-//
-//     fn find<DB, E>(e: E, arg: &str) -> cdbc::Result<Self> where E: Executor<Database=DB>, Self: Sized, DB: Database {
-//         todo!()
-//     }
-//
-//     fn finds<DB, E>(e: E, arg: &str) -> cdbc::Result<Self> where E: Executor<Database=DB>, Self: Sized, DB: Database {
-//         todo!()
-//     }
-//
-//     fn delete<DB, E>(e: E, arg: &str) -> cdbc::Result<u64> where E: Executor<Database=DB>, DB: Database {
-//         todo!()
-//     }
-// }
+impl Table<Sqlite> for BizActivity {
+    fn table() -> &'static str {
+        "biz_activity"
+    }
+
+    fn columns() -> &'static [&'static str] {
+        &["id", "name","age", "delete_flag"]
+    }
+
+    fn insert<E>(e: E, arg: Self) -> cdbc::Result<u64> where E: Executor<Database=Sqlite> {
+        let sql = format!("insert into {} ({}) values (?,?,?,?)", Self::table(), Self::columns_str());
+        query::<Sqlite>(sql.as_str())
+            .bind(arg.id)
+            .bind(arg.name)
+            .bind(arg.age)
+            .bind(arg.delete_flag)
+            .execute(e).map(|r|{
+            r.rows_affected()
+        })
+    }
+
+    fn inserts<E>(e: E, arg: Vec<Self>) -> cdbc::Result<u64> where E: Executor<Database=Sqlite>, Self: Sized {
+        todo!()
+    }
+
+    fn update<E>(e: E, arg: Self) -> cdbc::Result<u64> where E: Executor<Database=Sqlite> {
+        todo!()
+    }
+
+    fn updates<E>(e: E, arg: Vec<Self>) -> cdbc::Result<u64> where E: Executor<Database=Sqlite>, Self: Sized {
+        todo!()
+    }
+
+    fn find<E>(e: E, arg: &str) -> cdbc::Result<Self> where E: Executor<Database=Sqlite>, Self: Sized {
+        todo!()
+    }
+
+    fn finds<E>(e: E, arg: &str) -> cdbc::Result<Self> where E: Executor<Database=Sqlite>, Self: Sized {
+        todo!()
+    }
+
+    fn delete<E>(e: E, arg: &str) -> cdbc::Result<u64> where E: Executor<Database=Sqlite> {
+        todo!()
+    }
+}
 
 fn main() -> cdbc::Result<()> {
     let pool = make_sqlite()?;
 
-    let arg=BizActivity{
+    let arg = BizActivity {
         id: Some("1".to_string()),
         name: Some("1".to_string()),
-        delete_flag: Some(1)
+        age:Some(1),
+        delete_flag: Some(1),
     };
-    //BizActivity::insert(&pool,arg);
+    BizActivity::insert(&pool,arg).unwrap();
 
     let data = query!("select * from biz_activity limit 1")
         .fetch_one(pool.clone())
