@@ -55,6 +55,6 @@ cdbc-sqlite = { path = "../cdbc-sqlite" }
 cdbc-mssql = { path = "../cdbc-mssql" }
 
 log = "0.4"
-fast_log = "1.4"
+fast_log = "1.5"
 serde = "1.0"
 serde_json = "1.0"

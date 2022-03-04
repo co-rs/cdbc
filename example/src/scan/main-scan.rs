@@ -1,4 +1,6 @@
 use std::fs::File;
+use fast_log::config::Config;
+use log::Level;
 use cdbc::{Executor, query};
 use cdbc::crud::{CRUD, Table};
 use cdbc::database::Database;
@@ -74,6 +76,7 @@ impl CRUD<BizActivity> for SqlitePool {
 }
 
 fn main() -> cdbc::Result<()> {
+    fast_log::init(Config::new().console().level(Level::Trace));
     let pool = make_sqlite()?;
 
     let arg = BizActivity {
