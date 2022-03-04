@@ -7,20 +7,25 @@ use cdbc::io::chan_stream::ChanStream;
 use crate::{Sqlite, SqliteConnection, SqliteQueryResult, SqliteRow, SqliteStatement, SqliteTypeInfo};
 
 pub(crate) fn sender_to_stream(arg: Receiver<Result<Either<SqliteQueryResult, SqliteRow>, Error>>) -> ChanStream<Either<SqliteQueryResult, SqliteRow>> {
-    ChanStream::new(|s|{
-        loop{
-            match arg.recv(){
+    ChanStream::new(|s| {
+        loop {
+            match arg.recv() {
                 Ok(v) => {
-                    s.send(Some(v));
+                    if v.is_err() {
+                        return Err(v.err().unwrap());
+                    } else {
+                        s.send(Some(v));
+                    }
                 }
-                Err(e) => {
+                Err(_) => {
+                    //log::error!("{}",e);
+                    // s.send(None);
                     return Ok(());
                 }
             }
         }
     })
 }
-
 
 
 impl Executor for SqliteConnection {
