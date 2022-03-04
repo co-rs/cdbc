@@ -33,11 +33,17 @@ impl CRUD<BizActivity> for SqlitePool {
             return Ok(0);
         }
         let mut sql = format!("insert into {} ({}) values ", BizActivity::table(), BizActivity::columns_str());
+        let mut value_num = 0;
         for x in &arg {
             sql.push_str("(");
             sql.push_str(&BizActivity::values_str("?"));
             sql.push_str(")");
+            if value_num != 0 {
+                sql.push_str(",");
+            }
+            value_num += 1;
         }
+        sql.pop();
         let mut q = query(sql.as_str());
         for arg in arg {
             q = q.bind(arg.id)
@@ -77,8 +83,8 @@ fn main() -> cdbc::Result<()> {
         delete_flag: Some(1),
     };
     // BizActivity::insert(&pool,arg).unwrap();
-    let r= pool.clone().insert(arg);
-    println!("insert = {:?}",r);
+    let r = pool.clone().insert(arg);
+    println!("insert = {:?}", r);
 
     let data = query!("select * from biz_activity limit 1")
         .fetch_one(pool.clone())
