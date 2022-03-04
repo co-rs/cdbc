@@ -1,7 +1,7 @@
 use std::fs::File;
 use fast_log::config::Config;
 use log::Level;
-use cdbc::{Executor, query};
+use cdbc::{Either, Executor, query};
 use cdbc::crud::{CRUD, Table};
 use cdbc::database::Database;
 use cdbc_sqlite::{Sqlite, SqlitePool};
@@ -10,7 +10,7 @@ use cdbc::scan::Scan;
 
 /// or use this example
 /// #[derive(Debug,cdbc::ScanSqlite,cdbc::ScanMssql,cdbc::ScanMysql,cdbc::ScanPg)]
-#[derive(Debug, cdbc::Scan)]
+#[derive(Debug, Clone, cdbc::Scan)]
 pub struct BizActivity {
     pub id: Option<String>,
     pub name: Option<String>,
@@ -34,6 +34,7 @@ impl CRUD<BizActivity> for SqlitePool {
         if arg.len() == 0 {
             return Ok(0);
         }
+        let mut arg_idx = 1;
         let mut sql = format!("insert into {} ({}) values ", BizActivity::table(), BizActivity::columns_str());
         let mut value_num = 0;
         for x in &arg {
@@ -41,7 +42,7 @@ impl CRUD<BizActivity> for SqlitePool {
                 sql.push_str(",");
             }
             sql.push_str("(");
-            sql.push_str(&BizActivity::values_str("?"));
+            sql.push_str(&BizActivity::values_str("?", &mut arg_idx));
             sql.push_str(")");
             value_num += 1;
         }
@@ -59,19 +60,59 @@ impl CRUD<BizActivity> for SqlitePool {
         })
     }
 
-    fn updates(&mut self, arg: Vec<BizActivity>) -> cdbc::Result<u64> where BizActivity: Sized {
+    fn updates(&mut self, args: Vec<BizActivity>, sql: &str) -> cdbc::Result<u64> where BizActivity: Sized {
+        let mut num = 0;
+        for arg in args {
+            let mut q = query("");
+            let mut arg_idx = 1;
+            let mut sets = String::new();
+
+            if arg.id.is_some() {
+                sets.push_str("id = ");
+                sets.push_str(&BizActivity::p("?", &mut arg_idx));
+                sets.push_str(",");
+                q = q.bind(arg.id);
+            }
+            if arg.name.is_some() {
+                sets.push_str("name = ");
+                sets.push_str(&BizActivity::p("?", &mut arg_idx));
+                sets.push_str(",");
+                q = q.bind(arg.name);
+            }
+            if arg.age.is_some() {
+                sets.push_str("age = ");
+                sets.push_str(&BizActivity::p("?", &mut arg_idx));
+                sets.push_str(",");
+                q = q.bind(arg.age);
+            }
+            if arg.delete_flag.is_some() {
+                sets.push_str("delete_flag = ");
+                sets.push_str(&BizActivity::p("?", &mut arg_idx));
+                sets.push_str(",");
+                q = q.bind(arg.delete_flag);
+            }
+            if sets.ends_with(",") {
+                sets.pop();
+            }
+            let mut sql = format!("update {} set {} where {}", BizActivity::table(), sets, sql);
+            log::info!("sql=> {}",sql);
+            q.statement = Either::Left(&sql);
+            self.execute(q).map(|r| {
+                num += r.rows_affected();
+            })?;
+        }
+        return Ok(num);
+    }
+
+    fn find(&mut self, r#where: &str) -> cdbc::Result<Option<BizActivity>> where BizActivity: Sized {
         todo!()
     }
 
-    fn find(&mut self, arg: &str) -> cdbc::Result<Option<BizActivity>> where BizActivity: Sized {
+    fn finds(&mut self, r#where: &str) -> cdbc::Result<Vec<BizActivity>> where BizActivity: Sized {
         todo!()
     }
 
-    fn finds(&mut self, arg: &str) -> cdbc::Result<Vec<BizActivity>> where BizActivity: Sized {
-        todo!()
-    }
-
-    fn delete(&mut self, arg: &str) -> cdbc::Result<u64> where {
+    fn delete(&mut self, r#where: &str) -> cdbc::Result<u64> where {
         todo!()
     }
 }
@@ -87,7 +128,10 @@ fn main() -> cdbc::Result<()> {
         delete_flag: Some(1),
     };
     // BizActivity::insert(&pool,arg).unwrap();
-    let r = pool.clone().insert(arg);
+    let r = pool.clone().insert(arg.clone());
+    println!("insert = {:?}", r);
+
+    let r = pool.clone().update(arg.clone(), "id = 1");
     println!("insert = {:?}", r);
 
     let data = query!("select * from biz_activity limit 1")

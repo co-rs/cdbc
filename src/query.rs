@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use either::Either;
+pub use either::Either;
 
 use crate::arguments::{Arguments, IntoArguments};
 use crate::database::{Database, HasArguments, HasStatement, HasStatementCache};
@@ -12,6 +12,7 @@ use crate::statement::Statement;
 use crate::types::Type;
 use crate::chan_stream;
 use crate::io::chan_stream::TryStream;
+
 
 /// Raw SQL query with bind parameters. Returned by [`query`][crate::query::query].
 #[must_use = "query must be executed to affect database"]
