@@ -34,6 +34,9 @@ pub trait Table {
     }
 
     fn p(p: &str, index: &mut i32) -> String {
+        if *index < 1 {
+            *index = 1;
+        }
         let mut s = String::new();
         s.push_str(p);
         if p != "?" {
