@@ -29,12 +29,22 @@ impl Table for BizActivity {
 
 impl CRUD<BizActivity> for SqlitePool {
     fn inserts(&mut self, arg: Vec<BizActivity>) -> cdbc::Result<u64> where BizActivity: Sized {
-        let sql = format!("insert into {} ({}) values (?,?,?,?)", BizActivity::table(), BizActivity::columns_str());
+        if arg.len() == 0 {
+            return Ok(0);
+        }
+        let mut sql = format!("insert into {} ({}) values ", BizActivity::table(), BizActivity::columns_str());
+        for x in &arg {
+            sql.push_str("(");
+            sql.push_str(&BizActivity::values_str("?"));
+            sql.push_str(")");
+        }
         let mut q = query(sql.as_str());
-        // q = q.bind(arg.id)
-        //     .bind(arg.name)
-        //     .bind(arg.age)
-        //     .bind(arg.delete_flag);
+        for arg in arg {
+            q = q.bind(arg.id)
+                .bind(arg.name)
+                .bind(arg.age)
+                .bind(arg.delete_flag);
+        }
         self.execute(q).map(|r| {
             r.rows_affected()
         })
@@ -61,20 +71,21 @@ fn main() -> cdbc::Result<()> {
     let pool = make_sqlite()?;
 
     let arg = BizActivity {
-        id: Some("1".to_string()),
-        name: Some("1".to_string()),
-        age: Some(1),
+        id: Some("2".to_string()),
+        name: Some("2".to_string()),
+        age: Some(2),
         delete_flag: Some(1),
     };
     // BizActivity::insert(&pool,arg).unwrap();
-    pool.clone().insert(arg);
+    let r= pool.clone().insert(arg);
+    println!("insert = {:?}",r);
 
     let data = query!("select * from biz_activity limit 1")
         .fetch_one(pool.clone())
         .scan();
     println!("{:?}", data);
 
-    let data = query!("select * from biz_activity limit 1")
+    let data = query!("select * from biz_activity")
         .fetch_all(pool.clone())
         .scan();
     println!("{:?}", data);
