@@ -39,10 +39,10 @@ impl HasArguments<'_> for MySql {
     type ArgumentBuffer = Vec<u8>;
 }
 
-impl<'q> HasStatement<'q> for MySql {
+impl HasStatement for MySql {
     type Database = MySql;
 
-    type Statement = MySqlStatement<'q>;
+    type Statement = MySqlStatement;
 }
 
 impl HasStatementCache for MySql {}

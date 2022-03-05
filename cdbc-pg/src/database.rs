@@ -40,10 +40,10 @@ impl HasArguments<'_> for Postgres {
     type ArgumentBuffer = PgArgumentBuffer;
 }
 
-impl<'q> HasStatement<'q> for Postgres {
+impl HasStatement for Postgres {
     type Database = Postgres;
 
-    type Statement = PgStatement<'q>;
+    type Statement = PgStatement;
 }
 
 impl HasStatementCache for Postgres {}

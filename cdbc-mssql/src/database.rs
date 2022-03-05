@@ -30,10 +30,10 @@ impl<'r> HasValueRef<'r> for Mssql {
     type ValueRef = MssqlValueRef<'r>;
 }
 
-impl<'q> HasStatement<'q> for Mssql {
+impl HasStatement for Mssql {
     type Database = Mssql;
 
-    type Statement = MssqlStatement<'q>;
+    type Statement = MssqlStatement;
 }
 
 impl HasArguments<'_> for Mssql {

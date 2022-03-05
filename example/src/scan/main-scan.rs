@@ -100,7 +100,7 @@ impl CRUD<BizActivity> for SqlitePool {
             }
             let mut sql = format!("update {} set {} {}", BizActivity::table(), sets, w);
             log::info!("sql=> {}",sql);
-            q.statement = Either::Left(&sql);
+            q.statement = Either::Left(sql);
             self.execute(q).map(|r| {
                 num += r.rows_affected();
             })?;

@@ -41,7 +41,7 @@ impl Executor for &mut MssqlConnection {
         MssqlConnection::fetch_optional(self, query)
     }
 
-    fn prepare_with<'q>(&mut self, sql: &'q str, parameters: &'q [<Self::Database as Database>::TypeInfo]) -> Result<<Self::Database as HasStatement<'q>>::Statement, cdbc::Error> {
+    fn prepare_with<'q>(&mut self, sql: &'q str, parameters: &'q [<Self::Database as Database>::TypeInfo]) -> Result<<Self::Database as HasStatement>::Statement, cdbc::Error> {
         MssqlConnection::prepare_with(self, sql, parameters)
     }
 

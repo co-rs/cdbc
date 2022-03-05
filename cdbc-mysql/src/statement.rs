@@ -11,8 +11,8 @@ use std::sync::Arc;
 use cdbc::utils::ustr::UStr;
 
 #[derive(Debug, Clone)]
-pub struct MySqlStatement<'q> {
-    pub(crate) sql: Cow<'q, str>,
+pub struct MySqlStatement {
+    pub(crate) sql: String,
     pub(crate) metadata: MySqlStatementMetadata,
 }
 
@@ -23,18 +23,22 @@ pub(crate) struct MySqlStatementMetadata {
     pub(crate) parameters: usize,
 }
 
-impl<'q> Statement<'q> for MySqlStatement<'q> {
+impl Statement for MySqlStatement {
     type Database = MySql;
 
-    fn to_owned(&self) -> MySqlStatement<'static> {
-        MySqlStatement::<'static> {
-            sql: Cow::Owned(self.sql.clone().into_owned()),
+    fn to_owned(&self) -> MySqlStatement {
+        MySqlStatement {
+            sql: self.sql.clone(),
             metadata: self.metadata.clone(),
         }
     }
 
     fn sql(&self) -> &str {
-        &self.sql
+        self.sql.as_str()
+    }
+
+    fn sql_mut(&mut self) -> &mut String {
+        &mut self.sql
     }
 
     fn parameters(&self) -> Option<Either<&[MySqlTypeInfo], usize>> {
@@ -48,8 +52,8 @@ impl<'q> Statement<'q> for MySqlStatement<'q> {
     impl_statement_query!(MySqlArguments);
 }
 
-impl ColumnIndex<MySqlStatement<'_>> for &'_ str {
-    fn index(&self, statement: &MySqlStatement<'_>) -> Result<usize, Error> {
+impl ColumnIndex<MySqlStatement> for &'_ str {
+    fn index(&self, statement: &MySqlStatement) -> Result<usize, Error> {
         statement
             .metadata
             .column_names

@@ -73,8 +73,8 @@ macro_rules! impl_column_index_for_row {
 #[macro_export]
 macro_rules! impl_column_index_for_statement {
     ($S:ident) => {
-        impl cdbc::column::ColumnIndex<$S<'_>> for usize {
-            fn index(&self, statement: &$S<'_>) -> Result<usize, cdbc::error::Error> {
+        impl cdbc::column::ColumnIndex<$S> for usize {
+            fn index(&self, statement: &$S) -> Result<usize, cdbc::error::Error> {
                 let len = cdbc::statement::Statement::columns(statement).len();
 
                 if *self >= len {

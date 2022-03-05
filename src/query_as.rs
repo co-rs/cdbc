@@ -15,23 +15,23 @@ use crate::types::Type;
 /// Raw SQL query with bind parameters, mapped to a concrete type using [`FromRow`].
 /// Returned from [`query_as`].
 #[must_use = "query must be executed to affect database"]
-pub struct QueryAs<'q, DB: Database, O, A> {
-    pub inner: Query<'q, DB, A>,
+pub struct QueryAs<DB: Database, O, A> {
+    pub inner: Query<DB, A>,
     pub output: PhantomData<O>,
 }
 
-impl<'q, DB, O: Send, A: Send> Execute<'q, DB> for QueryAs<'q, DB, O, A>
+impl<'q, DB, O: Send, A: Send> Execute<'q, DB> for QueryAs<DB, O, A>
     where
         DB: Database,
         A: 'q + IntoArguments<'q, DB>,
 {
     #[inline]
-    fn sql(&self) -> &'q str {
+    fn sql(&self) -> &str {
         self.inner.sql()
     }
 
     #[inline]
-    fn statement(&self) -> Option<&<DB as HasStatement<'q>>::Statement> {
+    fn statement(&self) -> Option<&<DB as HasStatement>::Statement> {
         self.inner.statement()
     }
 
@@ -46,7 +46,7 @@ impl<'q, DB, O: Send, A: Send> Execute<'q, DB> for QueryAs<'q, DB, O, A>
     }
 }
 
-impl<'q, DB: Database, O> QueryAs<'q, DB, O, <DB as HasArguments<'q>>::Arguments> {
+impl<'q, DB: Database, O> QueryAs< DB, O, <DB as HasArguments<'q>>::Arguments> {
     /// Bind a value for use with this SQL query.
     ///
     /// See [`Query::bind`](Query::bind).
@@ -56,7 +56,7 @@ impl<'q, DB: Database, O> QueryAs<'q, DB, O, <DB as HasArguments<'q>>::Arguments
     }
 }
 
-impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
+impl<'q, DB, O, A> QueryAs< DB, O, A>
     where
         DB: Database + HasStatementCache,
 {
@@ -76,7 +76,7 @@ impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
 
 // FIXME: This is very close, nearly 1:1 with `Map`
 // noinspection DuplicatedCode
-impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
+impl<'q, DB, O, A> QueryAs< DB, O, A>
     where
         DB: Database,
         A: 'q + IntoArguments<'q, DB>,
@@ -170,7 +170,7 @@ impl<'q, DB, O, A> QueryAs<'q, DB, O, A>
 /// Make a SQL query that is mapped to a concrete type
 /// using [`FromRow`].
 #[inline]
-pub fn query_as<'q, DB, O>(sql: &'q str) -> QueryAs<'q, DB, O, <DB as HasArguments<'q>>::Arguments>
+pub fn query_as<'q, DB, O>(sql: &'q str) -> QueryAs< DB, O, <DB as HasArguments<'q>>::Arguments>
     where
         DB: Database,
         O: for<'r> FromRow<'r, DB::Row>,
@@ -184,7 +184,7 @@ pub fn query_as<'q, DB, O>(sql: &'q str) -> QueryAs<'q, DB, O, <DB as HasArgumen
 /// Make a SQL query, with the given arguments, that is mapped to a concrete type
 /// using [`FromRow`].
 #[inline]
-pub fn query_as_with<'q, DB, O, A>(sql: &'q str, arguments: A) -> QueryAs<'q, DB, O, A>
+pub fn query_as_with<'q, DB, O, A>(sql: &'q str, arguments: A) -> QueryAs< DB, O, A>
     where
         DB: Database,
         A: IntoArguments<'q, DB>,
@@ -198,8 +198,8 @@ pub fn query_as_with<'q, DB, O, A>(sql: &'q str, arguments: A) -> QueryAs<'q, DB
 
 // Make a SQL query from a statement, that is mapped to a concrete type.
 pub fn query_statement_as<'q, DB, O>(
-    statement: &'q <DB as HasStatement<'q>>::Statement,
-) -> QueryAs<'q, DB, O, <DB as HasArguments<'_>>::Arguments>
+    statement: <DB as HasStatement>::Statement,
+) -> QueryAs< DB, O, <DB as HasArguments<'q>>::Arguments>
     where
         DB: Database,
         O: for<'r> FromRow<'r, DB::Row>,
@@ -212,9 +212,9 @@ pub fn query_statement_as<'q, DB, O>(
 
 // Make a SQL query from a statement, with the given arguments, that is mapped to a concrete type.
 pub fn query_statement_as_with<'q, DB, O, A>(
-    statement: &'q <DB as HasStatement<'q>>::Statement,
+    statement:  <DB as HasStatement>::Statement,
     arguments: A,
-) -> QueryAs<'q, DB, O, A>
+) -> QueryAs< DB, O, A>
     where
         DB: Database,
         A: IntoArguments<'q, DB>,

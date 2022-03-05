@@ -43,7 +43,7 @@ pub struct WorkerSharedState {
 enum Command {
     Prepare {
         query: Box<str>,
-        tx: Sender<Result<SqliteStatement<'static>, Error>>,
+        tx: Sender<Result<SqliteStatement, Error>>,
     },
     Describe {
         query: Box<str>,
@@ -238,7 +238,7 @@ impl ConnectionWorker {
         })?
     }
 
-    pub fn prepare(&mut self, query: &str) -> Result<SqliteStatement<'static>, Error> {
+    pub fn prepare(&mut self, query: &str) -> Result<SqliteStatement, Error> {
         self.oneshot_cmd(|tx| Command::Prepare {
             query: query.into(),
             tx,
@@ -355,7 +355,7 @@ impl ConnectionWorker {
     }
 }
 
-fn prepare(conn: &mut ConnectionState, query: &str) -> Result<SqliteStatement<'static>, Error> {
+fn prepare(conn: &mut ConnectionState, query: &str) -> Result<SqliteStatement, Error> {
     // prepare statement object (or checkout from cache)
     let statement = conn.statements.get(query, true)?;
 
@@ -374,7 +374,7 @@ fn prepare(conn: &mut ConnectionState, query: &str) -> Result<SqliteStatement<'s
     }
 
     Ok(SqliteStatement {
-        sql: Cow::Owned(query.to_string()),
+        sql: query.to_string(),
         columns: columns.unwrap_or_default(),
         column_names: column_names.unwrap_or_default(),
         parameters,

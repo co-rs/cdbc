@@ -75,7 +75,7 @@ pub trait Database:
     + Debug
     + for<'r> HasValueRef<'r, Database = Self>
     + for<'q> HasArguments<'q, Database = Self>
-    + for<'q> HasStatement<'q, Database = Self>
+    + for<'q> HasStatement< Database = Self>
 {
     /// The concrete `Connection` implementation for this database.
     type Connection: Connection<Database = Self>;
@@ -142,11 +142,11 @@ pub trait HasArguments<'q> {
 /// the need for this trait.
 ///
 /// [Generic Associated Types]: https://github.com/rust-lang/rust/issues/44265
-pub trait HasStatement<'q> {
+pub trait HasStatement {
     type Database: Database;
 
     /// The concrete `Statement` implementation for this database.
-    type Statement: Statement<'q, Database = Self::Database>;
+    type Statement: Statement<Database = Self::Database>;
 }
 
 /// A [`Database`] that maintains a client-side cache of prepared statements.

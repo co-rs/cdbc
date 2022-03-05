@@ -73,10 +73,10 @@ impl Executor for MssqlConnection {
         where
             E: Execute<'q, Self::Database>,
     {
-        let sql = query.sql();
+        let sql = query.sql().to_owned();
         let arguments = query.take_arguments();
         chan_stream! {
-            self.run(sql, arguments)?;
+            self.run(&sql, arguments)?;
 
             loop {
                 let message = self.stream.recv_message()?;
@@ -141,11 +141,11 @@ impl Executor for MssqlConnection {
         &mut self,
         sql: &'q str,
         _parameters: &[MssqlTypeInfo],
-    ) -> Result<MssqlStatement<'q>, Error> {
+    ) -> Result<MssqlStatement, Error> {
         let metadata = prepare(self, sql)?;
 
         Ok(MssqlStatement {
-            sql: Cow::Borrowed(sql),
+            sql: sql.to_string(),
             metadata,
         })
     }

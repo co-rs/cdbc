@@ -39,10 +39,10 @@ impl<'q> HasArguments<'q> for Sqlite {
     type ArgumentBuffer = Vec<SqliteArgumentValue<'q>>;
 }
 
-impl<'q> HasStatement<'q> for Sqlite {
+impl HasStatement for Sqlite {
     type Database = Sqlite;
 
-    type Statement = SqliteStatement<'q>;
+    type Statement = SqliteStatement;
 }
 
 impl HasStatementCache for Sqlite {}

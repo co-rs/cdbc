@@ -337,13 +337,12 @@ impl Executor for PgConnection {
     where
         E: Execute<'q, Self::Database>,
     {
-        let sql = query.sql();
         let metadata = query.statement().map(|s| Arc::clone(&s.metadata));
         let arguments = query.take_arguments();
         let persistent = query.persistent();
 
         chan_stream!({
-            let mut s = self.run(sql, arguments, 0, persistent, metadata)?;
+            let mut s = self.run(query.sql(), arguments, 0, persistent, metadata)?;
             while let Some(v) = s.try_next()? {
                 r#yield!(v);
             }
@@ -357,11 +356,10 @@ impl Executor for PgConnection {
     ) ->  Result<Option<PgRow>, Error>
     where E: Execute<'q, Self::Database>,
     {
-        let sql = query.sql();
         let metadata = query.statement().map(|s| Arc::clone(&s.metadata));
         let arguments = query.take_arguments();
         let persistent = query.persistent();
-            let mut s = self.run(sql, arguments, 1, persistent, metadata)?;
+            let mut s = self.run(query.sql(), arguments, 1, persistent, metadata)?;
             while let Some(s) = s.try_next()? {
                 if let Either::Right(r) = s {
                     return Ok(Some(r));
@@ -375,7 +373,7 @@ impl Executor for PgConnection {
         &mut self,
         sql: &'q str,
         parameters: &'q [PgTypeInfo],
-    ) ->  Result<PgStatement<'q>, Error>
+    ) ->  Result<PgStatement, Error>
     where
     {
             self.wait_until_ready()?;
@@ -383,7 +381,7 @@ impl Executor for PgConnection {
             let (_, metadata) = self.get_or_prepare(sql, parameters, true, None)?;
 
             Ok(PgStatement {
-                sql: Cow::Borrowed(sql),
+                sql: sql.to_string(),
                 metadata,
             })
     }
@@ -419,7 +417,7 @@ impl Executor for &mut PgConnection{
         PgConnection::fetch_optional(self,query)
     }
 
-    fn prepare_with<'q>(&mut self, sql: &'q str, parameters: &'q [<Self::Database as Database>::TypeInfo]) -> Result<<Self::Database as HasStatement<'q>>::Statement, Error> {
+    fn prepare_with<'q>(&mut self, sql: &'q str, parameters: &'q [<Self::Database as Database>::TypeInfo]) -> Result<<Self::Database as HasStatement>::Statement, Error> {
         PgConnection::prepare_with(self,sql,parameters)
     }
 
