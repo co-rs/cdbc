@@ -31,25 +31,20 @@ fn main() -> cdbc::Result<()> {
     };
 
     let r = CRUD::insert(&mut pool, arg.clone());
-    println!("insert = {:?}", r);
+    println!("insert => {:?}", r);
 
     //pool.clone() also is support
-    let r = CRUD::<BizActivity>::update(&mut pool.clone(), arg.clone(), "id = 1");
-    println!("insert = {:?}", r);
+    let mut arg1 = arg.clone();
+    arg1.id = None;
+    let r = CRUD::update(&mut pool.clone(), arg1, "id = '2'");
+    println!("CRUD::update => {:?}", r);
 
     let mut conn = pool.acquire().unwrap();
     CRUD::insert(&mut conn, arg.clone());
 
     let mut tx = conn.begin().unwrap();
     let af = CRUD::insert(&mut tx, arg.clone()).unwrap();
-    println!("tx CRUD::insert=> {:?}", af);
-
-
-    let mut up = arg.clone();
-    up.id = None;
-    up.name = Some("joe".to_string());
-    let af = CRUD::update(&mut tx, up, "id = '2'").unwrap();
-    println!("tx CRUD::update=> {}", af);
+    println!("tx CRUD::insert => {:?}", af);
 
     tx.commit().unwrap();
 
