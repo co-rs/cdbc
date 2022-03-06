@@ -34,7 +34,8 @@ fn main() -> cdbc::Result<()> {
     let r = CRUD::insert(&mut pool,arg.clone());
     println!("insert = {:?}", r);
 
-    let r = CRUD::<BizActivity>::update(&mut pool, arg.clone(),"id = 1");
+    //pool.clone() also is support
+    let r = CRUD::<BizActivity>::update( &mut pool.clone(), arg.clone(),"id = 1");
     println!("insert = {:?}", r);
 
     let mut conn= pool.acquire().unwrap();
