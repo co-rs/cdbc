@@ -92,7 +92,7 @@ pub fn macro_derive_scan_pg(input: TokenStream) -> TokenStream {
 
 
 #[proc_macro_attribute]
-pub fn macro_derive_crud(input: TokenStream) -> TokenStream {
+pub fn crud(args: TokenStream, input: TokenStream) -> TokenStream {
     let mut cargo_data = "".to_string();
     let mut f = File::open("Cargo.lock").unwrap();
     f.read_to_string(&mut cargo_data).unwrap();
@@ -100,24 +100,23 @@ pub fn macro_derive_crud(input: TokenStream) -> TokenStream {
     let mut database = vec![];
     for line in cargo_data.lines() {
         if line.trim_start_matches(r#"name = ""#).starts_with("cdbc-mysql") {
-            database.push(quote!(cdbc_mysql::MySqlRow));
+            database.push(vec![quote!(cdbc_mysql::MySqlPool),quote!(cdbc_mysql::MySqlConnection),quote!(cdbc::Transaction::<'_,cdbc_mysql::MySql>)]);
         }
         if line.trim_start_matches(r#"name = ""#).starts_with("cdbc-pg") {
-            database.push(quote!(cdbc_pg::PgRow));
+            database.push(vec![quote!(cdbc_pg::PgPool),quote!(cdbc_pg::PgConnection),quote!(cdbc::Transaction::<'_,cdbc_pg::Postgres>)]);
         }
         if line.trim_start_matches(r#"name = ""#).starts_with("cdbc-sqlite") {
-            database.push(quote!(cdbc_sqlite::SqliteRow));
+            database.push(vec![quote!(cdbc_sqlite::SqlitePool),quote!(cdbc_sqlite::SqliteConnection),quote!(cdbc::Transaction::<'_,cdbc_sqlite::Sqlite>)]);
         }
         if line.trim_start_matches(r#"name = ""#).starts_with("cdbc-mssql") {
-            database.push(quote!(cdbc_mssql::MssqlRow));
+            database.push(vec![quote!(cdbc_mssql::MssqlPool),quote!(cdbc_mssql::MssqlConnection),quote!(cdbc::Transaction::<'_,cdbc_mssql::Mssql>)]);
         }
     }
-    let ast = syn::parse(input).unwrap();
-    let stream = crud::impl_crud(&ast, &database);
+    let stream = crud::impl_crud(input, database);
     #[cfg(feature = "debug_mode")]
     {
-        println!("............gen impl Scan:\n {}", stream);
-        println!("............gen impl Scan end............");
+        println!("............gen crud:\n {}", stream);
+        println!("............gen crud end............");
     }
     stream
 }

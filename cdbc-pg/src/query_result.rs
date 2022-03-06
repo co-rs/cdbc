@@ -9,6 +9,13 @@ impl PgQueryResult {
     pub fn rows_affected(&self) -> u64 {
         self.rows_affected
     }
+
+    /// this un support
+    #[deprecated]
+    pub fn last_insert_id(&self) -> i64{
+        //not allow
+        -1
+    }
 }
 
 impl Extend<PgQueryResult> for PgQueryResult {

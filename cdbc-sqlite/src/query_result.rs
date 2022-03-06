@@ -14,6 +14,9 @@ impl SqliteQueryResult {
     pub fn last_insert_rowid(&self) -> i64 {
         self.last_insert_rowid
     }
+    pub fn last_insert_id(&self) -> i64{
+        self.last_insert_rowid
+    }
 }
 
 impl Extend<SqliteQueryResult> for SqliteQueryResult {
