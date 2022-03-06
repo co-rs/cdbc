@@ -33,7 +33,7 @@ memchr = "2.3.4"
 serde={version = "1.0.130"}
 log = { version = "0.4.8", default-features = false }
 crossbeam-queue = "0.3.1"
-either = {version = "1.5.3",features = ["serde"]}
+either = {version = "1.6",features = ["serde"]}
 bstr = { version = "0.2.14", default-features = false, features = ["std"] }
 native-tls = {version ="0.2",optional = true}
 ahash = "0.7.2"

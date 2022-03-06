@@ -1,35 +1,24 @@
 use crate::Row;
-
-pub trait Table {
-    fn table_name() -> &'static str;
-    fn table_name_snake() -> String;
-    fn table_columns() -> &'static [&'static str];
-}
-
 /// Scan trait must be impl macro
 pub trait Scan<Table> {
     fn scan(self) -> crate::Result<Table>;
 }
 
-// /// Scan trait must be impl macro
-// pub trait Scans<Table> {
-//     fn scan(self) -> crate::Result<Vec<Table>>;
-// }
 
 /// impl scan for table struct
 /// for example:
-/// ```rust
+/// ```no_run
 /// use cdbc::{impl_scan,query};
-/// use cdbc::scan::{Scan,Scans};
+/// use cdbc::scan::Scan;
 /// pub struct BizActivity {
 ///     pub id: Option<String>,
 ///     pub name: Option<String>,
 ///     pub delete_flag: Option<i32>,
 /// }
 /// impl_scan!(SqliteRow,BizActivity{id:None,name:None,delete_flag:None});
-///
-///
-///  let v:Vec<BizActivity > = query!("select * from biz_activity limit 1").fetch_all(pool)?.scan()?;
+/// fn test(pool: cdbc_sqlite::SqlitePool){
+///   let v:Vec<BizActivity > = query!("select * from biz_activity limit 1").fetch_all(pool)?.scan()?;
+/// }
 /// ```
 #[macro_export]
 macro_rules! impl_scan {

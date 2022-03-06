@@ -126,7 +126,7 @@ pub trait Executor: Send + Debug + Sized {
     fn prepare<'q>(
         &mut self,
         query: &'q str,
-    ) -> Result<<Self::Database as HasStatement<'q>>::Statement, Error> {
+    ) -> Result<<Self::Database as HasStatement>::Statement, Error> {
         self.prepare_with(query, &[])
     }
 
@@ -139,7 +139,7 @@ pub trait Executor: Send + Debug + Sized {
         &mut self,
         sql: &'q str,
         parameters: &'q [<Self::Database as Database>::TypeInfo],
-    ) -> Result<<Self::Database as HasStatement<'q>>::Statement, Error>;
+    ) -> Result<<Self::Database as HasStatement>::Statement, Error>;
 
     /// Describe the SQL query and return type information about its parameters
     /// and results.
@@ -163,10 +163,10 @@ pub trait Executor: Send + Debug + Sized {
 ///
 pub trait Execute<'q, DB: Database>: Send + Sized {
     /// Gets the SQL that will be executed.
-    fn sql(&self) -> &'q str;
+    fn sql(&self) -> &str;
 
     /// Gets the previously cached statement, if available.
-    fn statement(&self) -> Option<&<DB as HasStatement<'q>>::Statement>;
+    fn statement(&self) -> Option<&<DB as HasStatement>::Statement>;
 
     /// Returns the arguments to be bound against the query string.
     ///
@@ -188,7 +188,7 @@ impl<'q, DB: Database> Execute<'q, DB> for &'q str {
     }
 
     #[inline]
-    fn statement(&self) -> Option<&<DB as HasStatement<'q>>::Statement> {
+    fn statement(&self) -> Option<&<DB as HasStatement>::Statement> {
         None
     }
 
@@ -210,7 +210,7 @@ impl<'q, DB: Database> Execute<'q, DB> for (&'q str, Option<<DB as HasArguments<
     }
 
     #[inline]
-    fn statement(&self) -> Option<&<DB as HasStatement<'q>>::Statement> {
+    fn statement(&self) -> Option<&<DB as HasStatement>::Statement> {
         None
     }
 

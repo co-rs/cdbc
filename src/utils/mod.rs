@@ -1,6 +1,7 @@
 pub mod statement_cache;
 pub mod ustr;
 pub mod scan;
+pub mod crud;
 
 
 use std::fmt::{Debug, Formatter};

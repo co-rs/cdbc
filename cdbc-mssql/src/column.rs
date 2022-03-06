@@ -39,13 +39,3 @@ impl Column for MssqlColumn {
     }
 }
 
-#[cfg(feature = "any")]
-impl From<MssqlColumn> for crate::any::AnyColumn {
-    #[inline]
-    fn from(column: MssqlColumn) -> Self {
-        crate::any::AnyColumn {
-            type_info: column.type_info.clone().into(),
-            kind: crate::any::column::AnyColumnKind::Mssql(column),
-        }
-    }
-}

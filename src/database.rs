@@ -75,7 +75,7 @@ pub trait Database:
     + Debug
     + for<'r> HasValueRef<'r, Database = Self>
     + for<'q> HasArguments<'q, Database = Self>
-    + for<'q> HasStatement<'q, Database = Self>
+    + for<'q> HasStatement< Database = Self>
 {
     /// The concrete `Connection` implementation for this database.
     type Connection: Connection<Database = Self>;
@@ -98,6 +98,9 @@ pub trait Database:
     /// The concrete type used to hold an owned copy of the not-yet-decoded value that was
     /// received from the database.
     type Value: Value<Database = Self> + 'static;
+
+    ///database placeholder str,for example: mysql,sqlite = '?',pg='$',mssql='p'
+    fn holder()-> &'static str;
 }
 
 /// Associate [`Database`] with a [`ValueRef`](crate::value::ValueRef) of a generic lifetime.
@@ -142,11 +145,11 @@ pub trait HasArguments<'q> {
 /// the need for this trait.
 ///
 /// [Generic Associated Types]: https://github.com/rust-lang/rust/issues/44265
-pub trait HasStatement<'q> {
+pub trait HasStatement {
     type Database: Database;
 
     /// The concrete `Statement` implementation for this database.
-    type Statement: Statement<'q, Database = Self::Database>;
+    type Statement: Statement<Database = Self::Database>;
 }
 
 /// A [`Database`] that maintains a client-side cache of prepared statements.

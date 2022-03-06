@@ -57,4 +57,3 @@ impl_into_arguments_for_arguments!(PgArguments);
 impl_column_index_for_row!(PgRow);
 impl_column_index_for_statement!(PgStatement);
 impl_into_maybe_pool!(Postgres, PgConnection);
-impl_encode_for_option!(Postgres);

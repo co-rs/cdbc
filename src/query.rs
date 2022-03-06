@@ -1,6 +1,7 @@
+use std::borrow::Cow;
 use std::marker::PhantomData;
 
-use either::Either;
+pub use either::Either;
 
 use crate::arguments::{Arguments, IntoArguments};
 use crate::database::{Database, HasArguments, HasStatement, HasStatementCache};
@@ -13,10 +14,11 @@ use crate::types::Type;
 use crate::chan_stream;
 use crate::io::chan_stream::TryStream;
 
+
 /// Raw SQL query with bind parameters. Returned by [`query`][crate::query::query].
 #[must_use = "query must be executed to affect database"]
-pub struct Query<'q, DB: Database, A> {
-    pub statement: Either<&'q str, &'q <DB as HasStatement<'q>>::Statement>,
+pub struct Query<DB: Database, A> {
+    pub statement: Either<String, <DB as HasStatement>::Statement>,
     pub arguments: Option<A>,
     pub database: PhantomData<DB>,
     pub persistent: bool,
@@ -32,25 +34,25 @@ pub struct Query<'q, DB: Database, A> {
 /// before `.try_map()`. This is also to prevent adding superfluous binds to the result of
 /// `query!()` et al.
 #[must_use = "query must be executed to affect database"]
-pub struct Map<'q, DB: Database, F, A> {
-    inner: Query<'q, DB, A>,
+pub struct Map<DB: Database, F, A> {
+    inner: Query<DB, A>,
     mapper: F,
 }
 
-impl<'q, DB, A> Execute<'q, DB> for Query<'q, DB, A>
+impl<'q, DB, A> Execute<'q, DB> for Query<DB, A>
     where
         DB: Database,
         A: Send + IntoArguments<'q, DB>,
 {
     #[inline]
-    fn sql(&self) -> &'q str {
+    fn sql(&self) -> &str {
         match self.statement {
             Either::Right(ref statement) => statement.sql(),
-            Either::Left(sql) => sql,
+            Either::Left(ref sql) => sql,
         }
     }
 
-    fn statement(&self) -> Option<&<DB as HasStatement<'q>>::Statement> {
+    fn statement(&self) -> Option<&<DB as HasStatement>::Statement> {
         match self.statement {
             Either::Right(ref statement) => Some(&statement),
             Either::Left(_) => None,
@@ -68,7 +70,7 @@ impl<'q, DB, A> Execute<'q, DB> for Query<'q, DB, A>
     }
 }
 
-impl<'q, DB: Database> Query<'q, DB, <DB as HasArguments<'q>>::Arguments> {
+impl<'q, DB: Database> Query<DB, <DB as HasArguments<'q>>::Arguments> {
     /// Bind a value for use with this SQL query.
     ///
     /// If the number of times this is called does not match the number of bind parameters that
@@ -84,9 +86,33 @@ impl<'q, DB: Database> Query<'q, DB, <DB as HasArguments<'q>>::Arguments> {
 
         self
     }
+
+    pub fn reset_sql(mut self, sql: String) -> Self {
+        match &mut self.statement {
+            Either::Left(l) => {
+                *l = sql;
+            }
+            Either::Right(r) => {
+                *r.sql_mut() = sql;
+            }
+        }
+        self
+    }
+
+    pub fn push_sql(mut self, sql: &str) -> Self {
+        match &mut self.statement {
+            Either::Left(l) => {
+                l.push_str(sql);
+            }
+            Either::Right(r) => {
+                r.sql_mut().push_str(sql);
+            }
+        }
+        self
+    }
 }
 
-impl<'q, DB, A> Query<'q, DB, A>
+impl<'q, DB, A> Query<DB, A>
     where
         DB: Database + HasStatementCache,
 {
@@ -104,7 +130,7 @@ impl<'q, DB, A> Query<'q, DB, A>
     }
 }
 
-impl<'q, DB, A: Send> Query<'q, DB, A>
+impl<'q, DB, A: Send> Query<DB, A>
     where
         DB: Database,
         A: 'q + IntoArguments<'q, DB>,
@@ -119,7 +145,7 @@ impl<'q, DB, A: Send> Query<'q, DB, A>
     pub fn map<F, O>(
         self,
         mut f: F,
-    ) -> Map<'q, DB, impl FnMut(DB::Row) -> Result<O, Error> + Send, A>
+    ) -> Map<DB, impl FnMut(DB::Row) -> Result<O, Error> + Send, A>
         where
             F: FnMut(DB::Row) -> O + Send,
 
@@ -132,7 +158,7 @@ impl<'q, DB, A: Send> Query<'q, DB, A>
     /// The [`query_as`](super::query_as::query_as) method will construct a mapped query using
     /// a [`FromRow`](super::from_row::FromRow) implementation.
     #[inline]
-    pub fn try_map<F, O>(self, f: F) -> Map<'q, DB, F, A>
+    pub fn try_map<F, O>(self, f: F) -> Map<DB, F, A>
         where
             F: FnMut(DB::Row) -> Result<O, Error> + Send,
 
@@ -207,18 +233,18 @@ impl<'q, DB, A: Send> Query<'q, DB, A>
     }
 }
 
-impl<'q, DB, F: Send, A: Send> Execute<'q, DB> for Map<'q, DB, F, A>
+impl<'q, DB, F: Send, A: Send> Execute<'q, DB> for Map<DB, F, A>
     where
         DB: Database,
         A: IntoArguments<'q, DB>,
 {
     #[inline]
-    fn sql(&self) -> &'q str {
+    fn sql(&self) -> &str {
         self.inner.sql()
     }
 
     #[inline]
-    fn statement(&self) -> Option<&<DB as HasStatement<'q>>::Statement> {
+    fn statement(&self) -> Option<&<DB as HasStatement>::Statement> {
         self.inner.statement()
     }
 
@@ -233,7 +259,7 @@ impl<'q, DB, F: Send, A: Send> Execute<'q, DB> for Map<'q, DB, F, A>
     }
 }
 
-impl<'q, DB, F, O, A> Map<'q, DB, F, A>
+impl<'q, DB, F, O, A> Map<DB, F, A>
     where
         DB: Database,
         F: FnMut(DB::Row) -> Result<O, Error> + Send,
@@ -250,7 +276,7 @@ impl<'q, DB, F, O, A> Map<'q, DB, F, A>
     pub fn map<G, P>(
         self,
         mut g: G,
-    ) -> Map<'q, DB, impl FnMut(DB::Row) -> Result<P, Error> + Send, A>
+    ) -> Map<DB, impl FnMut(DB::Row) -> Result<P, Error> + Send, A>
         where
             G: FnMut(O) -> P + Send,
     {
@@ -265,7 +291,7 @@ impl<'q, DB, F, O, A> Map<'q, DB, F, A>
     pub fn try_map<G, P>(
         self,
         mut g: G,
-    ) -> Map<'q, DB, impl FnMut(DB::Row) -> Result<P, Error> + Send, A>
+    ) -> Map<DB, impl FnMut(DB::Row) -> Result<P, Error> + Send, A>
         where
             G: FnMut(O) -> Result<P, Error> + Send
     {
@@ -364,8 +390,8 @@ impl<'q, DB, F, O, A> Map<'q, DB, F, A>
 
 // Make a SQL query from a statement.
 pub fn query_statement<'q, DB>(
-    statement: &'q <DB as HasStatement<'q>>::Statement,
-) -> Query<'q, DB, <DB as HasArguments<'_>>::Arguments>
+    statement: <DB as HasStatement>::Statement,
+) -> Query<DB, <DB as HasArguments<'q>>::Arguments>
     where
         DB: Database,
 {
@@ -379,9 +405,9 @@ pub fn query_statement<'q, DB>(
 
 // Make a SQL query from a statement, with the given arguments.
 pub fn query_statement_with<'q, DB, A>(
-    statement: &'q <DB as HasStatement<'q>>::Statement,
+    statement: <DB as HasStatement>::Statement,
     arguments: A,
-) -> Query<'q, DB, A>
+) -> Query<DB, A>
     where
         DB: Database,
         A: IntoArguments<'q, DB>,
@@ -395,20 +421,20 @@ pub fn query_statement_with<'q, DB, A>(
 }
 
 /// Make a SQL query.
-pub fn query<DB>(sql: &str) -> Query<'_, DB, <DB as HasArguments<'_>>::Arguments>
+pub fn query<DB>(sql: &str) -> Query<DB, <DB as HasArguments<'_>>::Arguments>
     where
         DB: Database,
 {
     Query {
         database: PhantomData,
         arguments: Some(Default::default()),
-        statement: Either::Left(sql),
+        statement: Either::Left(sql.to_string()),
         persistent: true,
     }
 }
 
 /// Make a SQL query, with the given arguments.
-pub fn query_with<'q, DB, A>(sql: &'q str, arguments: A) -> Query<'q, DB, A>
+pub fn query_with<'q, DB, A>(sql: &str, arguments: A) -> Query<DB, A>
     where
         DB: Database,
         A: IntoArguments<'q, DB>,
@@ -416,7 +442,7 @@ pub fn query_with<'q, DB, A>(sql: &'q str, arguments: A) -> Query<'q, DB, A>
     Query {
         database: PhantomData,
         arguments: Some(arguments),
-        statement: Either::Left(sql),
+        statement: Either::Left(sql.to_string()),
         persistent: true,
     }
 }

@@ -302,7 +302,7 @@ impl<'c> Executor for &'c mut PgListener {
         &mut self,
         query: &'q str,
         parameters: &'q [PgTypeInfo],
-    ) -> Result<PgStatement<'q>, Error>
+    ) -> Result<PgStatement, Error>
     where
     {
         self.connection().prepare_with(query, parameters)

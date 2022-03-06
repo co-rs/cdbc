@@ -9,6 +9,13 @@ impl MssqlQueryResult {
     pub fn rows_affected(&self) -> u64 {
         self.rows_affected
     }
+
+    /// this un support
+    #[deprecated]
+    pub fn last_insert_id(&self) -> i64{
+        //not allow
+        -1
+    }
 }
 
 impl Extend<MssqlQueryResult> for MssqlQueryResult {
@@ -19,12 +26,3 @@ impl Extend<MssqlQueryResult> for MssqlQueryResult {
     }
 }
 
-#[cfg(feature = "any")]
-impl From<MssqlQueryResult> for crate::any::AnyQueryResult {
-    fn from(done: MssqlQueryResult) -> Self {
-        crate::any::AnyQueryResult {
-            rows_affected: done.rows_affected,
-            last_insert_id: None,
-        }
-    }
-}

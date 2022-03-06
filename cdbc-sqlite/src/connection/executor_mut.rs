@@ -37,11 +37,10 @@ impl Executor for SqliteConnection {
         where
             E: Execute<'q, Self::Database>,
     {
-        let sql = query.sql();
         let arguments = query.take_arguments();
         let persistent = query.persistent() && arguments.is_some();
         let s = self.worker
-            .execute(sql, arguments, self.row_channel_size, persistent);
+            .execute(query.sql(), arguments, self.row_channel_size, persistent);
         if s.is_err() {
             let c = ChanStream::new(|sender|
                 Err(s.err().unwrap())
@@ -59,12 +58,11 @@ impl Executor for SqliteConnection {
         where
             E: Execute<'q, Self::Database>,
     {
-        let sql = query.sql();
         let arguments = query.take_arguments();
         let persistent = query.persistent() && arguments.is_some();
         let mut stream = self
             .worker
-            .execute(sql, arguments, self.row_channel_size, persistent)?;
+            .execute(query.sql(), arguments, self.row_channel_size, persistent)?;
         let mut stream = sender_to_stream(stream);
         use crate::cdbc::io::chan_stream::TryStream;
         while let Some(res) = stream.try_next()? {
@@ -79,7 +77,7 @@ impl Executor for SqliteConnection {
         &mut self,
         sql: &'q str,
         _parameters: &[SqliteTypeInfo],
-    ) -> Result<SqliteStatement<'q>, Error>
+    ) -> Result<SqliteStatement, Error>
         where
     {
         let statement = self.worker.prepare(sql)?;

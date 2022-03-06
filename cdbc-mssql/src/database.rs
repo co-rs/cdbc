@@ -22,6 +22,10 @@ impl Database for Mssql {
     type TypeInfo = MssqlTypeInfo;
 
     type Value = MssqlValue;
+
+    fn holder() -> &'static str {
+        "p"
+    }
 }
 
 impl<'r> HasValueRef<'r> for Mssql {
@@ -30,10 +34,10 @@ impl<'r> HasValueRef<'r> for Mssql {
     type ValueRef = MssqlValueRef<'r>;
 }
 
-impl<'q> HasStatement<'q> for Mssql {
+impl HasStatement for Mssql {
     type Database = Mssql;
 
-    type Statement = MssqlStatement<'q>;
+    type Statement = MssqlStatement;
 }
 
 impl HasArguments<'_> for Mssql {

@@ -209,12 +209,11 @@ impl Executor for MySqlConnection {
     ) -> ChanStream<Either<MySqlQueryResult, MySqlRow>>
     where E: Execute<'q, Self::Database>,
     {
-        let sql = query.sql();
         let arguments = query.take_arguments();
         let persistent = query.persistent();
 
         chan_stream! {
-            let mut s = self.run(sql, arguments, persistent)?;
+            let mut s = self.run(query.sql(), arguments, persistent)?;
 
             while let Some(v) = s.try_next()? {
                 r#yield!(v);
@@ -243,12 +242,12 @@ impl Executor for MySqlConnection {
         &mut self,
         sql: &'q str,
         _parameters: &'q [MySqlTypeInfo],
-    ) -> Result<MySqlStatement<'q>, Error>
+    ) -> Result<MySqlStatement, Error>
     {
             self.stream.wait_until_ready()?;
             let (_, metadata) = self.get_or_prepare(sql, true)?;
             Ok(MySqlStatement {
-                sql: Cow::Borrowed(sql),
+                sql: sql.to_string(),
                 // metadata has internal Arcs for expensive data structures
                 metadata: metadata.clone(),
             })
@@ -351,7 +350,7 @@ impl Executor for &mut MySqlConnection{
         MySqlConnection::fetch_optional(self,query)
     }
 
-    fn prepare_with<'q>(&mut self, sql: &'q str, parameters: &'q [<Self::Database as Database>::TypeInfo]) -> Result<<Self::Database as HasStatement<'q>>::Statement, Error> {
+    fn prepare_with<'q>(&mut self, sql: &'q str, parameters: &'q [<Self::Database as Database>::TypeInfo]) -> Result<<Self::Database as HasStatement>::Statement, Error> {
         MySqlConnection::prepare_with(self,sql,parameters)
     }
 

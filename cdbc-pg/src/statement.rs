@@ -10,8 +10,8 @@ use std::borrow::Cow;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
-pub struct PgStatement<'q> {
-    pub(crate) sql: Cow<'q, str>,
+pub struct PgStatement {
+    pub(crate) sql: String,
     pub(crate) metadata: Arc<PgStatementMetadata>,
 }
 
@@ -22,18 +22,22 @@ pub(crate) struct PgStatementMetadata {
     pub(crate) parameters: Vec<PgTypeInfo>,
 }
 
-impl<'q> Statement<'q> for PgStatement<'q> {
+impl Statement for PgStatement {
     type Database = Postgres;
 
-    fn to_owned(&self) -> PgStatement<'static> {
-        PgStatement::<'static> {
-            sql: Cow::Owned(self.sql.clone().into_owned()),
+    fn to_owned(&self) -> PgStatement {
+        PgStatement {
+            sql: self.sql.clone(),
             metadata: self.metadata.clone(),
         }
     }
 
     fn sql(&self) -> &str {
         &self.sql
+    }
+
+    fn sql_mut(&mut self) -> &mut String {
+        &mut self.sql
     }
 
     fn parameters(&self) -> Option<Either<&[PgTypeInfo], usize>> {
@@ -47,8 +51,8 @@ impl<'q> Statement<'q> for PgStatement<'q> {
     impl_statement_query!(PgArguments);
 }
 
-impl ColumnIndex<PgStatement<'_>> for &'_ str {
-    fn index(&self, statement: &PgStatement<'_>) -> Result<usize, Error> {
+impl ColumnIndex<PgStatement> for &'_ str {
+    fn index(&self, statement: &PgStatement) -> Result<usize, Error> {
         statement
             .metadata
             .column_names

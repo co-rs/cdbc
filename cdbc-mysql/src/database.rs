@@ -23,6 +23,10 @@ impl Database for MySql {
     type TypeInfo = MySqlTypeInfo;
 
     type Value = MySqlValue;
+
+    fn holder() -> &'static str {
+        "?"
+    }
 }
 
 impl<'r> HasValueRef<'r> for MySql {
@@ -39,10 +43,10 @@ impl HasArguments<'_> for MySql {
     type ArgumentBuffer = Vec<u8>;
 }
 
-impl<'q> HasStatement<'q> for MySql {
+impl HasStatement for MySql {
     type Database = MySql;
 
-    type Statement = MySqlStatement<'q>;
+    type Statement = MySqlStatement;
 }
 
 impl HasStatementCache for MySql {}

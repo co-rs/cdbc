@@ -59,7 +59,7 @@ impl MiddleWare for MyMiddleWare {
 }
 
 fn main() {
-    //or use  fast_log::init_log();
+    //or use  fast_log::init();
     let mut router = Arc::new(Route::new());
 
     router.add_middleware(MyMiddleWare {

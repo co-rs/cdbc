@@ -52,7 +52,7 @@ where
         &mut self,
         sql: &'q str,
         parameters: &'q [<Self::Database as Database>::TypeInfo],
-    ) ->  Result<<Self::Database as HasStatement<'q>>::Statement, Error> {
+    ) ->  Result<<Self::Database as HasStatement>::Statement, Error> {
         let pool = self.clone();
 
          pool.acquire()?.prepare_with(sql, parameters)
@@ -114,7 +114,7 @@ impl<DB: Database> Executor for Pool<DB>
         &mut self,
         sql: &'q str,
         parameters: &'q [<Self::Database as Database>::TypeInfo],
-    ) ->  Result<<Self::Database as HasStatement<'q>>::Statement, Error> {
+    ) ->  Result<<Self::Database as HasStatement>::Statement, Error> {
         let pool = self.clone();
 
         pool.acquire()?.prepare_with(sql, parameters)

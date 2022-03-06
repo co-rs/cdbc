@@ -24,6 +24,10 @@ impl Database for Postgres {
     type TypeInfo = PgTypeInfo;
 
     type Value = PgValue;
+
+    fn holder() -> &'static str {
+        "$"
+    }
 }
 
 impl<'r> HasValueRef<'r> for Postgres {
@@ -40,10 +44,10 @@ impl HasArguments<'_> for Postgres {
     type ArgumentBuffer = PgArgumentBuffer;
 }
 
-impl<'q> HasStatement<'q> for Postgres {
+impl HasStatement for Postgres {
     type Database = Postgres;
 
-    type Statement = PgStatement<'q>;
+    type Statement = PgStatement;
 }
 
 impl HasStatementCache for Postgres {}

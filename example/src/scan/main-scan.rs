@@ -1,26 +1,64 @@
 use std::fs::File;
-use cdbc::{Executor, query};
-use cdbc_sqlite::SqlitePool;
-use cdbc::Scan;
+use fast_log::config::Config;
+use log::Level;
+use cdbc::{Either, Executor, query};
+use cdbc::connection::Connection;
+use cdbc::crud::{CRUD, Table};
+use cdbc::database::Database;
+use cdbc_sqlite::{Sqlite, SqlitePool};
 use cdbc::scan::Scan;
 
 /// or use this example
 /// #[derive(Debug,cdbc::ScanSqlite,cdbc::ScanMssql,cdbc::ScanMysql,cdbc::ScanPg)]
-#[derive(Debug, cdbc::Scan)]
+#[cdbc::crud]
+#[derive(Debug, Clone)]
 pub struct BizActivity {
     pub id: Option<String>,
     pub name: Option<String>,
+    pub age: Option<i32>,
     pub delete_flag: Option<i32>,
 }
 
 fn main() -> cdbc::Result<()> {
-    let pool = make_sqlite()?;
+    fast_log::init(Config::new().console().level(Level::Trace));
+    let mut pool = make_sqlite()?;
+
+    let arg = BizActivity {
+        id: Some("2".to_string()),
+        name: Some("2".to_string()),
+        age: Some(2),
+        delete_flag: Some(1),
+    };
+
+    let r = CRUD::insert(&mut pool, arg.clone());
+    println!("insert = {:?}", r);
+
+    //pool.clone() also is support
+    let r = CRUD::<BizActivity>::update(&mut pool.clone(), arg.clone(), "id = 1");
+    println!("insert = {:?}", r);
+
+    let mut conn = pool.acquire().unwrap();
+    CRUD::insert(&mut conn, arg.clone());
+
+    let mut tx = conn.begin().unwrap();
+    let af = CRUD::insert(&mut tx, arg.clone()).unwrap();
+    println!("tx CRUD::insert=> {:?}", af);
+
+
+    let mut up = arg.clone();
+    up.id = None;
+    up.name = Some("joe".to_string());
+    let af = CRUD::update(&mut tx, up, "id = '2'").unwrap();
+    println!("tx CRUD::update=> {}", af);
+
+    tx.commit().unwrap();
+
     let data = query!("select * from biz_activity limit 1")
         .fetch_one(pool.clone())
         .scan();
     println!("{:?}", data);
 
-    let data = query!("select * from biz_activity limit 1")
+    let data = query!("select * from biz_activity")
         .fetch_all(pool.clone())
         .scan();
     println!("{:?}", data);

@@ -20,8 +20,8 @@ pub trait Encode<'q, DB: Database> {
     /// Writes the value of `self` into `buf` in the expected format for the database.
     #[must_use]
     fn encode(self, buf: &mut <DB as HasArguments<'q>>::ArgumentBuffer) -> IsNull
-    where
-        Self: Sized,
+        where
+            Self: Sized,
     {
         self.encode_by_ref(buf)
     }
@@ -46,8 +46,8 @@ pub trait Encode<'q, DB: Database> {
 }
 
 impl<'q, T, DB: Database> Encode<'q, DB> for &'_ T
-where
-    T: Encode<'q, DB>,
+    where
+        T: Encode<'q, DB>,
 {
     #[inline]
     fn encode(self, buf: &mut <DB as HasArguments<'q>>::ArgumentBuffer) -> IsNull {
@@ -69,51 +69,92 @@ where
         (**self).size_hint()
     }
 }
-#[macro_export]
-#[allow(unused_macros)]
-macro_rules! impl_encode_for_option {
-    ($DB:ident) => {
-        impl<'q, T> cdbc::encode::Encode<'q, $DB> for Option<T>
-        where
-            T: cdbc::encode::Encode<'q, $DB> + cdbc::types::Type<$DB> + 'q,
-        {
-            #[inline]
-            fn produces(&self) -> Option<<$DB as cdbc::database::Database>::TypeInfo> {
-                if let Some(v) = self {
-                    v.produces()
-                } else {
-                    T::type_info().into()
-                }
-            }
 
-            #[inline]
-            fn encode(
-                self,
-                buf: &mut <$DB as cdbc::database::HasArguments<'q>>::ArgumentBuffer,
-            ) -> cdbc::encode::IsNull {
-                if let Some(v) = self {
-                    v.encode(buf)
-                } else {
-                    cdbc::encode::IsNull::Yes
-                }
-            }
+// #[macro_export]
+// #[allow(unused_macros)]
+// macro_rules! impl_encode_for_option {
+//     ($DB:ident) => {
+//         impl<'q, T> cdbc::encode::Encode<'q, $DB> for Option<T>
+//         where
+//             T: cdbc::encode::Encode<'q, $DB> + cdbc::types::Type<$DB> + 'q,
+//         {
+//             #[inline]
+//             fn produces(&self) -> Option<<$DB as cdbc::database::Database>::TypeInfo> {
+//                 if let Some(v) = self {
+//                     v.produces()
+//                 } else {
+//                     T::type_info().into()
+//                 }
+//             }
+//
+//             #[inline]
+//             fn encode(
+//                 self,
+//                 buf: &mut <$DB as cdbc::database::HasArguments<'q>>::ArgumentBuffer,
+//             ) -> cdbc::encode::IsNull {
+//                 if let Some(v) = self {
+//                     v.encode(buf)
+//                 } else {
+//                     cdbc::encode::IsNull::Yes
+//                 }
+//             }
+//
+//             #[inline]
+//             fn encode_by_ref(
+//                 &self,
+//                 buf: &mut <$DB as cdbc::database::HasArguments<'q>>::ArgumentBuffer,
+//             ) -> cdbc::encode::IsNull {
+//                 if let Some(v) = self {
+//                     v.encode_by_ref(buf)
+//                 } else {
+//                     cdbc::encode::IsNull::Yes
+//                 }
+//             }
+//
+//             #[inline]
+//             fn size_hint(&self) -> usize {
+//                 self.as_ref().map_or(0, cdbc::encode::Encode::size_hint)
+//             }
+//         }
+//     };
+// }
 
-            #[inline]
-            fn encode_by_ref(
-                &self,
-                buf: &mut <$DB as cdbc::database::HasArguments<'q>>::ArgumentBuffer,
-            ) -> cdbc::encode::IsNull {
-                if let Some(v) = self {
-                    v.encode_by_ref(buf)
-                } else {
-                    cdbc::encode::IsNull::Yes
-                }
-            }
-
-            #[inline]
-            fn size_hint(&self) -> usize {
-                self.as_ref().map_or(0, cdbc::encode::Encode::size_hint)
-            }
+impl<'q, DB: Database, T> Encode<'q, DB> for Option<T>
+    where
+        T: crate::encode::Encode<'q, DB> + crate::types::Type<DB> + 'q,{
+    #[inline]
+    fn produces(&self) -> Option<<DB as crate::database::Database>::TypeInfo> {
+        if let Some(v) = self {
+            v.produces()
+        } else {
+            T::type_info().into()
         }
-    };
+    }
+
+    #[inline]
+    fn encode(
+        self,
+        buf: &mut <DB as crate::database::HasArguments<'q>>::ArgumentBuffer,
+    ) -> crate::encode::IsNull {
+        if let Some(v) = self {
+            v.encode(buf)
+        } else {
+            crate::encode::IsNull::Yes
+        }
+    }
+
+    #[inline]
+    fn encode_by_ref(&self, buf: &mut <DB as HasArguments<'q>>::ArgumentBuffer) -> IsNull {
+        if let Some(v) = self {
+            v.encode_by_ref(buf)
+        } else {
+            crate::encode::IsNull::Yes
+        }
+    }
+    #[inline]
+    fn size_hint(&self) -> usize {
+        self.as_ref().map_or(0, crate::encode::Encode::size_hint)
+    }
 }
+
+
