@@ -22,7 +22,7 @@ pub struct BizActivity {
 
 fn main() -> cdbc::Result<()> {
     fast_log::init(Config::new().console().level(Level::Trace));
-    let pool = make_sqlite()?;
+    let mut pool = make_sqlite()?;
 
     let arg = BizActivity {
         id: Some("2".to_string()),
@@ -31,17 +31,17 @@ fn main() -> cdbc::Result<()> {
         delete_flag: Some(1),
     };
 
-    let r = pool.clone().insert(arg.clone());
+    let r = CRUD::insert(&mut pool,arg.clone());
     println!("insert = {:?}", r);
 
-    let r = pool.clone().update(arg.clone(), "id = 1");
+    let r = CRUD::<BizActivity>::update(&mut pool, arg.clone(),"id = 1");
     println!("insert = {:?}", r);
 
     let mut conn= pool.acquire().unwrap();
-    conn.insert(arg.clone());
+    CRUD::insert(&mut conn,arg.clone());
 
     let mut tx= conn.begin().unwrap();
-    tx.insert(arg.clone());
+    CRUD::insert(&mut tx,arg.clone());
 
     let data = query!("select * from biz_activity limit 1")
         .fetch_one(pool.clone())

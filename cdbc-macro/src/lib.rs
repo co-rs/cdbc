@@ -100,16 +100,28 @@ pub fn crud(args: TokenStream, input: TokenStream) -> TokenStream {
     let mut database = vec![];
     for line in cargo_data.lines() {
         if line.trim_start_matches(r#"name = ""#).starts_with("cdbc-mysql") {
-            database.push(vec![quote!(cdbc_mysql::MySqlPool),quote!(cdbc_mysql::MySqlConnection),quote!(cdbc::Transaction::<'_,cdbc_mysql::MySql>)]);
+            database.push(vec![quote!(cdbc::Pool<cdbc_mysql::MySql>),
+                               quote!(cdbc_mysql::MySqlConnection),
+                               quote!(cdbc::Transaction::<'_,cdbc_mysql::MySql>),
+                               quote!(cdbc::PoolConnection::<cdbc_mysql::MySql>)]);
         }
         if line.trim_start_matches(r#"name = ""#).starts_with("cdbc-pg") {
-            database.push(vec![quote!(cdbc_pg::PgPool),quote!(cdbc_pg::PgConnection),quote!(cdbc::Transaction::<'_,cdbc_pg::Postgres>)]);
+            database.push(vec![quote!(cdbc::Pool<cdbc_pg::Postgres>),
+                               quote!(cdbc_pg::PgConnection),
+                               quote!(cdbc::Transaction::<'_,cdbc_pg::Postgres>),
+                               quote!(cdbc::PoolConnection::<cdbc_pg::Postgres>)]);
         }
         if line.trim_start_matches(r#"name = ""#).starts_with("cdbc-sqlite") {
-            database.push(vec![quote!(cdbc_sqlite::SqlitePool),quote!(cdbc_sqlite::SqliteConnection),quote!(cdbc::Transaction::<'_,cdbc_sqlite::Sqlite>)]);
+            database.push(vec![quote!(cdbc::Pool<cdbc_sqlite::Sqlite>),
+                               quote!(cdbc_sqlite::SqliteConnection),
+                               quote!(cdbc::Transaction::<'_,cdbc_sqlite::Sqlite>),
+                               quote!(cdbc::PoolConnection::<cdbc_sqlite::Sqlite>)]);
         }
         if line.trim_start_matches(r#"name = ""#).starts_with("cdbc-mssql") {
-            database.push(vec![quote!(cdbc_mssql::MssqlPool),quote!(cdbc_mssql::MssqlConnection),quote!(cdbc::Transaction::<'_,cdbc_mssql::Mssql>)]);
+            database.push(vec![quote!(cdbc::Pool<cdbc_mssql::Mssql>),
+                               quote!(cdbc_mssql::MssqlConnection),
+                               quote!(cdbc::Transaction::<'_,cdbc_mssql::Mssql>),
+                               quote!(cdbc::PoolConnection::<cdbc_mssql::Mssql>)]);
         }
     }
     let stream = crud::impl_crud(input, database);
