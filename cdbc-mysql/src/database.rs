@@ -23,6 +23,10 @@ impl Database for MySql {
     type TypeInfo = MySqlTypeInfo;
 
     type Value = MySqlValue;
+
+    fn holder() -> &'static str {
+        "?"
+    }
 }
 
 impl<'r> HasValueRef<'r> for MySql {

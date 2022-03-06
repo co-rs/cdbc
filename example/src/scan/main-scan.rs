@@ -3,7 +3,7 @@ use fast_log::config::Config;
 use log::Level;
 use cdbc::{Either, Executor, query};
 use cdbc::connection::Connection;
-use cdbc::crud::{CRUD, Table};
+use cdbc::crud::{CRUD, Table, Wrapper};
 use cdbc::database::Database;
 use cdbc_sqlite::{Sqlite, SqlitePool};
 use cdbc::scan::Scan;

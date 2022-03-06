@@ -23,6 +23,10 @@ impl Database for Sqlite {
     type TypeInfo = SqliteTypeInfo;
 
     type Value = SqliteValue;
+
+    fn holder() -> &'static str {
+        "?"
+    }
 }
 
 impl<'r> HasValueRef<'r> for Sqlite {

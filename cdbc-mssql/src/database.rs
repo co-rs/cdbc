@@ -22,6 +22,10 @@ impl Database for Mssql {
     type TypeInfo = MssqlTypeInfo;
 
     type Value = MssqlValue;
+
+    fn holder() -> &'static str {
+        "p"
+    }
 }
 
 impl<'r> HasValueRef<'r> for Mssql {

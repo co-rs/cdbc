@@ -24,6 +24,10 @@ impl Database for Postgres {
     type TypeInfo = PgTypeInfo;
 
     type Value = PgValue;
+
+    fn holder() -> &'static str {
+        "$"
+    }
 }
 
 impl<'r> HasValueRef<'r> for Postgres {
