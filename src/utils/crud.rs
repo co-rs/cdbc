@@ -66,21 +66,3 @@ pub trait CRUD<T: Table> {
     fn finds(&mut self, r#where: &str) -> Result<Vec<T>> where T: Sized;
     fn delete(&mut self, r#where: &str) -> Result<u64> where;
 }
-
-pub struct Wrapper<DB: Database, A> {
-    pub sql:String,
-    pub arguments: Option<A>,
-    pub p:PhantomData<DB>,
-}
-
-impl<'q, DB: Database> Wrapper<DB, <DB as HasArguments<'q>>::Arguments> {
-    pub fn cmp<V>(mut self, column: &str, cmp: &str, v: V) -> Self where V: 'q + Send + Encode<'q, DB> + Type<DB> {
-        self.sql.push_str(column);
-        self.sql.push_str(cmp);
-        self.sql.push_str(DB::holder());
-        if let Some(arguments) = &mut self.arguments {
-            arguments.add(v);
-        }
-        self
-    }
-}
