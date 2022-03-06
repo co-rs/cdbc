@@ -1,6 +1,6 @@
 [package]
 name = "cdbc-macro"
-version = "0.1.3"
+version = "0.1.22"
 edition = "2021"
 authors = ["zhuxiujia@qq.com"]
 description = "Rust Coroutine Database Driver Connectivity"
