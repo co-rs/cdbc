@@ -5,7 +5,7 @@ use syn::DeriveInput;
 
 pub(crate) fn impl_crud(input: crate::proc_macro::TokenStream, db_type: Vec<Vec<TokenStream>>) -> crate::proc_macro::TokenStream {
     let driver_token = gen_driver_token(input.to_string());
-    let ast:DeriveInput = syn::parse(input).unwrap();
+    let ast: DeriveInput = syn::parse(input).unwrap();
     let name = &ast.ident;
     let field_idents = gen_fields(&ast.data);
     let table_name = to_snake_name(&name.to_string());
@@ -25,11 +25,11 @@ pub(crate) fn impl_crud(input: crate::proc_macro::TokenStream, db_type: Vec<Vec<
     };
     for types in db_type {
         for t in types {
-            let mut crud = do_impl_curd(name, &t);
-            stream = quote!{#stream #crud};
+            let mut crud = do_impl_curd(name, &t, &field_idents);
+            stream = quote! {#stream #crud};
         }
     }
-   stream.into()
+    stream.into()
 }
 
 fn to_snake_name(name: &str) -> String {
@@ -51,7 +51,7 @@ fn to_snake_name(name: &str) -> String {
     return new_name;
 }
 
-fn gen_columns(fields:&Vec<Ident>)-> TokenStream{
+fn gen_columns(fields: &Vec<Ident>) -> TokenStream {
     let mut s = quote! {};
     for x in fields {
         s = quote! { #s stringify!(#x),}
@@ -60,7 +60,7 @@ fn gen_columns(fields:&Vec<Ident>)-> TokenStream{
 }
 
 fn gen_fields(data: &syn::Data) -> Vec<Ident> {
-    let mut fields:Vec<Ident> = vec![];
+    let mut fields: Vec<Ident> = vec![];
     match &data {
         syn::Data::Struct(s) => {
             for field in &s.fields {
@@ -80,10 +80,10 @@ fn gen_fields(data: &syn::Data) -> Vec<Ident> {
 }
 
 fn gen_driver_token(mut token_string: String) -> proc_macro2::TokenStream {
-    if token_string.contains("#[derive("){
-        token_string = (&token_string[token_string.find("#[derive(").unwrap()as usize..token_string.len()]).to_string();
+    if token_string.contains("#[derive(") {
+        token_string = (&token_string[token_string.find("#[derive(").unwrap() as usize..token_string.len()]).to_string();
     }
-    let have_ser_driver_macro = token_string.contains("cdbc::Scan)") ||  token_string.contains("cdbc::Scan,");
+    let have_ser_driver_macro = token_string.contains("cdbc::Scan)") || token_string.contains("cdbc::Scan,");
     let driver_token;
     if have_ser_driver_macro {
         driver_token = quote! {}
@@ -97,8 +97,36 @@ fn gen_driver_token(mut token_string: String) -> proc_macro2::TokenStream {
 
 ///t:cdbc_sqlite::SqlitePool
 /// name:table
-fn do_impl_curd(name:&Ident,t: &TokenStream) -> TokenStream{
-    let mut data = quote! (
+fn do_impl_curd(name: &Ident, t: &TokenStream, fields: &Vec<Ident>) -> TokenStream {
+    let mut log_format="arg=> ".to_string();
+    let mut log_info = quote!{};
+    let mut bind_arg = quote!{};
+    let mut bind_arg_if_some = quote!{};
+    let mut idx=0;
+    for item in fields{
+        if idx==0{
+            bind_arg = quote!{q=q};
+        }
+        log_info=quote!{#log_info arg.#item,};
+        log_format.push_str("{:?},");
+        bind_arg=quote!{#bind_arg.bind(arg.#item)};
+
+        let item_name = item.to_string();
+        bind_arg_if_some = quote!{
+                #bind_arg_if_some
+                if arg.#item.is_some() {
+                    sets.push_str(#item_name);
+                    sets.push_str(" = ");
+                    sets.push_str(&#name::p("?", &mut arg_idx));
+                    sets.push_str(",");
+                    q = q.bind(arg.#item);
+                }
+        };
+
+        idx+=1;
+    }
+
+    let mut data = quote!(
       impl cdbc::crud::CRUD<#name> for #t {
         fn inserts(&mut self, arg: Vec<#name>) -> cdbc::Result<(String,u64)> where #name: Sized {
             use cdbc::{Either, Executor, query};
@@ -121,11 +149,8 @@ fn do_impl_curd(name:&Ident,t: &TokenStream) -> TokenStream{
             log::info!("sql=> {}",sql);
             let mut q = query(sql.as_str());
             for arg in arg {
-                log::info!("arg=> {:?},{:?},{:?},{:?}",arg.id,arg.name,arg.age,arg.delete_flag);
-                q = q.bind(arg.id)
-                    .bind(arg.name)
-                    .bind(arg.age)
-                    .bind(arg.delete_flag);
+                log::info!(#log_format,#log_info);
+                #bind_arg;
             }
             self.execute(q).map(|r| {
                 (r.last_insert_id().to_string(),r.rows_affected())
@@ -141,30 +166,7 @@ fn do_impl_curd(name:&Ident,t: &TokenStream) -> TokenStream{
                 let mut arg_idx = 1;
                 let mut sets = String::new();
 
-                if arg.id.is_some() {
-                    sets.push_str("id = ");
-                    sets.push_str(&#name::p("?", &mut arg_idx));
-                    sets.push_str(",");
-                    q = q.bind(arg.id);
-                }
-                if arg.name.is_some() {
-                    sets.push_str("name = ");
-                    sets.push_str(&#name::p("?", &mut arg_idx));
-                    sets.push_str(",");
-                    q = q.bind(arg.name);
-                }
-                if arg.age.is_some() {
-                    sets.push_str("age = ");
-                    sets.push_str(&#name::p("?", &mut arg_idx));
-                    sets.push_str(",");
-                    q = q.bind(arg.age);
-                }
-                if arg.delete_flag.is_some() {
-                    sets.push_str("delete_flag = ");
-                    sets.push_str(&#name::p("?", &mut arg_idx));
-                    sets.push_str(",");
-                    q = q.bind(arg.delete_flag);
-                }
+                #bind_arg_if_some
                 if sets.ends_with(",") {
                     sets.pop();
                 }

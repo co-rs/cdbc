@@ -3,14 +3,13 @@ use fast_log::config::Config;
 use log::Level;
 use cdbc::{Either, Executor, query};
 use cdbc::connection::Connection;
-use cdbc::crud::{CRUD, Table, Wrapper};
+use cdbc::crud::{CRUD, Table};
 use cdbc::database::Database;
 use cdbc_sqlite::{Sqlite, SqlitePool};
 use cdbc::scan::Scan;
 
 /// or use this example
 /// #[derive(Debug,cdbc::ScanSqlite,cdbc::ScanMssql,cdbc::ScanMysql,cdbc::ScanPg)]
-
 #[cdbc::crud]
 #[derive(Debug, Clone)]
 pub struct BizActivity {
@@ -31,18 +30,28 @@ fn main() -> cdbc::Result<()> {
         delete_flag: Some(1),
     };
 
-    let r = CRUD::insert(&mut pool,arg.clone());
+    let r = CRUD::insert(&mut pool, arg.clone());
     println!("insert = {:?}", r);
 
     //pool.clone() also is support
-    let r = CRUD::<BizActivity>::update( &mut pool.clone(), arg.clone(),"id = 1");
+    let r = CRUD::<BizActivity>::update(&mut pool.clone(), arg.clone(), "id = 1");
     println!("insert = {:?}", r);
 
-    let mut conn= pool.acquire().unwrap();
-    CRUD::insert(&mut conn,arg.clone());
+    let mut conn = pool.acquire().unwrap();
+    CRUD::insert(&mut conn, arg.clone());
 
-    let mut tx= conn.begin().unwrap();
-    CRUD::insert(&mut tx,arg.clone());
+    let mut tx = conn.begin().unwrap();
+    let af = CRUD::insert(&mut tx, arg.clone()).unwrap();
+    println!("tx CRUD::insert=> {:?}", af);
+
+
+    let mut up = arg.clone();
+    up.id = None;
+    up.name = Some("joe".to_string());
+    let af = CRUD::update(&mut tx, up, "id = '2'").unwrap();
+    println!("tx CRUD::update=> {}", af);
+
+    tx.commit().unwrap();
 
     let data = query!("select * from biz_activity limit 1")
         .fetch_one(pool.clone())
