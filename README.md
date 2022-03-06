@@ -68,6 +68,48 @@ cdbc-pg = {version = "0.1"}
 cdbc-sqlite = {version = "0.1"}
 ```
 
+* CRUD
+```rust
+#[cdbc::crud]
+#[derive(Debug, Clone)]
+pub struct BizActivity {
+    pub id: Option<String>,
+    pub name: Option<String>,
+    pub age: Option<i32>,
+    pub delete_flag: Option<i32>,
+}
+fn main() -> cdbc::Result<()> {
+    let pool = make_sqlite()?;
+    let arg = BizActivity {
+        id: Some("2".to_string()),
+        name: Some("2".to_string()),
+        age: Some(2),
+        delete_flag: Some(1),
+    };
+    CRUD::insert(&mut pool,arg.clone());
+    let v:BizActivity = CRUD::find(&mut tx,"id = 1")?;
+    CRUD::update( &mut pool.clone(), arg.clone(),"id = 1");
+    CRUD::delete(&mut pool.clone(),"id = 1");
+}
+
+fn make_sqlite() -> cdbc::Result<SqlitePool> {
+    //first. create sqlite dir/file
+    std::fs::create_dir_all("target/db/");
+    File::create("target/db/sqlite.db");
+    //next create table and query result
+    let pool = SqlitePool::connect("sqlite://target/db/sqlite.db")?;
+    let mut conn = pool.acquire()?;
+    conn.execute("CREATE TABLE biz_activity(  id string, name string,age int, delete_flag int) ");
+    conn.execute("INSERT INTO biz_activity (id,name,age,delete_flag) values (\"1\",\"1\",1,0)");
+    Ok(pool)
+}
+```
+
+
+
+
+
+
 * impl scan macro
 ```rust
  use cdbc::{impl_scan};
