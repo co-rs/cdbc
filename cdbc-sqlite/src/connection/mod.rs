@@ -9,11 +9,8 @@ use std::cmp::Ordering;
 use std::fmt::{self, Debug, Formatter};
 use std::ptr::NonNull;
 use mco::std::sync::MutexGuard;
-use either::Either;
 use cdbc::database::{Database, HasStatement};
 use cdbc::{Execute, Executor};
-use cdbc::describe::Describe;
-use cdbc::io::chan_stream::ChanStream;
 use cdbc::utils::statement_cache::StatementCache;
 
 pub mod collation;
